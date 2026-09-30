@@ -7,6 +7,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Arr;
 
 class UsersTable
 {
@@ -27,7 +28,7 @@ class UsersTable
             ->defaultSort('id', 'desc')
             ->filters([
                 SelectFilter::make('preferred_locale')
-                    ->options(fn () => collect(config('locales.supported'))->map(fn (array $locale) => $locale['name'])),
+                    ->options(fn () => Arr::pluck(config('locales.supported'), 'name')),
             ])
             ->recordActions([
                 ViewAction::make(),

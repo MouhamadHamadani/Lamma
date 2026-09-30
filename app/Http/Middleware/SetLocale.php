@@ -17,7 +17,7 @@ class SetLocale
 
         $locale = collect([
             $request->session()->get('locale'),
-            $request->user()?->preferred_locale,
+            $request->user('web')?->preferred_locale,
             ...$this->browserLocales($request),
         ])->first(fn ($candidate) => in_array($candidate, $supported, true))
             ?? config('app.locale');
@@ -30,6 +30,6 @@ class SetLocale
     /** @return list<string> Accept-Language codes in preference order, reduced to 2 letters ("en-US" → "en"). */
     private function browserLocales(Request $request): array
     {
-        return array_map(fn (string $language) => strtolower(substr($language, 0, 2)), $request->getLanguages());
+        return array_values(array_map(fn (string $language) => strtolower(substr($language, 0, 2)), $request->getLanguages()));
     }
 }

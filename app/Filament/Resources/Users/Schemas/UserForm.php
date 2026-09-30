@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Users\Schemas;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Arr;
 
 class UserForm
 {
@@ -22,7 +23,7 @@ class UserForm
                     ->maxLength(255)
                     ->unique(ignoreRecord: true),
                 Select::make('preferred_locale')
-                    ->options(fn () => collect(config('locales.supported'))->map(fn (array $locale) => $locale['name']))
+                    ->options(fn () => Arr::pluck(config('locales.supported'), 'name'))
                     ->required(),
             ]);
     }

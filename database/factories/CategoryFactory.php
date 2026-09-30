@@ -16,7 +16,7 @@ class CategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $en = fake()->unique()->words(2, true);
+        $en = fake()->unique()->word().' '.fake()->word();
 
         return [
             'name' => ['ar' => 'فئة '.fake()->unique()->numberBetween(1, 99999), 'en' => ucfirst($en)],

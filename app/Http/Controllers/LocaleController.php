@@ -12,7 +12,7 @@ class LocaleController extends Controller
         abort_unless(array_key_exists($locale, config('locales.supported')), 404);
 
         $request->session()->put('locale', $locale);
-        $request->user()?->update(['preferred_locale' => $locale]);
+        $request->user('web')?->update(['preferred_locale' => $locale]);
 
         return back();
     }

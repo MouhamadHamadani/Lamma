@@ -61,6 +61,7 @@ class Question extends Model
         return $this->hasOne(QuestionOption::class)->where('is_correct', true);
     }
 
+    /** @param Builder<Question> $query */
     public function scopeActive(Builder $query): void
     {
         $query->where('is_active', true);
@@ -70,6 +71,7 @@ class Question extends Model
      * Playable in every given locale: the question text and every option text
      * is non-empty in each locale, and there is at least one option.
      *
+     * @param  Builder<Question>  $query
      * @param  list<string>  $locales
      */
     public function scopeTranslatedIn(Builder $query, array $locales): void

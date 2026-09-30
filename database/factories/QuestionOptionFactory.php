@@ -20,7 +20,7 @@ class QuestionOptionFactory extends Factory
             'question_id' => Question::factory(),
             'text' => [
                 'ar' => 'خيار '.fake()->numberBetween(1, 99999),
-                'en' => ucfirst(fake()->words(2, true)),
+                'en' => ucfirst(fake()->word().' '.fake()->word()),
             ],
             'is_correct' => false,
             'sort_order' => 0,

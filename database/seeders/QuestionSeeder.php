@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\Difficulty;
 use App\Models\Category;
-use App\Models\Question;
 use Illuminate\Database\Seeder;
 
 class QuestionSeeder extends Seeder

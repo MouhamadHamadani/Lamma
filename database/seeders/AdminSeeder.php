@@ -13,7 +13,7 @@ class AdminSeeder extends Seeder
         $password = config('admin.password');
 
         if (! $email || ! $password) {
-            $this->command?->warn('ADMIN_EMAIL / ADMIN_PASSWORD not set in .env; skipping admin.');
+            $this->command->warn('ADMIN_EMAIL / ADMIN_PASSWORD not set in .env; skipping admin.');
 
             return;
         }

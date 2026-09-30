@@ -29,7 +29,7 @@ class QuestionForm
                 Section::make('Question')->schema([
                     Select::make('category_id')
                         ->label('Category')
-                        ->relationship('category', 'name', fn (Builder $query) => $query->ordered())
+                        ->relationship('category', 'name', fn (Builder $query) => $query->orderBy('sort_order')->orderBy('id'))
                         ->preload()
                         ->searchable()
                         ->required(),
@@ -88,7 +88,7 @@ class QuestionForm
                             ->maxItems(self::MAX_OPTIONS)
                             ->defaultItems(self::MIN_OPTIONS)
                             ->addActionLabel('Add option')
-                            ->rule(static::exactlyOneCorrect()),
+                            ->rule(fn (): Closure => static::exactlyOneCorrect()),
                     ]),
             ]);
     }
@@ -97,7 +97,7 @@ class QuestionForm
     public static function exactlyOneCorrect(): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail): void {
-            $correct = collect($value)->filter(fn ($option) => ! empty($option['is_correct']))->count();
+            $correct = count(array_filter((array) $value, fn ($option) => ! empty($option['is_correct'])));
 
             if ($correct !== 1) {
                 $fail(__('Mark exactly one option as correct.'));

@@ -37,7 +37,7 @@ final class RoomSettings implements Arrayable, Castable
         $defaults = new self;
 
         return new self(
-            categoryIds: array_map('intval', $data['category_ids'] ?? $defaults->categoryIds),
+            categoryIds: array_values(array_map('intval', $data['category_ids'] ?? $defaults->categoryIds)),
             questionCount: (int) ($data['question_count'] ?? $defaults->questionCount),
             secondsPerQuestion: (int) ($data['seconds_per_question'] ?? $defaults->secondsPerQuestion),
             difficulty: Difficulty::tryFrom((string) ($data['difficulty'] ?? '')),
@@ -59,6 +59,7 @@ final class RoomSettings implements Arrayable, Castable
         ];
     }
 
+    /** @return CastsAttributes<RoomSettings, RoomSettings|array<string, mixed>> */
     public static function castUsing(array $arguments): CastsAttributes
     {
         return new class implements CastsAttributes
@@ -76,7 +77,7 @@ final class RoomSettings implements Arrayable, Castable
                     default => new RoomSettings,
                 };
 
-                return json_encode($settings->toArray());
+                return json_encode($settings->toArray(), JSON_THROW_ON_ERROR);
             }
         };
     }

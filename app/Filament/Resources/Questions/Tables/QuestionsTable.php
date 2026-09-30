@@ -53,7 +53,7 @@ class QuestionsTable
             ->defaultSort('id', 'desc')
             ->filters([
                 SelectFilter::make('category')
-                    ->relationship('category', 'name', fn (Builder $query) => $query->ordered())
+                    ->relationship('category', 'name', fn (Builder $query) => $query->orderBy('sort_order')->orderBy('id'))
                     ->preload(),
                 SelectFilter::make('difficulty')
                     ->options(Difficulty::class),
