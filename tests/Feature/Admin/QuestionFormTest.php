@@ -2,6 +2,7 @@
 
 use App\Enums\Difficulty;
 use App\Filament\Resources\Questions\Pages\CreateQuestion;
+use App\Filament\Resources\Questions\Pages\EditQuestion;
 use App\Filament\Resources\Questions\Pages\ListQuestions;
 use App\Models\Admin;
 use App\Models\Category;
@@ -101,4 +102,18 @@ it('filters the list down to questions missing a translation', function () {
         ->filterTable('missing_translation', true)
         ->assertCanSeeTableRecords([$missing])
         ->assertCanNotSeeTableRecords([$complete]);
+});
+
+it('loads both languages when editing and drops a cleared translation on save', function () {
+    $question = Question::factory()->withOptions()->create();
+    $arabic = $question->getTranslation('text', 'ar');
+
+    Livewire::test(EditQuestion::class, ['record' => $question->getRouteKey()])
+        ->assertFormSet(['text.ar' => $arabic, 'text.en' => $question->getTranslation('text', 'en')])
+        ->fillForm(['text' => ['ar' => $arabic, 'en' => '']])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($question->fresh()->getTranslations('text'))->toBe(['ar' => $arabic])
+        ->and($question->options()->count())->toBe(4);
 });
