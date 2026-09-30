@@ -163,7 +163,7 @@ return [
     'features' => [
         Features::registration(),
         Features::resetPasswords(),
-        Features::emailVerification(),
+        // Features::emailVerification(), // off for now (also re-add MustVerifyEmail on User)
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
