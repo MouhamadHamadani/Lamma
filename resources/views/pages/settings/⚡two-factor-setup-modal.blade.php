@@ -194,13 +194,13 @@ new class extends Component {
                             name="code"
                             wire:model="code"
                             length="6"
-                            label="OTP Code"
+                            :label="__('OTP Code')" dir="ltr"
                             label:sr-only
                             class="mx-auto"
                         />
                     </div>
 
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3 rtl:space-x-reverse">
                         <flux:button
                             variant="outline"
                             class="flex-1"
@@ -263,7 +263,7 @@ new class extends Component {
                     </div>
 
                     <div
-                        class="flex items-center space-x-2"
+                        class="flex items-center space-x-2 rtl:space-x-reverse"
                         x-data="{
                             copied: false,
                             async copy() {
@@ -292,7 +292,7 @@ new class extends Component {
 
                                 <button
                                     @click="copy()"
-                                    class="px-3 transition-colors border-l cursor-pointer border-stone-200 dark:border-stone-600"
+                                    class="px-3 transition-colors border-s cursor-pointer border-stone-200 dark:border-stone-600"
                                 >
                                     <flux:icon.document-duplicate x-show="!copied" variant="outline"></flux:icon>
                                     <flux:icon.check
