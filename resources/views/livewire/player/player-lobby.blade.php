@@ -1,19 +1,17 @@
-{{-- Reference: docs/design/screens/player-2-lobby.html. Designed at 390x844; a phone-width column on bigger screens. Live. --}}
 @use('App\Enums\RoomStatus')
+{{-- Reference: docs/design/screens/player-2-lobby.html. Designed at 390x844; a phone-width column on bigger screens. Live. --}}
+<div>
+@if ($inGame)
+    {{-- The game: its own component (PlayerGame) owns the whole screen. --}}
+    <livewire:player.player-game :room="$room" :key="'game-'.$room->id" />
+@else
 <div class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
     <header class="flex h-16 shrink-0 items-center justify-between">
         <a href="{{ route('home') }}"><x-lamma.logo size="sm" /></a>
         <x-lamma.room-code :code="$room->code" size="chip" data-test="room-code" />
     </header>
 
-    @if ($status === RoomStatus::Playing)
-        {{-- Placeholder until the questions exist (next phase). --}}
-        <main class="flex grow flex-col items-center justify-center gap-6 text-center" data-test="get-ready" aria-live="polite">
-            <x-lamma.dots class="[&>span]:size-4" />
-            <h1 class="font-display text-[44px] font-extrabold leading-none">{{ __('Get ready…') }}</h1>
-            <p class="text-base text-ink-muted">{{ __('The game is about to begin.') }}</p>
-        </main>
-    @elseif ($status === RoomStatus::Finished)
+    @if ($status === RoomStatus::Finished)
         <main class="flex grow flex-col items-center justify-center gap-6 text-center" data-test="closed">
             <h1 class="font-display text-[34px] font-extrabold leading-tight">{{ __('This room has been closed.') }}</h1>
             <x-lamma.button :href="route('home')" variant="outline">{{ __('Back to home') }}</x-lamma.button>
@@ -61,6 +59,8 @@
             >{{ __('Leave room') }}</button>
         </div>
     @endif
+</div>
+@endif
 
     <x-lamma.reconnecting />
 </div>

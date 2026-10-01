@@ -185,6 +185,6 @@ describe('the game starting', function () {
     it('says it in the player\'s language', function () {
         [, , $page] = livePhone(['locale' => 'ar'], Room::factory()->playing()->create());
 
-        $page->assertSee('استعدوا…')->assertSee('اللعبة على وشك أن تبدأ.');
+        $page->assertSee('استعدوا…');
     });
 });

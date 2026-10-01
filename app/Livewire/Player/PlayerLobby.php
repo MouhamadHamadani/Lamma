@@ -62,6 +62,7 @@ class PlayerLobby extends Component
             "{$channel},PlayerLeft" => '$refresh',
             "{$channel},PlayerReadyChanged" => '$refresh',
             "{$channel},GameStarted" => '$refresh',
+            "{$channel},GameFinished" => '$refresh',
             "{$channel},RoomClosed" => 'roomClosed',
         ];
     }
@@ -113,6 +114,8 @@ class PlayerLobby extends Component
             'connectedCount' => $connected->count(),
             'status' => $this->room->status,
             'inLobby' => $this->room->status === RoomStatus::Lobby,
+            // Playing, or finished after a game (PlayerGame shows the end); a room closed in the lobby is just closed.
+            'inGame' => $this->room->status === RoomStatus::Playing || ($this->room->status === RoomStatus::Finished && $this->room->currentQuestion() !== null),
         ])->title(__('Lobby').' '.$this->room->code);
     }
 }
