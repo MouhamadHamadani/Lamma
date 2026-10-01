@@ -60,6 +60,32 @@ class RoomPlayer extends Model implements AuthenticatableContract
     }
 
     /**
+     * Players whose phone is connected right now (left_at is when it disconnected; a new player starts disconnected
+     * until their lobby page joins the presence channel).
+     *
+     * @param  Builder<RoomPlayer>  $query
+     */
+    public function scopeConnected(Builder $query): void
+    {
+        $query->whereNull('left_at');
+    }
+
+    /**
+     * What the screens may know about a player: never the guest token, never the account.
+     *
+     * @return array{id: int, nickname: string, locale: string, is_ready: bool}
+     */
+    public function toBroadcast(): array
+    {
+        return [
+            'id' => $this->id,
+            'nickname' => $this->nickname,
+            'locale' => $this->locale,
+            'is_ready' => (bool) $this->is_ready,
+        ];
+    }
+
+    /**
      * Rows that count as saved: only those tied to an account show in a user's history and stats.
      * A guest's row only becomes saved once it is claimed (see ClaimGuestResults).
      *

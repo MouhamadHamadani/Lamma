@@ -3,6 +3,7 @@
 namespace App\Game;
 
 use App\Enums\RoomStatus;
+use App\Events\RoomClosed;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -56,5 +57,6 @@ class RoomManager
         }
 
         $room->update(['status' => RoomStatus::Finished, 'finished_at' => now()]);
+        RoomClosed::broadcast($room)->toOthers();
     }
 }

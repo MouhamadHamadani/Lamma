@@ -3,6 +3,7 @@
 namespace App\Game;
 
 use App\Enums\RoomStatus;
+use App\Events\PlayerJoined;
 use App\Models\Room;
 use App\Models\RoomPlayer;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -43,14 +44,19 @@ class RoomJoiner
         }
 
         try {
-            return $room->players()->create([
+            $player = $room->players()->create([
                 ...$this->identity->attributes(),
                 'nickname' => $nickname,
                 'locale' => array_key_exists($locale, config('locales.supported')) ? $locale : config('app.locale'),
                 'score' => 0,
                 'is_ready' => false,
                 'joined_at' => now(),
+                // Not connected until their lobby page joins the presence channel; unseen for too long, they are dropped.
+                'left_at' => now(),
             ]);
+            PlayerJoined::broadcast($room, $player)->toOthers();
+
+            return $player;
         } catch (UniqueConstraintViolationException) {
             // Two joins at once: the unique indexes decide. The same participant again is a rejoin, anything else a taken nickname.
             return $this->identity->playerIn($room) ?? throw JoinException::nicknameTaken();
