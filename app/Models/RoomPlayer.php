@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\RoomPlayerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,6 +41,17 @@ class RoomPlayer extends Model
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Rows that count as saved: only those tied to an account show in a user's history and stats.
+     * A guest's row only becomes saved once it is claimed (see ClaimGuestResults).
+     *
+     * @param  Builder<RoomPlayer>  $query
+     */
+    public function scopeSavedToAccount(Builder $query): void
+    {
+        $query->whereNotNull('user_id');
     }
 
     /** @return BelongsTo<Room, $this> */
