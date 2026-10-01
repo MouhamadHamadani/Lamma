@@ -3,7 +3,9 @@
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LocaleController;
 use App\Livewire\Host\CreateRoom;
+use App\Livewire\Host\HostLobby;
 use App\Livewire\Player\JoinRoom;
+use App\Livewire\Player\PlayerLobby;
 use App\Models\Room;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -20,8 +22,9 @@ Route::bind('room', fn (string $code) => Room::where('code', Str::upper($code))-
 
 Route::livewire('rooms/create', CreateRoom::class)->middleware('auth')->name('rooms.create');
 Route::livewire('join', JoinRoom::class)->name('join');
-Route::get('host/{room}', fn (Room $room) => $room->code)->middleware('auth')->name('host.lobby'); // replaced by Host\HostLobby
-Route::get('play/{room}', fn (Room $room) => $room->code)->name('play'); // replaced by Player\PlayerLobby
+// The host screen: only the room's host. The phone screen: only the room's participants (user or guest token).
+Route::livewire('host/{room}', HostLobby::class)->middleware(['auth', 'can:host,room'])->name('host.lobby');
+Route::livewire('play/{room}', PlayerLobby::class)->middleware('room.player')->name('play');
 
 Route::get('locale/{locale}', LocaleController::class)->name('locale.switch');
 

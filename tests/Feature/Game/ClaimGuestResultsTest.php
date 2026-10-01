@@ -141,6 +141,17 @@ describe('what is not claimed', function () {
         expect($other->fresh()->user_id)->not->toBe($user->id);
     });
 
+    it('never turns the host into a player of their own room', function () {
+        $room = Room::factory()->create();
+        $hosted = guestRow(room: $room);
+        $elsewhere = guestRow();
+
+        logInWithCookie($room->host);
+
+        expect($hosted->fresh()->user_id)->toBeNull()
+            ->and($elsewhere->fresh()->user_id)->toBe($room->host->id);
+    });
+
     it('ignores admin logins', function () {
         $row = guestRow();
         app()->instance('request', request()->duplicate(cookies: ['lamma_guest' => GUEST]));

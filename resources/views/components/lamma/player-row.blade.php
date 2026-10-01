@@ -14,7 +14,7 @@
     <x-lamma.avatar :name="$name" :color="$index" :size="$host ? 48 : 36" />
 
     <span @class(['grow truncate', 'font-display text-2xl font-bold' => $host, 'text-base font-bold' => ! $host])>
-        {{ $name }}
+        <bdi dir="ltr">{{ $name }}</bdi>
         @if ($you)
             <span class="font-medium text-ink-subtle">{{ __('(you)') }}</span>
         @endif

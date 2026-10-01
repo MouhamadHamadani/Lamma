@@ -56,6 +56,7 @@ describe('button', function () {
         }
     })->with([
         'primary' => ['primary', 'bg-coral'],
+        'teal' => ['teal', 'bg-teal text-navy'],
         'dark' => ['dark', 'bg-navy text-cream'],
         'outline' => ['outline', 'border-navy'],
         'ghost' => ['ghost', 'min-h-11'],

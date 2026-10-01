@@ -32,6 +32,8 @@ class ClaimGuestResults
                 ->whereNull('user_id')
                 ->where('guest_token', $token)
                 ->where('created_at', '>=', now()->subHours((int) config('lamma.guest_claim_hours')))
+                // The host does not play: a guest row in a room this user hosts stays a guest row.
+                ->whereDoesntHave('room', fn ($room) => $room->where('host_id', $user->id))
                 ->lockForUpdate()
                 ->get();
 

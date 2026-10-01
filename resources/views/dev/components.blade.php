@@ -59,6 +59,7 @@
                     <div class="flex flex-wrap items-center gap-4">
                         <x-lamma.button icon="play">Create room</x-lamma.button>
                         <x-lamma.button size="lg" icon="arrow-right">Next question</x-lamma.button>
+                        <x-lamma.button variant="teal" icon="check">I'm ready!</x-lamma.button>
                         <x-lamma.button variant="dark">Log in</x-lamma.button>
                         <x-lamma.button variant="outline">Sign up</x-lamma.button>
                         <x-lamma.button variant="ghost">Forgot password?</x-lamma.button>
