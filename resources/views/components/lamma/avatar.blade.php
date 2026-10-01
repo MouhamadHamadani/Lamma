@@ -11,7 +11,7 @@
         style="width: {{ $size }}px; height: {{ $size }}px; font-size: {{ round($size * .42) }}px"
     >{{ mb_strtoupper(mb_substr($name, 0, 1)) }}</span>
     @if ($checked)
-        <span aria-hidden="true" class="absolute -bottom-1 -end-1 flex size-[22px] items-center justify-center rounded-full border-2 border-navy bg-teal text-navy">
+        <span aria-hidden="true" class="absolute -bottom-1 -end-1 flex size-[22px] motion-safe:animate-chip-pop items-center justify-center rounded-full border-2 border-navy bg-teal text-navy">
             <x-lamma.icon name="check" :size="12" :stroke="3.5" />
         </span>
     @endif

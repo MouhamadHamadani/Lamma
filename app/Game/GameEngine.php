@@ -162,11 +162,12 @@ class GameEngine
 
     /**
      * Show the answer: set revealed_at, add the round's points to the scores, tell everyone, and schedule the next question.
-     * Allowed once ends_at plus the grace has passed, or as soon as every connected player has answered.
+     * Allowed once ends_at plus the grace has passed, or as soon as every connected player has answered; the host's "Skip timer"
+     * passes $force to show it now.
      */
-    public function reveal(Room $room, int $position): Transition
+    public function reveal(Room $room, int $position, bool $force = false): Transition
     {
-        [$transition, $question, $fresh] = $this->locked($room, function (Room $fresh) use ($position) {
+        [$transition, $question, $fresh] = $this->locked($room, function (Room $fresh) use ($position, $force) {
             $question = $fresh->status === RoomStatus::Playing ? $fresh->currentQuestion() : null;
             if ($question === null || $question->position !== $position) {
                 return [Transition::Stale, null, $fresh];
@@ -174,7 +175,7 @@ class GameEngine
             if ($question->revealed_at !== null) {
                 return [Transition::Already, null, $fresh];
             }
-            if (now() < $this->revealDueAt($question) && ! $this->everyoneAnswered($fresh, $question)) {
+            if (! $force && now() < $this->revealDueAt($question) && ! $this->everyoneAnswered($fresh, $question)) {
                 return [Transition::TooEarly, null, $fresh];
             }
 

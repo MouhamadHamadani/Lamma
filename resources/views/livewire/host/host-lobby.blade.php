@@ -1,6 +1,10 @@
 {{-- Reference: docs/design/screens/host-3-lobby.html. Live: presence + broadcast events refresh it, and wire:poll drops players who stay
      disconnected over 30 s. Both = left-to-right English with the Arabic lines marked lang="ar" dir="rtl". --}}
-<div class="flex min-h-dvh flex-col" wire:poll.5s="pruneDisconnected">
+<div @class(['flex flex-col', 'min-h-dvh' => $inLobby]) @if ($inLobby) wire:poll.5s="pruneDisconnected" @endif>
+@if (! $inLobby)
+    {{-- The game: its own component (HostGame) owns the whole screen. This one keeps the presence bookkeeping. --}}
+    <livewire:host.host-game :room="$room" :key="'game-'.$room->id" />
+@else
     <header class="flex h-22 shrink-0 items-center justify-between gap-4 border-b-2 border-line bg-white px-5 lg:px-14">
         <a href="{{ route('home') }}"><x-lamma.logo /></a>
 
@@ -18,17 +22,6 @@
         </div>
     </header>
 
-    @if (! $inLobby)
-        {{-- Placeholder until the questions exist (next phase). --}}
-        <main class="flex grow flex-col items-center justify-center gap-6 px-5 text-center" data-test="get-ready" aria-live="polite">
-            <x-lamma.dots class="[&>span]:size-5" />
-            <h1 class="font-display text-[clamp(48px,7vw,96px)] font-extrabold leading-none">{{ __('Get ready…') }}</h1>
-            @if ($both)
-                <p lang="ar" dir="rtl" class="font-display text-[clamp(32px,4vw,56px)] font-bold text-coral">{{ __('Get ready…', [], 'ar') }}</p>
-            @endif
-            <p class="text-xl text-ink-muted">{{ __('The game is about to begin.') }}</p>
-        </main>
-    @else
         <main class="flex grow flex-col gap-9 px-5 py-9 lg:flex-row lg:px-14 lg:pb-11">
             <section class="relative flex grow flex-col justify-between gap-8 overflow-hidden rounded-panel border-2 border-line bg-white p-6 lg:p-12">
                 <x-lamma.confetti :count="3" />
@@ -98,7 +91,7 @@
                 <p class="text-sm text-ink-subtle">{{ __('Unlocks when everyone taps Ready.') }}</p>
             </aside>
         </main>
-    @endif
+@endif
 
     <x-lamma.reconnecting />
 </div>

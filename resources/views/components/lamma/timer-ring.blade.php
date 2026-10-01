@@ -10,7 +10,7 @@
 <div
     x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }})"
     role="timer" dir="ltr"
-    {{ $attributes->class('relative size-[150px] shrink-0') }}
+    {{ $attributes->class('relative size-[clamp(104px,16.7dvh,150px)] shrink-0') }}
 >
     <svg viewBox="0 0 150 150" class="size-full" aria-hidden="true">
         <circle cx="75" cy="75" r="68" class="fill-white stroke-navy" stroke-width="3" />
@@ -27,7 +27,7 @@
     <div class="absolute inset-0 flex flex-col items-center justify-center">
         <span
             x-text="secs" x-bind:class="{ 'motion-safe:animate-tick': secs <= 5 && secs > 0 }"
-            class="font-display text-[56px] font-extrabold leading-none"
+            class="font-display text-[clamp(38px,6.2dvh,56px)] font-extrabold leading-none"
         >{{ $secs }}</span>
         <span class="text-[13px] font-bold text-ink-subtle">{{ __('seconds') }}</span>
     </div>

@@ -80,6 +80,9 @@ select:focus[data-flux-control] {
     --animate-drop-in: drop-in 300ms cubic-bezier(.34, 1.56, .64, 1) backwards;
     --animate-tick: tick 1s ease-out infinite;
     --animate-dots: dots 1.2s ease-in-out infinite;
+    --animate-fade-up: fade-up 250ms ease-out backwards;
+    --animate-flip: flip 400ms ease-in-out backwards;
+    --animate-chip-pop: chip-pop 350ms cubic-bezier(.34, 1.56, .64, 1) backwards;
 
     @keyframes fade-in { from { opacity: 0; } }
     @keyframes pop-in { from { opacity: 0; scale: .9; } }
@@ -88,6 +91,12 @@ select:focus[data-flux-control] {
     @keyframes drop-in { from { opacity: 0; translate: 0 -12px; } }
     @keyframes tick { 50% { scale: 1.12; } }
     @keyframes dots { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+    /* The question fades up 12px (HANDOFF §7). */
+    @keyframes fade-up { from { opacity: 0; translate: 0 12px; } }
+    /* A scoreboard row slides from where it stood before the round (--dy, in px) to its new place: FLIP, 400ms. */
+    @keyframes flip { from { translate: 0 var(--dy, 0px); } }
+    /* The phone's "+100" chip scales in with a little overshoot. */
+    @keyframes chip-pop { from { scale: 0; } }
 }
 
 /* Focus ring (HANDOFF §8): 3px sun outline, 2px offset. Sun on cream is only ~1.5:1, so the offset gap is filled with a 2px navy

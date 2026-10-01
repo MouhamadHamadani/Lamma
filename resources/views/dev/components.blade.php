@@ -130,6 +130,29 @@
                 </div>
 
                 <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Progress dots · question 3 of 10 · 5 of 5</h3>
+                    <div class="flex flex-wrap items-center gap-10">
+                        <x-lamma.progress-dots :total="10" :current="3" />
+                        <x-lamma.progress-dots :total="5" :current="5" />
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Scoreboard · Ali moved up, +100 counts up</h3>
+                    <x-lamma.scoreboard
+                        class="h-[420px] w-[420px]"
+                        :previous="[2 => 1, 1 => 0, 3 => 2]"
+                        :ranking="[
+                            ['rank' => 1, 'player' => ['id' => 2, 'nickname' => $ar ? 'علي' : 'Ali', 'locale' => 'ar'], 'total' => 300, 'gained' => 100],
+                            ['rank' => 2, 'player' => ['id' => 1, 'nickname' => $ar ? 'سارة' : 'Sara', 'locale' => $loc], 'total' => 200, 'gained' => 100],
+                            ['rank' => 3, 'player' => ['id' => 3, 'nickname' => $ar ? 'مايا' : 'Maya', 'locale' => 'en'], 'total' => 100, 'gained' => 0],
+                        ]"
+                    >
+                        <x-lamma.button icon="arrow-right" :on-dark="true" class="self-stretch">{{ __('Next question') }}</x-lamma.button>
+                    </x-lamma.scoreboard>
+                </div>
+
+                <div class="space-y-4">
                     <h3 class="font-display text-2xl font-bold">Avatars · players · status</h3>
                     <div class="flex flex-wrap items-center gap-4">
                         @foreach ([36, 48, 72, 120] as $n => $size)

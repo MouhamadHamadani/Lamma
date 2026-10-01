@@ -11,7 +11,11 @@ document.addEventListener('alpine:init', () => {
             // setInterval, not requestAnimationFrame: rAF stops in background tabs and the deadline must stay right.
             const tick = () => {
                 this.left = Math.max(0, endsAt - (Date.now() + skew));
-                if (this.left === 0) clearInterval(this.interval);
+                if (this.left === 0) {
+                    clearInterval(this.interval);
+                    // Lets a screen react when time is up (the host nudges the game engine). Fires once per timer.
+                    this.$dispatch('lamma-timer-ended');
+                }
             };
             tick();
             this.interval = setInterval(tick, 50);
@@ -55,6 +59,26 @@ document.addEventListener('alpine:init', () => {
             };
             update(connection.state);
             connection.bind('state_change', ({ current }) => update(current));
+        },
+    }));
+});
+
+// Counts a number up from 0 to `to` (the "+100" on the scoreboard). Shows the final value at once under reduced motion.
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('lammaCountUp', (to, duration = 400) => ({
+        n: to,
+
+        init() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || to === 0) return;
+
+            this.n = 0;
+            const start = performance.now();
+            const step = (now) => {
+                const progress = Math.min(1, (now - start) / duration);
+                this.n = Math.round(to * progress);
+                if (progress < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
         },
     }));
 });
