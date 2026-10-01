@@ -119,3 +119,9 @@ select:focus[data-flux-control] {
 [x-cloak] {
     display: none !important;
 }
+
+/* Reduced motion (HANDOFF section 7): the press feedback stops sliding; the shadow still shrinks, so it still reads as pressed. */
+@media (prefers-reduced-motion: reduce) {
+    .sticker-press { transition: none; }
+    .sticker-press:active { transform: none; }
+}

@@ -13,9 +13,9 @@
     $announce = match ($phase) {
         'question' => __('Question :n of :total', ['n' => $position, 'total' => $state?->total]),
         'answered' => __('Answer locked in'),
-        'correct' => __('Correct! You got :points points.', ['points' => $gained]),
-        'wrong' => __('Not quite. The correct answer is :answer.', ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
-        'timeout' => __("Time's up. The correct answer is :answer.", ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
+        'correct' => __('Correct, plus :points points', ['points' => $gained]),
+        'wrong' => __('Not quite, the answer was :answer', ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
+        'timeout' => __("Time's up, the answer was :answer", ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
         default => '',
     };
     $seconds = $room->settings->secondsPerQuestion;

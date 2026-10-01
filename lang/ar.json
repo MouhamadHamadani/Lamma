@@ -293,9 +293,6 @@
     "Final results coming up…": "النتائج النهائية قادمة…",
     "You're :rank · :points pts": "أنت في المركز :rank · :points نقطة",
     "You finished :rank · :points pts": "أنهيت في المركز :rank · :points نقطة",
-    "Correct! You got :points points.": "صحيح! حصلت على :points نقطة.",
-    "Not quite. The correct answer is :answer.": "ليس هذه المرة. الإجابة الصحيحة هي :answer.",
-    "Time's up. The correct answer is :answer.": "انتهى الوقت. الإجابة الصحيحة هي :answer.",
     "No winner this time": "لا فائز هذه المرة",
     ":name wins!": "الفوز من نصيب :name!",
     ":names win!": "الفوز من نصيب :names!",
@@ -331,5 +328,11 @@
     "Players: :count": "اللاعبون: :count",
     "Previous": "السابق",
     "Next": "التالي",
-    "Sounds": "الأصوات"
+    "Sounds": "الأصوات",
+    "Correct, plus :points points": "صحيح، وحصلت على :points نقطة",
+    "Not quite, the answer was :answer": "ليس هذه المرة، الإجابة هي :answer",
+    "Time's up, the answer was :answer": "انتهى الوقت، الإجابة هي :answer",
+    "The correct answer is :answer": "الإجابة الصحيحة هي :answer",
+    ":name joined": "انضمام :name إلى الغرفة",
+    ":name left": "مغادرة :name"
 }

@@ -29,7 +29,7 @@ describe('real-time wiring', function () {
 
         $listeners = liveLobby($room)->instance()->getListeners();
 
-        foreach (['here' => 'presenceHere', 'joining' => 'presenceJoining', 'leaving' => 'presenceLeaving', 'PlayerJoined' => '$refresh', 'PlayerLeft' => '$refresh', 'PlayerReadyChanged' => '$refresh'] as $event => $handler) {
+        foreach (['here' => 'presenceHere', 'joining' => 'presenceJoining', 'leaving' => 'presenceLeaving', 'PlayerJoined' => 'playerJoined', 'PlayerLeft' => 'playerLeft', 'PlayerReadyChanged' => '$refresh'] as $event => $handler) {
             expect($listeners)->toHaveKey("echo-presence:room.K7MP9Z,{$event}", $handler);
         }
     });

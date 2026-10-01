@@ -35,6 +35,9 @@ class HostLobby extends Component
     /** Why the last Start click was refused. */
     public string $startError = '';
 
+    /** The last join or leave, for the screen reader's live region ("Sara joined"). */
+    public string $announcement = '';
+
     public function mount(Room $room): mixed
     {
         $this->room = $room;
@@ -69,10 +72,34 @@ class HostLobby extends Component
             "{$channel},here" => 'presenceHere',
             "{$channel},joining" => 'presenceJoining',
             "{$channel},leaving" => 'presenceLeaving',
-            "{$channel},PlayerJoined" => '$refresh',
-            "{$channel},PlayerLeft" => '$refresh',
+            "{$channel},PlayerJoined" => 'playerJoined',
+            "{$channel},PlayerLeft" => 'playerLeft',
             "{$channel},PlayerReadyChanged" => '$refresh',
         ];
+    }
+
+    /** @param  array<string, mixed>  $payload  the PlayerJoined event: {player: {nickname, ...}} */
+    public function playerJoined(array $payload = []): void
+    {
+        if ($name = $this->nicknameIn($payload)) {
+            $this->announcement = __(':name joined', ['name' => $name]);
+        }
+    }
+
+    /** @param  array<string, mixed>  $payload  the PlayerLeft event */
+    public function playerLeft(array $payload = []): void
+    {
+        if ($name = $this->nicknameIn($payload)) {
+            $this->announcement = __(':name left', ['name' => $name]);
+        }
+    }
+
+    /** @param  array<string, mixed>  $payload */
+    private function nicknameIn(array $payload): ?string
+    {
+        $name = $payload['player']['nickname'] ?? null;
+
+        return is_string($name) && $name !== '' ? $name : null;
     }
 
     /**

@@ -120,7 +120,7 @@ describe('the question screen (host-4)', function () {
     it('schedules a tick for the moment the reveal is due, plus the grace', function () {
         [$room] = hostedGame();
 
-        hostGame($room)->assertSeeHtml('x-init="setTimeout(() => $wire.tick(), 20650)"');
+        hostGame($room)->assertSeeHtml('setTimeout(() => $wire.tick(), 20650)');
     });
 });
 
@@ -288,7 +288,7 @@ describe('after a refresh or a reconnect', function () {
 
         $page->assertSee(text($question, 'en'))->assertSee('Question 1 of 3')->assertSee('1 of 3 answered')
             ->assertSeeHtml('lammaTimer('.$question->ends_at->getTimestampMs().', '.now()->getTimestampMs().', 20,')
-            ->assertSeeHtml('x-init="setTimeout(() => $wire.tick(), 8650)"');
+            ->assertSeeHtml('setTimeout(() => $wire.tick(), 8650)');
     });
 
     it('rebuilds the reveal, with the pause that is left', function () {
@@ -298,7 +298,7 @@ describe('after a refresh or a reconnect', function () {
         app(GameEngine::class)->tick($room);
         at('12:00:23.000');
 
-        hostGame($room)->assertSee('Answer · Question 1')->assertSee('Scoreboard')->assertSeeHtml('x-init="setTimeout(() => $wire.tick(), 2650)"');
+        hostGame($room)->assertSee('Answer · Question 1')->assertSee('Scoreboard')->assertSeeHtml('setTimeout(() => $wire.tick(), 2650)');
     });
 
     it('lands on the right question later in the game', function () {

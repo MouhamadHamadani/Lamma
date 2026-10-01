@@ -204,8 +204,8 @@ describe('the reveal screens (player-5)', function () {
         $page->assertSee('Correct!')->assertSeeHtml('data-test="reveal-correct"')->assertSeeHtml('lammaCountUp(100)')
             ->assertSee('Correct answer')->assertSee(option($question, array_search(optionOf($question), $question->option_order))->getTranslation('text', 'en'))
             ->assertSee('Next question coming up…');
-        expect($page->html())->toContain('bg-teal')->and($page->html())->toContain("You're")->and($page->html())->toContain('1st');
-        $page->assertSeeHtml('Correct! You got 100 points.');
+        expect($page->html())->toContain('class="relative min-h-dvh bg-teal"')->and($page->html())->toContain("You're")->and($page->html())->toContain('1st');
+        $page->assertSeeHtml('Correct, plus 100 points');
     });
 
     it('shows Not quite on cream when the answer was wrong, with the correct one', function () {
@@ -218,14 +218,14 @@ describe('the reveal screens (player-5)', function () {
 
         $page->assertSee('Not quite!')->assertSeeHtml('data-test="reveal-wrong"')->assertSeeHtml('lammaCountUp(0)')->assertSee('Correct answer')
             ->assertSee(option($question, array_search(optionOf($question), $question->option_order))->getTranslation('text', 'en'));
-        expect($page->html())->not->toContain('bg-teal"')->and($page->html())->toContain('2nd');
+        expect($page->html())->not->toContain('relative min-h-dvh bg-teal')->and($page->html())->toContain('2nd');
     });
 
     it('shows Time\'s up when nothing was answered, with the correct answer', function () {
         [$room, $question] = phoneGame();
         revealNow($room);
 
-        phone($room)->assertSee("Time's up!")->assertSeeHtml('data-test="reveal-timeout"')->assertSee('Correct answer')->assertSee('Time\'s up. The correct answer is');
+        phone($room)->assertSee("Time's up!")->assertSeeHtml('data-test="reveal-timeout"')->assertSee('Correct answer')->assertSee('Time\'s up, the answer was');
     });
 
     it('speaks Arabic to an Arabic player', function () {
@@ -267,20 +267,20 @@ describe('the reveal screens (player-5)', function () {
         app(GameEngine::class)->submitAnswer($me, optionOf($question, false));
         revealNow($room);
 
-        phone($room)->assertSeeInOrder(['data-test="announcer"', 'Not quite. The correct answer is']);
+        phone($room)->assertSeeInOrder(['data-test="announcer"', 'Not quite, the answer was']);
     });
 });
 
 describe('the end of the game', function () {
-    it('shows the player\'s final place and a way home', function () {
+    it('hands over to the results screen: the final place, the leaderboard and a way home', function () {
         [$room, $question, $players, $me] = phoneGame(questions: 1);
         app(GameEngine::class)->submitAnswer($me, optionOf($question));
         revealNow($room);
         app(GameEngine::class)->advance($room, 1, force: true);
 
-        $page = phone($room)->assertSee("That's the game!")->assertSee('You finished')->assertSee('1st')->assertSee('Back to home')->assertSeeHtml('data-test="game-over"');
+        $page = phone($room)->assertSeeHtml('data-phase="over"')->assertSeeHtml('data-test="player-results"')->assertSee('Game over')->assertSee('Leave room');
 
-        expect($page->html())->toContain('<bdi dir="ltr">100</bdi> pts');
+        expect($page->html())->toContain('data-rank="1"')->and($page->html())->toContain('You won, ');
     });
 
     it('says the room is closed when the host closed it part-way', function () {
@@ -369,7 +369,7 @@ describe('inside the phone\'s page', function () {
 
     it('shows the plain closed card for a room closed in the lobby', function () {
         $room = Room::factory()->create(['status' => RoomStatus::Finished]);
-        RoomPlayer::factory()->for($room)->create(['guest_token' => GAME_TOKEN]);
+        RoomPlayer::factory()->for($room)->create(['guest_token' => GAME_TOKEN, 'locale' => 'en']);
 
         Livewire::withCookie('lamma_guest', GAME_TOKEN)->test(PlayerLobby::class, ['room' => $room])
             ->assertSee('This room has been closed.')->assertDontSeeHtml('data-test="player-game"');

@@ -127,7 +127,7 @@ describe('save your score', function () {
     it('tells a logged-in player it is saved, with a link to their games', function () {
         $room = finishedGame(['Ali' => 800]);
         $user = User::factory()->create();
-        $mine = RoomPlayer::factory()->for($room)->forUser($user)->create(['nickname' => 'Sara', 'score' => 700, 'left_at' => null]);
+        $mine = RoomPlayer::factory()->for($room)->forUser($user)->create(['nickname' => 'Sara', 'score' => 700, 'locale' => 'en', 'left_at' => null]);
 
         Livewire::actingAs($user)->test(PlayerResults::class, ['room' => $room])->assertSee('Saved to your profile')->assertSeeHtml('href="'.route('me.games').'"')
             ->assertSeeHtml('data-state="saved"')->assertDontSee('Save your score');
@@ -272,7 +272,7 @@ describe('inside the phone\'s page', function () {
     it('shows the plain closed card for a game closed part-way', function () {
         $room = finishedGame(['Ali' => 800]);
         $room->roomQuestions()->where('position', 3)->update(['revealed_at' => null]);
-        $room->players()->update(['guest_token' => RESULTS_TOKEN]);
+        $room->players()->update(['guest_token' => RESULTS_TOKEN, 'locale' => 'en']);
 
         Livewire::withCookie('lamma_guest', RESULTS_TOKEN)->test(PlayerLobby::class, ['room' => $room])->assertSee('This room has been closed.')->assertDontSeeHtml('data-test="player-results"');
     });

@@ -60,7 +60,7 @@
                                 <span class="font-display text-xl font-extrabold" dir="ltr" data-test="score">{{ __(':points pts', ['points' => $game->score]) }}</span>
                                 <time datetime="{{ $game->room->finished_at?->toDateString() }}" class="text-sm font-semibold text-ink-muted" data-test="date">{{ $game->room->finished_at?->locale(app()->getLocale())->translatedFormat('j F Y') }}</time>
                             </div>
-                            <p class="truncate text-sm text-ink-muted" data-test="categories">{{ $names->join(' · ') }}</p>
+                            <p class="line-clamp-2 text-sm text-ink-muted" data-test="categories">{{ $names->join(' · ') }}</p>
                             <p class="text-xs font-semibold text-ink-subtle">
                                 <bdi dir="ltr">{{ __(':correct of :total', ['correct' => $game->correct_count, 'total' => $game->questions_count]) }}</bdi> ·
                                 {{ __('Players: :count', ['count' => $game->players_count]) }}

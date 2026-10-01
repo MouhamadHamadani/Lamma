@@ -5,6 +5,9 @@
     {{-- The game: its own component (HostGame) owns the whole screen. This one keeps the presence bookkeeping. --}}
     <livewire:host.host-game :room="$room" :key="'game-'.$room->id" />
 @else
+    {{-- Joins and leaves, read out by screen readers (HANDOFF section 8). --}}
+    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-test="announcer">{{ $announcement }}</div>
+
     <header class="flex h-22 shrink-0 items-center justify-between gap-4 border-b-2 border-line bg-white px-5 lg:px-14">
         <a href="{{ route('home') }}"><x-lamma.logo /></a>
 

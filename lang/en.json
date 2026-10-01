@@ -293,9 +293,6 @@
     "Final results coming up…": "Final results coming up…",
     "You're :rank · :points pts": "You're :rank · :points pts",
     "You finished :rank · :points pts": "You finished :rank · :points pts",
-    "Correct! You got :points points.": "Correct! You got :points points.",
-    "Not quite. The correct answer is :answer.": "Not quite. The correct answer is :answer.",
-    "Time's up. The correct answer is :answer.": "Time's up. The correct answer is :answer.",
     "No winner this time": "No winner this time",
     ":name wins!": ":name wins!",
     ":names win!": ":names win!",
@@ -331,5 +328,11 @@
     "Players: :count": "Players: :count",
     "Previous": "Previous",
     "Next": "Next",
-    "Sounds": "Sounds"
+    "Sounds": "Sounds",
+    "Correct, plus :points points": "Correct, plus :points points",
+    "Not quite, the answer was :answer": "Not quite, the answer was :answer",
+    "Time's up, the answer was :answer": "Time's up, the answer was :answer",
+    "The correct answer is :answer": "The correct answer is :answer",
+    ":name joined": ":name joined",
+    ":name left": ":name left"
 }

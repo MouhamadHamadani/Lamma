@@ -9,6 +9,12 @@
     $colors = $state ? $state->players->values()->mapWithKeys(fn ($player, $index) => [$player->id => $index])->all() : [];
     $seconds = $room->settings->secondsPerQuestion;
     $nowMs = now()->getTimestampMs();
+    $correctOption = $state?->correctOptionId ? $state->options->firstWhere('id', $state->correctOptionId) : null;
+    $announce = match (true) {
+        $state === null => '',
+        $revealed => __('The correct answer is :answer', ['answer' => $correctOption ? $tr($correctOption, 'text', $main) : '']),
+        default => __('Question :n of :total', ['n' => $position, 'total' => $state->total]),
+    };
 @endphp
 <div>
 @if ($state?->finished)
@@ -16,6 +22,9 @@
     <livewire:host.host-results :room="$room" :key="'results-'.$room->id" />
 @else
 <div class="flex h-dvh flex-col overflow-hidden" wire:poll.2s="tick" data-test="host-game">
+    {{-- The question number when it opens, the right answer at the reveal (HANDOFF section 8); the countdown speaks only at 10 s and 5 s. --}}
+    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" data-test="announcer">{{ $announce }}</div>
+
     <header class="flex h-[clamp(64px,9.8dvh,88px)] shrink-0 items-center justify-between gap-4 border-b-2 border-line bg-white {{ $gutter }}">
         <x-lamma.logo />
 
