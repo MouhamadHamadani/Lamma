@@ -1,7 +1,7 @@
 // Countdown for the timer ring/bar. The server owns the deadline (`ends_at`, epoch ms); the client only displays it.
 // `serverNow` (epoch ms at render time) cancels out any skew between the server and device clocks.
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('lammaTimer', (endsAt, serverNow, seconds, announcement) => ({
+    window.Alpine.data('lammaTimer', (endsAt, serverNow, seconds, announcement, ticks = false) => ({
         left: 0,
         say: '',
         interval: null,
@@ -22,6 +22,8 @@ document.addEventListener('alpine:init', () => {
             // Screen readers hear the timer at 10 s and 5 s only, not every second.
             this.$watch('secs', (s) => {
                 if (s === 10 || s === 5) this.say = announcement.replace(':seconds', s);
+                // A question's timer (ticks = true) lets the host play a tick for each of the last five seconds (sound store below).
+                if (ticks && s <= 5 && s > 0) this.$dispatch('lamma-tick', { secs: s });
             });
         },
 
@@ -79,6 +81,55 @@ document.addEventListener('alpine:init', () => {
                 if (progress < 1) requestAnimationFrame(step);
             };
             requestAnimationFrame(step);
+        },
+    }));
+});
+
+// Host sounds: question start, a tick for the last 5 seconds, the reveal and the podium. OFF by default: the host turns them on with the
+// speaker button (<x-lamma.sound-toggle>), and the choice is remembered in this browser. Phones never turn it on, so they stay silent.
+// Browsers only allow sound after a click on the page; pressing the toggle counts, and a blocked play() is ignored.
+document.addEventListener('alpine:init', () => {
+    window.Alpine.store('sound', {
+        enabled: false,
+        base: '/sounds',
+
+        play(name) {
+            if (!this.enabled) return;
+            try {
+                const audio = new Audio(`${this.base}/${name}.wav`);
+                audio.volume = 0.6;
+                audio.play().catch(() => {});
+            } catch (e) {
+                // no audio support: stay silent
+            }
+        },
+    });
+
+    window.addEventListener('lamma-tick', () => window.Alpine.store('sound').play('tick'));
+
+    window.Alpine.data('lammaSoundToggle', (base) => ({
+        on: false,
+
+        init() {
+            const sound = window.Alpine.store('sound');
+            sound.base = base;
+            try {
+                this.on = localStorage.getItem('lamma:sound') === '1';
+            } catch (e) {
+                // storage blocked: start off
+            }
+            sound.enabled = this.on;
+        },
+
+        toggle() {
+            this.on = !this.on;
+            window.Alpine.store('sound').enabled = this.on;
+            try {
+                localStorage.setItem('lamma:sound', this.on ? '1' : '0');
+            } catch (e) {
+                // not remembered, still works for this page
+            }
+            if (this.on) window.Alpine.store('sound').play('tick'); // proves it works, and unlocks audio
         },
     }));
 });

@@ -7,7 +7,7 @@
     $secs = (int) ceil($left / 1000);
 @endphp
 <div
-    x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }})"
+    x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }}, true)"
     role="timer" dir="ltr"
     {{ $attributes->class('flex items-center gap-3') }}
 >

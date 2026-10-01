@@ -153,6 +153,14 @@
                 </div>
 
                 <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Sound toggle · off by default, light and on navy</h3>
+                    <div class="flex items-center gap-6">
+                        <x-lamma.sound-toggle />
+                        <div class="rounded-card bg-navy p-4"><x-lamma.sound-toggle :on-dark="true" /></div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
                     <h3 class="font-display text-2xl font-bold">Avatars · players · status</h3>
                     <div class="flex flex-wrap items-center gap-4">
                         @foreach ([36, 48, 72, 120] as $n => $size)

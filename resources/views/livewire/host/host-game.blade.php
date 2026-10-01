@@ -34,6 +34,7 @@
             <div class="flex items-center gap-3">
                 <x-lamma.chip :tone="$tone" size="lg" :icon="$icon" class="hidden md:inline-flex" data-test="category">{{ $tr($state->category, 'name', $main) }}</x-lamma.chip>
                 <x-lamma.room-code :code="$room->code" size="chip" data-test="room-code">{{ __('Room') }}</x-lamma.room-code>
+                <x-lamma.sound-toggle />
                 <button
                     type="button" wire:click="closeRoom" wire:confirm="{{ __('Close this room? Everyone in it will be disconnected.') }}"
                     class="min-h-11 px-2 text-[15px] font-semibold text-coral-700 hover:underline" data-test="close-room"
@@ -52,7 +53,7 @@
         {{-- host-4: the question, the four answers, who has answered. --}}
         <main
             wire:key="q-{{ $position }}-open"
-            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }})"
+            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.play('question-start')"
             class="flex min-h-0 grow flex-col gap-[clamp(16px,4dvh,36px)] pb-[clamp(16px,4dvh,36px)] pt-[clamp(20px,4.4dvh,40px)] {{ $gutter }}"
         >
             <div class="flex items-center gap-10">
@@ -96,7 +97,7 @@
         @php $endMs = $nowMs + $dueInMs; @endphp
         <main
             wire:key="q-{{ $position }}-reveal"
-            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }})"
+            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.play('reveal')"
             class="flex min-h-0 grow gap-9 pb-[clamp(16px,4dvh,40px)] pt-[clamp(16px,4dvh,36px)] {{ $gutter }}"
         >
             <div class="flex min-w-0 grow flex-col gap-[clamp(14px,3.1dvh,28px)]">

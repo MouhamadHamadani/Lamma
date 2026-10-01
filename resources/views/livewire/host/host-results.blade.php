@@ -13,7 +13,7 @@
     $barColor = [1 => 'bg-sun', 2 => 'bg-teal', 3 => 'bg-coral'];
     $barDelay = [3 => 0, 2 => 750, 1 => 1500]; // 600ms each, 150ms apart: third, second, first
 @endphp
-<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results">
+<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results" x-init="$store.sound.play('podium')">
     @if ($winners)
         <x-lamma.confetti :count="12" />
     @endif
@@ -21,6 +21,7 @@
     <header class="relative flex h-[clamp(64px,9.8dvh,88px)] shrink-0 items-center justify-between gap-4 {{ $gutter }}">
         <x-lamma.logo :on-dark="true" />
         <div class="flex items-center gap-3">
+            <x-lamma.sound-toggle :on-dark="true" />
             <span dir="ltr" class="inline-flex h-10 items-center gap-2 rounded-chip bg-navy-700 px-3.5 text-sm font-bold">
                 {{ __('Room') }} <span class="font-display text-lg font-extrabold tracking-[3px]">{{ $room->code }}</span>
             </span>

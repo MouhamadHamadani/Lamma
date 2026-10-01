@@ -8,7 +8,7 @@
     $circumference = 389.56; // 2π × 62
 @endphp
 <div
-    x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }})"
+    x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }}, true)"
     role="timer" dir="ltr"
     {{ $attributes->class('relative size-[clamp(104px,16.7dvh,150px)] shrink-0') }}
 >
