@@ -92,7 +92,7 @@ describe('the question screen (player-3)', function () {
         [$room, $question, , $me] = phoneGame();
         $me->update(['score' => 200]);
 
-        phone($room)->assertSee('Q 1 / 3')->assertSee('200 pts')->assertSeeHtml('role="timer"')
+        phone($room)->assertSee('Q 1 / 3')->assertSeeText('200 pts')->assertSeeHtml('role="timer"')
             ->assertSeeHtml('lammaTimer('.$question->ends_at->getTimestampMs().', '.now()->getTimestampMs().', 20,');
     });
 

@@ -2,6 +2,7 @@
      column on bigger screens. Everything is the player's own language. State comes from the database (GameView) on every render, refreshed by the
      broadcast events and a 4 s poll, so a reconnect or a reload lands on the right screen. Nothing here says which option is correct until the reveal. --}}
 @use('App\Game\Scoreboard')
+@use('App\Support\Isolate')
 @php
     $tr = fn ($model, string $attribute) => $model->getTranslation($attribute, $lang, false);
     $position = $state?->position();
@@ -36,7 +37,7 @@
                 <div class="flex items-center gap-2">
                     <x-lamma.chip size="sm" class="border-2 border-line bg-white"><bdi dir="ltr" data-test="question-number">{{ __('Q :n / :total', ['n' => $position, 'total' => $state->total]) }}</bdi></x-lamma.chip>
                     @unless (in_array($phase, ['correct', 'wrong', 'timeout'], true))
-                        <x-lamma.chip tone="sun" size="sm"><bdi dir="ltr" data-test="score-chip">{{ __(':points pts', ['points' => $me->score]) }}</bdi></x-lamma.chip>
+                        <x-lamma.chip tone="sun" size="sm"><span data-test="score-chip">{!! __(':points pts', ['points' => Isolate::ltr($me->score)]) !!}</span></x-lamma.chip>
                     @endunless
                 </div>
             @endif

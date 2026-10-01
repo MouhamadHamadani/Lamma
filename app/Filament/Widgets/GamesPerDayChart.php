@@ -32,7 +32,7 @@ class GamesPerDayChart extends ChartWidget
             'datasets' => [[
                 'label' => 'Games',
                 'data' => array_values($games),
-                'borderColor' => '#C2343A',
+                'borderColor' => '#FF5A5F',
                 'backgroundColor' => 'rgba(255, 90, 95, 0.15)',
                 'fill' => true,
                 'tension' => 0.3,

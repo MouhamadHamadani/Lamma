@@ -188,3 +188,36 @@ describe('live regions (HANDOFF section 8)', function () {
         expect($html)->toContain('aria-label="Answer B: Mars"')->toContain('aria-hidden="true"');
     });
 });
+
+describe('right-to-left (HANDOFF section 6)', function () {
+    /** The Lamma screens and components (not the starter kit's settings pages). */
+    function lammaViews(): array
+    {
+        return collect(['livewire', 'components/lamma'])
+            ->flatMap(fn (string $dir) => File::allFiles(resource_path("views/{$dir}")))
+            ->filter(fn ($file) => str_ends_with($file->getFilename(), '.blade.php'))
+            ->all();
+    }
+
+    it('uses logical utilities only: no ml-, mr-, pl-, pr-, left-, right-, text-left or text-right', function () {
+        $offenders = collect(lammaViews())->flatMap(function ($file) {
+            preg_match_all('/class="([^"]*)"/', file_get_contents($file->getPathname()), $classes);
+
+            return collect($classes[1])->flatMap(fn (string $class) => preg_grep('/^(-?(ml|mr|pl|pr|left|right)-|text-(left|right)$)/', preg_split('/\s+/', $class)))
+                ->map(fn (string $class) => $file->getFilename().': '.$class);
+        })->values()->all();
+
+        expect($offenders)->toBe([]);
+    });
+
+    it('isolates numbers and names, never a whole translated phrase (that would scramble "4 من 5")', function () {
+        $offenders = collect(lammaViews())->flatMap(function ($file) {
+            preg_match_all("/dir=\"ltr\"[^>]*>\s*\{[{!]+\s*__\('([^']+)'/", file_get_contents($file->getPathname()), $found);
+
+            // a label followed by its value ("Q 1 / 5", "Room K7MP") is one left-to-right chip, like the room code itself
+            return collect($found[1])->reject(fn (string $key) => in_array($key, ['Q :n / :total', 'Room'], true))->map(fn (string $key) => $file->getFilename().': '.$key);
+        })->values()->all();
+
+        expect($offenders)->toBe([]);
+    });
+});

@@ -1,5 +1,6 @@
 {{-- /me/games: totals, then one card per saved game (newest first). Only games tied to the account are listed. --}}
 @use('App\Game\Scoreboard')
+@use('App\Support\Isolate')
 <div class="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-8 px-5 pb-12">
     <header class="flex h-[72px] shrink-0 items-center justify-between gap-3">
         <a href="{{ route('home') }}"><x-lamma.logo /></a>
@@ -33,7 +34,7 @@
                 <dt class="text-sm font-bold text-ink-muted">{{ __('Correct answers') }}</dt>
                 <dd class="font-display text-[clamp(28px,5vw,40px)] font-extrabold leading-none" dir="ltr" data-test="total-rate">{{ $totals['rate'] === null ? '—' : $totals['rate'].'%' }}</dd>
                 @if ($totals['questions'] > 0)
-                    <dd class="text-xs font-semibold text-ink-subtle" data-test="total-correct"><bdi dir="ltr">{{ __(':correct of :total', ['correct' => $totals['correct'], 'total' => $totals['questions']]) }}</bdi></dd>
+                    <dd class="text-xs font-semibold text-ink-subtle" data-test="total-correct">{!! __(':correct of :total', ['correct' => Isolate::ltr($totals['correct']), 'total' => Isolate::ltr($totals['questions'])]) !!}</dd>
                 @endif
             </div>
         </dl>
@@ -57,12 +58,12 @@
 
                         <div class="flex min-w-0 grow flex-col gap-1">
                             <div class="flex flex-wrap items-baseline gap-x-3">
-                                <span class="font-display text-xl font-extrabold" dir="ltr" data-test="score">{{ __(':points pts', ['points' => $game->score]) }}</span>
+                                <span class="font-display text-xl font-extrabold" data-test="score">{!! __(':points pts', ['points' => Isolate::ltr($game->score)]) !!}</span>
                                 <time datetime="{{ $game->room->finished_at?->toDateString() }}" class="text-sm font-semibold text-ink-muted" data-test="date">{{ $game->room->finished_at?->locale(app()->getLocale())->translatedFormat('j F Y') }}</time>
                             </div>
                             <p class="line-clamp-2 text-sm text-ink-muted" data-test="categories">{{ $names->join(' · ') }}</p>
                             <p class="text-xs font-semibold text-ink-subtle">
-                                <bdi dir="ltr">{{ __(':correct of :total', ['correct' => $game->correct_count, 'total' => $game->questions_count]) }}</bdi> ·
+                                {!! __(':correct of :total', ['correct' => Isolate::ltr($game->correct_count), 'total' => Isolate::ltr($game->questions_count)]) !!} ·
                                 {{ __('Players: :count', ['count' => $game->players_count]) }}
                             </p>
                         </div>

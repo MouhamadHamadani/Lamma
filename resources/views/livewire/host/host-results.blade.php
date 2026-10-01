@@ -1,5 +1,6 @@
 {{-- Reference: docs/design/screens/host-6-podium.html. Navy, confetti, the winner(s) on the left, the podium (2 · 1 · 3) on the right. Ties share a step;
      a step nobody stands on is left out; if nobody scored there is no winner. Bars grow 3rd, 2nd, 1st (600ms, 150ms apart), then the crown drops. --}}
+@use('App\Support\Isolate')
 @php
     $names = collect($winners)->map(fn (array $winner) => '<bdi dir="ltr">'.e($winner['nickname']).'</bdi>')->join(' &amp; ');
     [$headline, $headlineAr] = match (count($winners)) {
@@ -72,7 +73,7 @@
                     <span class="line-clamp-2 font-display text-[clamp(18px,2vw,30px)] font-bold leading-tight motion-safe:animate-fade-in" style="animation-delay: {{ $barDelay[$rank] + 300 }}ms">
                         {!! $players->map(fn (array $player) => '<bdi dir="ltr">'.e($player['nickname']).'</bdi>')->join(' · ') !!}
                     </span>
-                    <span dir="ltr" class="text-base font-semibold text-ink-on-dark motion-safe:animate-fade-in" style="animation-delay: {{ $barDelay[$rank] + 300 }}ms">{{ __(':points pts', ['points' => $players->first()['total']]) }}</span>
+                    <span class="text-base font-semibold text-ink-on-dark motion-safe:animate-fade-in" style="animation-delay: {{ $barDelay[$rank] + 300 }}ms">{!! __(':points pts', ['points' => Isolate::ltr($players->first()['total'])]) !!}</span>
                     <div
                         class="{{ $barColor[$rank] }} {{ $barHeight[$rank] }} flex w-full origin-bottom justify-center rounded-t-[22px] pt-3 font-display text-[clamp(40px,5vw,72px)] font-extrabold leading-none text-navy motion-safe:animate-bar-grow motion-reduce:animate-fade-in"
                         style="animation-delay: {{ $barDelay[$rank] }}ms"

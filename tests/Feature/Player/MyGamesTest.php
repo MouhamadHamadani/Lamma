@@ -50,7 +50,7 @@ describe('only saved games', function () {
         $user = User::factory()->create();
         savedGame($user, 700, ['Rival' => 900]);
 
-        myGames($user)->assertSeeHtml('data-test="game"')->assertSee('700 pts')->assertDontSee('No saved games yet');
+        myGames($user)->assertSeeHtml('data-test="game"')->assertSeeText('700 pts')->assertDontSee('No saved games yet');
     });
 
     it('leaves out a guest row from the same device that was never claimed', function () {
@@ -62,7 +62,7 @@ describe('only saved games', function () {
         $page = myGames($user);
 
         expect(substr_count($page->html(), 'data-test="game"'))->toBe(1);
-        $page->assertSee('300 pts')->assertDontSee('700 pts');
+        $page->assertSeeText('300 pts')->assertDontSeeText('700 pts');
     });
 
     it('leaves out other people\'s games', function () {
@@ -89,7 +89,7 @@ describe('only saved games', function () {
         $user = User::factory()->create();
         [$room, $row] = savedGame($other, 700);
 
-        myGames($user)->assertDontSee('700 pts');
+        myGames($user)->assertDontSeeText('700 pts');
         expect($row->fresh()->user_id)->toBe($other->id);
     });
 
@@ -97,11 +97,11 @@ describe('only saved games', function () {
         $user = User::factory()->create();
         $room = finishedGame(['Sara' => 700, 'Ali' => 800]);
         $row = $room->players()->where('nickname', 'Sara')->first();
-        myGames($user)->assertDontSee('700 pts');
+        myGames($user)->assertDontSeeText('700 pts');
 
         $row->update(['user_id' => $user->id]);
 
-        myGames($user)->assertSee('700 pts');
+        myGames($user)->assertSeeText('700 pts');
     });
 });
 
@@ -115,14 +115,14 @@ describe('each game', function () {
 
         $page = myGames($user);
 
-        $page->assertSee('20 September 2026')->assertSee('Science · Geography')->assertSee('700 pts')->assertSee('Players: 3')->assertSeeHtml('data-rank="2"')->assertSeeHtml('aria-label="Your place: 2nd"');
+        $page->assertSee('20 September 2026')->assertSee('Science · Geography')->assertSeeText('700 pts')->assertSee('Players: 3')->assertSeeHtml('data-rank="2"')->assertSeeHtml('aria-label="Your place: 2nd"');
     });
 
     it('shows how many of the questions were answered correctly', function () {
         $user = User::factory()->create();
         savedGame($user, 200, correct: 2, questions: 5);
 
-        myGames($user)->assertSeeHtml('<bdi dir="ltr">2 of 5</bdi>');
+        myGames($user)->assertSeeHtml('<bdi dir="ltr">2</bdi> of <bdi dir="ltr">5</bdi>');
     });
 
     it('ranks ties together', function () {
@@ -139,7 +139,7 @@ describe('each game', function () {
         $old->update(['finished_at' => now()->subDays(5)]);
         $new->update(['finished_at' => now()->subDay()]);
 
-        myGames($user)->assertSeeInOrder(['222 pts', '111 pts']);
+        myGames($user)->assertSeeHtmlInOrder(['<bdi dir="ltr">222</bdi>', '<bdi dir="ltr">111</bdi>']);
     });
 
     it('pages through a long history', function () {
@@ -152,8 +152,8 @@ describe('each game', function () {
         $page = myGames($user);
 
         expect(substr_count($page->html(), 'data-test="game"'))->toBe(15);
-        $page->assertSeeHtml('data-test="score">160 pts<')->assertDontSeeHtml('data-test="score">10 pts<')->assertSeeHtml('data-test="next-page"');
-        $page->call('nextPage')->assertSeeHtml('data-test="score">10 pts<')->assertDontSeeHtml('data-test="score">160 pts<');
+        $page->assertSeeHtml('data-test="score"><bdi dir="ltr">160</bdi> pts<')->assertDontSeeHtml('data-test="score"><bdi dir="ltr">10</bdi> pts<')->assertSeeHtml('data-test="next-page"');
+        $page->call('nextPage')->assertSeeHtml('data-test="score"><bdi dir="ltr">10</bdi> pts<')->assertDontSeeHtml('data-test="score"><bdi dir="ltr">160</bdi> pts<');
     });
 });
 
@@ -183,7 +183,7 @@ describe('totals', function () {
 
         $page = myGames($user);
 
-        $page->assertSeeHtml('data-test="total-played">2<')->assertSeeHtml('data-test="total-wins">1<')->assertSeeHtml('data-test="total-rate">67%<')->assertSeeHtml('<bdi dir="ltr">4 of 6</bdi>');
+        $page->assertSeeHtml('data-test="total-played">2<')->assertSeeHtml('data-test="total-wins">1<')->assertSeeHtml('data-test="total-rate">67%<')->assertSeeHtml('<bdi dir="ltr">4</bdi> of <bdi dir="ltr">6</bdi>');
     });
 
     it('is zero, with a dash for the rate, before any game', function () {
@@ -212,7 +212,7 @@ describe('both languages', function () {
 
         $page = myGames($user);
 
-        $page->assertSee('ألعابي')->assertSee('الألعاب التي لعبتها')->assertSee('الانتصارات')->assertSee('الإجابات الصحيحة')->assertSee('سبتمبر')->assertSee('700 نقطة');
+        $page->assertSee('ألعابي')->assertSee('الألعاب التي لعبتها')->assertSee('الانتصارات')->assertSee('الإجابات الصحيحة')->assertSee('سبتمبر')->assertSeeHtml('<bdi dir="ltr">700</bdi> نقطة');
         expect($page->html())->toContain('2026')->and($page->html())->not->toMatch('/[٠-٩]/u');
     });
 
@@ -220,6 +220,6 @@ describe('both languages', function () {
         $user = User::factory()->create();
         savedGame($user, 700);
 
-        myGames($user)->assertSeeHtml('dir="ltr" data-test="total-played"')->assertSeeHtml('dir="ltr" data-test="score"');
+        myGames($user)->assertSeeHtml('dir="ltr" data-test="total-played"')->assertSeeHtml('data-test="score"><bdi dir="ltr">700</bdi>');
     });
 });
