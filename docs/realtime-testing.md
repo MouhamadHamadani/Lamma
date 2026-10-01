@@ -10,6 +10,7 @@ The lobby and the game are live over Laravel Reverb (websockets). Three things h
 | Reverb | `php artisan reverb:start` (0.0.0.0:8080) | the live lobby |
 | Vite | `npm run dev` | CSS/JS on your laptop (not on phones, see below) |
 | Queue worker | `php artisan queue:listen --tries=1 --timeout=0 --sleep=1` | the question timers (reveal, next question) |
+| Scheduler | `php artisan schedule:work` | the daily `lamma:prune` (abandoned lobbies, expired guest tokens); not needed to play |
 
 `composer dev` starts all four in one terminal (its queue worker already checks every second). The game events are `ShouldBroadcastNow`: they are sent from the web request that caused them. What the queue does is the *timing*: when a question starts, a delayed `RevealQuestion` job is queued for its deadline, and after the reveal an `AdvanceQuestion` job for 5 seconds later.
 
@@ -92,7 +93,7 @@ Two origins give two cookie jars (see "One laptop, two browsers"). With the host
 2. Host: **Start game**. The host shows question 1 (English with the Arabic line under it, the timer ring, "0 of 1 answered"); the phone shows the question with a timer bar and four tiles.
 3. Phone: tap an answer. It locks at once (no confirm) and shows "Answer locked in". When every connected player has answered, the reveal comes immediately; otherwise it comes when the timer ends (a half-second grace is allowed for slow phones).
 4. Reveal: the host shows the correct tile (others faded, mini avatars on what each player picked), the navy scoreboard re-orders and "+100" counts up, with a 5 s "Next question in" bar. **Next question** skips the wait; **Skip timer** (on the question screen) shows the answer now. The phone shows "Correct!" (teal), "Not quite!" or "Time's up!" with its rank, score and the correct answer.
-5. After the last question the host shows "That's the game!" with the final scores and the phone "You finished 1st · 300 pts". The results screens are the next phase.
+5. After the last question the host shows the podium ("<Name> wins!", 2 · 1 · 3) with **Play again** and **New game**, and each phone its rank, score and the leaderboard (a guest also sees "Save your score"). **Play again** makes a new lobby with the same players and every phone follows it. The complete hand test, with three phones, is in [manual-test-plan.md](manual-test-plan.md).
 
 ### What to check
 
