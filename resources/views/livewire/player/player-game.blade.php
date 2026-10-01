@@ -20,7 +20,11 @@
     };
     $seconds = $room->settings->secondsPerQuestion;
 @endphp
-<div @class(['relative min-h-dvh', 'bg-teal' => $phase === 'correct']) wire:poll.4s data-test="player-game" data-phase="{{ $phase }}">
+<div @class(['relative min-h-dvh', 'bg-teal' => $phase === 'correct']) @if ($phase !== 'over') wire:poll.4s @endif data-test="player-game" data-phase="{{ $phase }}">
+@if ($phase === 'over')
+    {{-- The game is over: the results screen (rank, leaderboard, save your score, follow Play again) takes over. --}}
+    <livewire:player.player-results :room="$room" :key="'results-'.$room->id" />
+@else
     @if ($phase === 'correct')
         <x-lamma.confetti :count="5" />
     @endif
@@ -140,16 +144,6 @@
                 <p class="text-[15px] font-bold">{{ $state->isLast() ? __('Final results coming up…') : __('Next question coming up…') }}</p>
             </main>
 
-        @elseif ($phase === 'over')
-            {{-- The results screens are the next phase; for now the player's final place and a way home. --}}
-            <main wire:key="game-over" class="flex grow flex-col items-center justify-center gap-6 text-center" data-test="game-over">
-                <h1 class="font-display text-[44px] font-extrabold leading-tight">{{ __("That's the game!") }}</h1>
-                @if ($row)
-                    <p class="font-display text-[22px] font-bold" data-test="rank-line">{!! __('You finished :rank · :points pts', ['rank' => $rankHtml, 'points' => $pointsHtml]) !!}</p>
-                @endif
-                <x-lamma.button :href="route('home')" variant="outline">{{ __('Back to home') }}</x-lamma.button>
-            </main>
-
         @else
             <main class="flex grow flex-col items-center justify-center gap-6 text-center" data-test="closed">
                 <h1 class="font-display text-[34px] font-extrabold leading-tight">{{ __('This room has been closed.') }}</h1>
@@ -157,4 +151,5 @@
             </main>
         @endif
     </div>
+@endif
 </div>

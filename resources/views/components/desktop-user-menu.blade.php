@@ -19,6 +19,9 @@
         </div>
         <flux:menu.separator />
         <flux:menu.radio.group>
+            <flux:menu.item :href="route('me.games')" icon="trophy" data-test="my-games-link">
+                {{ __('My games') }}
+            </flux:menu.item>
             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                 {{ __('Settings') }}
             </flux:menu.item>

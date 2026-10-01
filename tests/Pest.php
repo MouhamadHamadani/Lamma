@@ -156,3 +156,21 @@ function finishedGame(array $scores, int $questions = 3, array $settings = [], ?
 
     return $room->fresh();
 }
+
+/**
+ * A finished game this user played as themselves (a row tied to their account) with $correct right answers and the final $score,
+ * against $rivals (nickname => score). Returns the room and the user's row. Call it where Event and Queue are faked.
+ *
+ * @return array{0: Room, 1: RoomPlayer}
+ */
+function savedGame(User $user, int $score, array $rivals = ['Rival' => 100], int $correct = 0, int $questions = 3, array $settings = []): array
+{
+    $room = finishedGame($rivals, questions: $questions, settings: $settings);
+    $mine = RoomPlayer::factory()->for($room)->forUser($user)->create(['nickname' => 'Me'.$user->id, 'score' => $score, 'is_ready' => true, 'left_at' => null]);
+
+    foreach ($room->roomQuestions()->take($correct)->get() as $roomQuestion) {
+        PlayerAnswer::create(['room_question_id' => $roomQuestion->id, 'room_player_id' => $mine->id, 'question_option_id' => null, 'answered_at' => now(), 'is_correct' => true, 'points' => 100]);
+    }
+
+    return [$room, $mine];
+}

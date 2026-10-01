@@ -15,6 +15,9 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="trophy" :href="route('me.games')" :current="request()->routeIs('me.games')">
+                        {{ __('My games') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
@@ -59,6 +62,9 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
+                        <flux:menu.item :href="route('me.games')" icon="trophy">
+                            {{ __('My games') }}
+                        </flux:menu.item>
                         <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                             {{ __('Settings') }}
                         </flux:menu.item>

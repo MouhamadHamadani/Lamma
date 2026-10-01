@@ -5,6 +5,7 @@ use App\Http\Controllers\LocaleController;
 use App\Livewire\Host\CreateRoom;
 use App\Livewire\Host\HostLobby;
 use App\Livewire\Player\JoinRoom;
+use App\Livewire\Player\MyGames;
 use App\Livewire\Player\PlayerLobby;
 use App\Models\Room;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,16 @@ Route::livewire('join', JoinRoom::class)->name('join');
 // The host screen: only the room's host. The phone screen: only the room's participants (user or guest token).
 Route::livewire('host/{room}', HostLobby::class)->middleware(['auth', 'can:host,room'])->name('host.lobby');
 Route::livewire('play/{room}', PlayerLobby::class)->middleware('room.player')->name('play');
+// "Save your score" on the results screen: remember to come back to the results page, then log in or sign up. Logging in on this device
+// attaches the guest results to the account (ClaimGuestResults), and the results page then says "Saved to your profile".
+Route::get('play/{room}/save/{action}', function (Room $room, string $action) {
+    session()->put('url.intended', route('play', $room->code));
+
+    return redirect()->route($action);
+})->whereIn('action', ['login', 'register'])->middleware('room.player')->name('play.save');
+
+// The logged-in user's saved games and totals.
+Route::livewire('me/games', MyGames::class)->middleware('auth')->name('me.games');
 
 Route::get('locale/{locale}', LocaleController::class)->name('locale.switch');
 
