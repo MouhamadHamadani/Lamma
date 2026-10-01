@@ -3,7 +3,10 @@
 namespace App\Models;
 
 use Database\Factories\RoomPlayerFactory;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +16,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * A player in a room: either a registered user (`user_id`) or a guest (`guest_token`).
+ *
+ * It is also Authenticatable so the "player" guard can hand it to channel authorization: a guest has no User account,
+ * the lamma_guest cookie is their credential. The token never leaves the server (hidden from serialization).
  *
  * @property int $id
  * @property int $room_id
@@ -28,10 +34,20 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['room_id', 'user_id', 'guest_token', 'nickname', 'locale', 'score', 'is_ready', 'joined_at', 'left_at'])]
-class RoomPlayer extends Model
+#[Hidden(['guest_token'])]
+class RoomPlayer extends Model implements AuthenticatableContract
 {
     /** @use HasFactory<RoomPlayerFactory> */
-    use HasFactory;
+    use Authenticatable, HasFactory;
+
+    /**
+     * The id a presence channel knows this participant by. Prefixed so it can never equal a User id (the host and
+     * logged-in players are Users), which would merge two different people into one presence member.
+     */
+    public function getAuthIdentifier(): string
+    {
+        return 'player:'.$this->getKey();
+    }
 
     protected function casts(): array
     {

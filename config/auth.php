@@ -48,6 +48,11 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+
+        // A guest player in a room, resolved from the lamma_guest cookie (see AppServiceProvider). Used by channel auth only.
+        'player' => [
+            'driver' => 'player',
+        ],
     ],
 
     /*

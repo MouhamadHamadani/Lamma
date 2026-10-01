@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Game\RoomPresence;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Number;
@@ -25,6 +28,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureGuards();
+    }
+
+    /** Guests are not Users: the "player" guard turns the lamma_guest cookie into their RoomPlayer for channel auth. */
+    protected function configureGuards(): void
+    {
+        Auth::viaRequest('player', fn (Request $request) => app(RoomPresence::class)->guestPlayerFor($request->input('channel_name')));
     }
 
     /**
