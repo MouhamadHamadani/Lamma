@@ -21,7 +21,7 @@
             <flux:spacer />
 
             <div class="px-2 pb-2">
-                <x-language-switcher class="w-full justify-start" />
+                <x-lamma.language-switcher class="w-full justify-center" />
             </div>
 
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />

@@ -10,13 +10,24 @@ it('sets lang and dir on the Lamma layout from the current locale', function (st
         ->toContain('bg-cream');
 })->with([['ar', 'rtl'], ['en', 'ltr']]);
 
-it('shows the current locale as selected and links to the other one', function () {
-    app()->setLocale('en');
+it('shows only the other language on the toggle and links to the locale route', function (string $current, string $other, string $label) {
+    app()->setLocale($current);
 
-    expect(Blade::render('<x-lamma.language-switcher />'))
-        ->toContain('aria-current="true"')
-        ->toContain(route('locale.switch', 'ar'))
-        ->not->toContain(route('locale.switch', 'en'));
+    $html = Blade::render('<x-lamma.language-switcher />');
+
+    expect($html)
+        ->toContain('href="'.route('locale.switch', $other).'"')
+        ->toContain(">{$label}</a>")
+        ->toContain('lang="'.$other.'"')
+        ->not->toContain(route('locale.switch', $current))
+        ->and(substr_count($html, 'hreflang='))->toBe(1);
+})->with([['en', 'ar', 'عربي'], ['ar', 'en', 'EN']]);
+
+it('renders the toggle on both pages and switching sends the visitor back', function () {
+    $this->withSession(['locale' => 'en'])->get('/')->assertSee('>عربي</a>', false)->assertDontSee('>EN</a>', false);
+    $this->withSession(['locale' => 'ar'])->get('/')->assertSee('>EN</a>', false)->assertDontSee('>عربي</a>', false);
+
+    $this->from('/')->get(route('locale.switch', 'ar'))->assertRedirect('/')->assertSessionHas('locale', 'ar');
 });
 
 it('ships the brand files and app icons', function (string $file) {
