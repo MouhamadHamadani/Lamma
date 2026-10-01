@@ -31,6 +31,14 @@ class RoomCodeGenerator
         throw new RuntimeException('Could not generate a unique room code.');
     }
 
+    /** What a player typed, as a code: upper-cased, look-alike and other characters dropped, at most LENGTH long. */
+    public static function normalize(string $input): string
+    {
+        $allowed = preg_replace('/[^'.self::ALPHABET.']/', '', mb_strtoupper($input));
+
+        return substr((string) $allowed, 0, self::LENGTH);
+    }
+
     protected function randomCode(): string
     {
         $code = '';

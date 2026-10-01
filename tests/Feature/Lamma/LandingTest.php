@@ -91,25 +91,12 @@ it('points the join box and the host button at the routes the next phase fills i
     expect(route('join', absolute: false))->toBe('/join')->and(route('rooms.create', absolute: false))->toBe('/rooms/create');
 });
 
-describe('placeholder screens', function () {
-    it('shows the code from the join box upper-cased, cleaned up and left-to-right', function () {
-        $this->get('/join?code=k7m-p9z')
-            ->assertOk()
-            ->assertSee('K7MP9Z')
-            ->assertSee('dir="ltr"', false)
-            ->assertSee('Join a game');
+it('lets hosts reach room creation but sends guests to log in', function () {
+    $this->get('/rooms/create')->assertRedirect(route('login'));
 
-        $this->get('/join?code=<script>alert(1)</script>')->assertOk()->assertSee('SCRIPT')->assertDontSee('alert(1)', false);
-        $this->get('/join')->assertOk()->assertDontSee('aria-label="K');
-    });
+    $this->actingAs(User::factory()->create())->get('/rooms/create')->assertOk()->assertSee('Set up your game');
+});
 
-    it('is translated', function () {
-        $this->withSession(['locale' => 'ar'])->get('/join')->assertSee('انضم إلى لعبة')->assertSee('هذه الشاشة قادمة قريبًا.');
-    });
-
-    it('lets hosts reach room creation but sends guests to log in', function () {
-        $this->get('/rooms/create')->assertRedirect(route('login'));
-
-        $this->actingAs(User::factory()->create())->get('/rooms/create')->assertOk()->assertSee('Set up your game');
-    });
+it('sends the join box to the join screen with the code prefilled', function () {
+    $this->get('/join?code=k7mp')->assertOk()->assertSee('value="K7MP"', false)->assertSee('Join a game');
 });

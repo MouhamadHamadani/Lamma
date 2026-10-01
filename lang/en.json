@@ -217,5 +217,19 @@
     "Create room": "Create room",
     "You'll get a room code to share.": "You'll get a room code to share.",
     "Only :available questions match this choice, but you picked :count.": "Only :available questions match this choice, but you picked :count.",
-    "Pick more categories, another difficulty, or fewer questions.": "Pick more categories, another difficulty, or fewer questions."
+    "Pick more categories, another difficulty, or fewer questions.": "Pick more categories, another difficulty, or fewer questions.",
+    "Type the code shown on the big screen.": "Type the code shown on the big screen.",
+    "Room code": "Room code",
+    "Your nickname": "Your nickname",
+    "e.g. Sara": "e.g. Sara",
+    "Play in": "Play in",
+    "Have an account?": "Have an account?",
+    "Enter the 6-character room code.": "Enter the 6-character room code.",
+    "Enter a nickname.": "Enter a nickname.",
+    "Your nickname needs :min to :max characters.": "Your nickname needs :min to :max characters.",
+    "We couldn't find that room": "We couldn't find that room",
+    "This game has already started": "This game has already started",
+    "That nickname is taken in this room": "That nickname is taken in this room",
+    "You're the host of this room, so you can't play in it.": "You're the host of this room, so you can't play in it.",
+    "Too many attempts. Please try again in :seconds seconds.": "Too many attempts. Please try again in :seconds seconds."
 }

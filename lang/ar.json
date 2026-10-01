@@ -217,5 +217,19 @@
     "Create room": "أنشئ الغرفة",
     "You'll get a room code to share.": "ستحصل على رمز غرفة لتشاركه.",
     "Only :available questions match this choice, but you picked :count.": "لا يوجد سوى :available سؤالًا يناسب اختيارك، لكنك اخترت :count.",
-    "Pick more categories, another difficulty, or fewer questions.": "اختر فئات أكثر، أو مستوى صعوبة آخر، أو عددًا أقل من الأسئلة."
+    "Pick more categories, another difficulty, or fewer questions.": "اختر فئات أكثر، أو مستوى صعوبة آخر، أو عددًا أقل من الأسئلة.",
+    "Type the code shown on the big screen.": "اكتب الرمز الظاهر على الشاشة الكبيرة.",
+    "Room code": "رمز الغرفة",
+    "Your nickname": "اسمك المستعار",
+    "e.g. Sara": "مثال: سارة",
+    "Play in": "العب بـ",
+    "Have an account?": "لديك حساب؟",
+    "Enter the 6-character room code.": "أدخل رمز الغرفة المكوّن من 6 أحرف.",
+    "Enter a nickname.": "أدخل اسمًا مستعارًا.",
+    "Your nickname needs :min to :max characters.": "يجب أن يتكوّن اسمك المستعار من :min إلى :max حرفًا.",
+    "We couldn't find that room": "لم نعثر على هذه الغرفة",
+    "This game has already started": "هذه اللعبة بدأت بالفعل",
+    "That nickname is taken in this room": "هذا الاسم المستعار مستخدم في هذه الغرفة",
+    "You're the host of this room, so you can't play in it.": "أنت مضيف هذه الغرفة، لذلك لا يمكنك اللعب فيها.",
+    "Too many attempts. Please try again in :seconds seconds.": "محاولات كثيرة. حاول مرة أخرى بعد :seconds ثانية."
 }

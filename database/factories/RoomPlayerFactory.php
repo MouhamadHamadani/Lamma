@@ -24,7 +24,8 @@ class RoomPlayerFactory extends Factory
             'room_id' => Room::factory(),
             'user_id' => null,
             'guest_token' => Str::random(64),
-            'nickname' => fake()->firstName(),
+            // Unique within a room (the table enforces it), so players made in one test never collide.
+            'nickname' => fake()->firstName().fake()->unique()->numberBetween(1, 99999),
             'locale' => fake()->randomElement(['ar', 'en']),
             'score' => 0,
             'is_ready' => false,
