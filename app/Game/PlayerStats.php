@@ -6,8 +6,8 @@ use App\Models\PlayerAnswer;
 use App\Models\RoomPlayer;
 use App\Models\RoomQuestion;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * A user's saved games and what they add up to. Only rows tied to an account count (RoomPlayer::savedToAccount): a guest's

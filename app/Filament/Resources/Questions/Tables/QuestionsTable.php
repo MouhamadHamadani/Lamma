@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Questions\Tables;
 
 use App\Enums\Difficulty;
+use App\Game\GameStats;
 use App\Models\Question;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -26,7 +27,12 @@ class QuestionsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['category', 'options']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['category', 'options'])->withCount([
+                // Asked in a room (it was shown), and what players answered: for "Times played" and "% correct".
+                'roomQuestions as times_played' => fn (Builder $asked) => $asked->whereNotNull('room_questions.started_at'),
+                'answers as answers_count',
+                'answers as correct_answers_count' => fn (Builder $answers) => $answers->where('player_answers.is_correct', true),
+            ]))
             ->columns([
                 TextColumn::make('text')
                     // current locale, else whichever language exists
@@ -38,6 +44,20 @@ class QuestionsTable
                     ->label('Category'),
                 TextColumn::make('difficulty')
                     ->badge(),
+                TextColumn::make('times_played')
+                    ->label('Times played')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('percent_correct')
+                    ->label('% correct')
+                    ->state(function (Question $record): string {
+                        $answers = (int) $record->getAttribute('answers_count');
+                        $percent = GameStats::percentCorrect($answers, $answers - (int) $record->getAttribute('correct_answers_count'));
+
+                        return $percent === null ? '—' : $percent.'%';
+                    })
+                    // a question nobody answered sorts as 0%
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderByRaw('(correct_answers_count * 1.0 / CASE WHEN answers_count = 0 THEN 1 ELSE answers_count END) '.($direction === 'desc' ? 'desc' : 'asc'))),
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean(),

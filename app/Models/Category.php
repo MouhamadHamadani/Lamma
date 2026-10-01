@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Carbon;
 use Spatie\Translatable\Attributes\Translatable;
 use Spatie\Translatable\HasTranslations;
@@ -42,6 +43,12 @@ class Category extends Model
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
+    }
+
+    /** @return HasManyThrough<RoomQuestion, Question, $this> The times a question of this category was asked in a room. */
+    public function roomQuestions(): HasManyThrough
+    {
+        return $this->hasManyThrough(RoomQuestion::class, Question::class);
     }
 
     /** @param Builder<Category> $query */

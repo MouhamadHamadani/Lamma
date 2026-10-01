@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -53,6 +54,18 @@ class Question extends Model
     public function options(): HasMany
     {
         return $this->hasMany(QuestionOption::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /** @return HasMany<RoomQuestion, $this> The times this question was asked in a room. */
+    public function roomQuestions(): HasMany
+    {
+        return $this->hasMany(RoomQuestion::class);
+    }
+
+    /** @return HasManyThrough<PlayerAnswer, RoomQuestion, $this> Every answer players gave to it. */
+    public function answers(): HasManyThrough
+    {
+        return $this->hasManyThrough(PlayerAnswer::class, RoomQuestion::class, 'question_id', 'room_question_id');
     }
 
     /** @return HasOne<QuestionOption, $this> */
