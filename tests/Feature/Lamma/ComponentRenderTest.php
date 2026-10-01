@@ -313,7 +313,10 @@ describe('conventions', function () {
     $files = fn () => collect([
         ...glob(resource_path('views/components/lamma/*.blade.php')),
         resource_path('views/layouts/lamma.blade.php'),
-        ...glob(resource_path('views/layouts/auth/*.blade.php')),
+        resource_path('views/layouts/auth.blade.php'),
+        resource_path('views/placeholder.blade.php'),
+        ...glob(resource_path('views/components/auth-*.blade.php')),
+        resource_path('views/components/passkey-verify.blade.php'),
         ...glob(resource_path('views/pages/auth/*.blade.php')),
         resource_path('views/landing.blade.php'),
         resource_path('views/dev/components.blade.php'),

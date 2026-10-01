@@ -188,5 +188,13 @@
     "You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.": "You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
     "Join a game": "Join a game",
     "This screen is coming soon.": "This screen is coming soon.",
-    "Back to home": "Back to home"
+    "Back to home": "Back to home",
+    "Welcome back": "Welcome back",
+    "Log in to host a game or pick up where you left off.": "Log in to host a game or pick up where you left off.",
+    "Host a room on the big screen. Friends play from their phones, in Arabic or English.": "Host a room on the big screen. Friends play from their phones, in Arabic or English.",
+    "Joining a friend's game?": "Joining a friend's game?",
+    "Enter a room code": "Enter a room code",
+    "Show password": "Show password",
+    "Hide password": "Hide password",
+    "Log in or sign up": "Log in or sign up"
 }

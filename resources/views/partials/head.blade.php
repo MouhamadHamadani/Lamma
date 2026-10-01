@@ -12,4 +12,7 @@
 @fonts
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-@fluxAppearance
+{{-- Lamma screens are light-only: Flux's dark class would flip native controls (checkboxes, scrollbars). --}}
+@unless ($lamma ?? false)
+    @fluxAppearance
+@endunless

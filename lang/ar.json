@@ -188,5 +188,13 @@
     "You will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.": "سيُطلب منك رمز أمان عشوائي عند تسجيل الدخول، ويمكنك الحصول عليه من تطبيق يدعم TOTP على هاتفك.",
     "Join a game": "انضم إلى لعبة",
     "This screen is coming soon.": "هذه الشاشة قادمة قريبًا.",
-    "Back to home": "العودة إلى الرئيسية"
+    "Back to home": "العودة إلى الرئيسية",
+    "Welcome back": "أهلاً بعودتك",
+    "Log in to host a game or pick up where you left off.": "سجّل الدخول لتستضيف لعبة أو لتكمل من حيث توقفت.",
+    "Host a room on the big screen. Friends play from their phones, in Arabic or English.": "استضف غرفة على الشاشة الكبيرة. يلعب أصدقاؤك من هواتفهم، بالعربية أو الإنجليزية.",
+    "Joining a friend's game?": "هل تنضم إلى لعبة صديق؟",
+    "Enter a room code": "أدخل رمز الغرفة",
+    "Show password": "إظهار كلمة المرور",
+    "Hide password": "إخفاء كلمة المرور",
+    "Log in or sign up": "تسجيل الدخول أو إنشاء حساب"
 }

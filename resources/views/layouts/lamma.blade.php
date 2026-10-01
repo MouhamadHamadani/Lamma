@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ config('locales.supported.'.app()->getLocale().'.dir', 'ltr') }}">
     <head>
-        @include('partials.head')
+        @include('partials.head', ['lamma' => true])
         @livewireStyles
     </head>
     <body class="lamma min-h-dvh bg-cream font-sans text-navy antialiased">
@@ -10,5 +10,6 @@
 
         {{-- Explicit so Alpine (timers, segmented control) also loads on pages without a Livewire component. --}}
         @livewireScripts
+        @stack('scripts')
     </body>
 </html>

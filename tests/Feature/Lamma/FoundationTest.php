@@ -42,5 +42,6 @@ it('loads the brand fonts and theme tokens', function () {
     $css = file_get_contents(resource_path('css/app.css'));
     expect($css)->toContain("@import './lamma-theme.css'");
     expect(file_get_contents(base_path('vite.config.js')))->toContain('Baloo Bhaijaan 2')->toContain('IBM Plex Sans Arabic');
-    expect(file_get_contents(resource_path('css/lamma-theme.css')))->toContain('--font-display')->toContain('--color-coral');
+    expect(file_get_contents(resource_path('css/lamma-theme.css')))->toContain('--font-display')->toContain('--color-coral')
+        ->toContain(':lang(ar) { letter-spacing: 0 !important; text-transform: none !important; }');
 });

@@ -165,6 +165,22 @@
                 </div>
 
                 <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Form field (plain · password with toggle · error) · link tabs</h3>
+                    @php
+                        $realErrors = $errors ?? new \Illuminate\Support\ViewErrorBag;
+                        $demoErrors = (new \Illuminate\Support\ViewErrorBag)->put('default', new \Illuminate\Support\MessageBag(['email' => [$ar ? 'هذا البريد الإلكتروني غير صالح.' : 'That email address is not valid.']]));
+                    @endphp
+                    <div class="grid max-w-3xl grid-cols-1 gap-6 md:grid-cols-3">
+                        <x-lamma.field name="name" label="Name" dir="auto" placeholder="Full name" />
+                        <x-lamma.field name="password" type="password" label="Password" viewable placeholder="Password" />
+                        @php view()->share('errors', $demoErrors); @endphp
+                        <x-lamma.field name="email" type="email" label="Email address" value="not-an-email" />
+                        @php view()->share('errors', $realErrors); @endphp
+                    </div>
+                    <x-lamma.segmented class="max-w-md" selected="login" :options="['login' => ['label' => $ar ? 'تسجيل الدخول' : 'Log in', 'href' => '#login'], 'register' => ['label' => $ar ? 'سجّل الآن' : 'Sign up', 'href' => '#register']]" />
+                </div>
+
+                <div class="space-y-4">
                     <h3 class="font-display text-2xl font-bold">Icons · answer shapes · confetti</h3>
                     <div class="flex flex-wrap items-center gap-4">
                         @foreach ($icons as $icon)

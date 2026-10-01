@@ -1,59 +1,41 @@
 <x-layouts::auth :title="__('Log in')">
-    <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
+    <x-auth-header :title="__('Welcome back')" :description="__('Log in to host a game or pick up where you left off.')" />
 
-        <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
+    <x-lamma.segmented
+        :label="__('Log in or sign up')"
+        selected="login"
+        :options="['login' => ['label' => __('Log in'), 'href' => route('login')], 'register' => ['label' => __('Sign up'), 'href' => route('register')]]"
+    />
 
-        <x-passkey-verify />
+    <x-auth-session-status :status="session('status')" />
 
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
-            @csrf
+    <x-passkey-verify />
 
-            <!-- Email Address -->
-            <flux:input
-                name="email"
-                :label="__('Email address')"
-                :value="old('email')"
-                type="email"
-                required
-                autofocus
-                autocomplete="email"
-                placeholder="email@example.com"
-            />
+    <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-5">
+        @csrf
 
-            <!-- Password -->
-            <div class="relative">
-                <flux:input
-                    name="password"
-                    :label="__('Password')"
-                    type="password"
-                    required
-                    autocomplete="current-password"
-                    :placeholder="__('Password')"
-                    viewable
-                />
+        <x-lamma.field name="email" type="email" :label="__('Email address')" required autofocus autocomplete="email" placeholder="email@example.com" />
 
-                @if (Route::has('password.request'))
-                    <flux:link class="absolute top-0 text-sm end-0" :href="route('password.request')" wire:navigate>
-                        {{ __('Forgot your password?') }}
-                    </flux:link>
-                @endif
-            </div>
+        <x-lamma.field name="password" type="password" :label="__('Password')" viewable required autocomplete="current-password" :placeholder="__('Password')">
+            @if (Route::has('password.request'))
+                <a href="{{ route('password.request') }}" class="self-end text-sm font-semibold text-coral-700 hover:underline">{{ __('Forgot your password?') }}</a>
+            @endif
+        </x-lamma.field>
 
-            <!-- Remember Me -->
-            <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
+        <label class="flex items-center gap-3 text-[15px] font-semibold">
+            <input type="checkbox" name="remember" value="1" @checked(old('remember')) class="size-5 accent-navy">
+            {{ __('Remember me') }}
+        </label>
 
-            <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
-                    {{ __('Log in') }}
-                </flux:button>
-            </div>
-        </form>
+        <x-lamma.button type="submit" size="lg" class="w-full" data-test="login-button">{{ __('Log in') }}</x-lamma.button>
+    </form>
 
-        <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
-            <span>{{ __('Don\'t have an account?') }}</span>
-            <flux:link :href="route('register')" wire:navigate>{{ __('Sign up') }}</flux:link>
-        </div>
+    <div class="flex items-center gap-3 text-[13px] font-semibold text-ink-subtle" aria-hidden="true">
+        <span class="h-px grow bg-line"></span>{{ __('or') }}<span class="h-px grow bg-line"></span>
     </div>
+
+    <a href="{{ route('join') }}" class="flex min-h-16 items-center justify-between gap-3 rounded-btn border-2 border-dashed border-line-strong px-5 py-2 font-semibold hover:bg-tint-navy">
+        <span>{{ __("Joining a friend's game?") }} <b>{{ __('Enter a room code') }}</b></span>
+        <x-lamma.icon name="arrow-right" :size="20" class="rtl:-scale-x-100" />
+    </a>
 </x-layouts::auth>
