@@ -9,7 +9,7 @@ namespace App\Support;
  */
 final class Isolate
 {
-    /** The value wrapped in <bdi dir="ltr">, escaped. For use in {!! !!} after a translation: __('..', ['points' => Isolate::ltr($n)]). */
+    /** The value wrapped in <bdi dir="ltr">, escaped. Pass it as a replacement to a translation and print the result with {!! !!}. */
     public static function ltr(int|string $value): string
     {
         return '<bdi dir="ltr">'.e((string) $value).'</bdi>';
