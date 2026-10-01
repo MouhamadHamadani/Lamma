@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\Difficulty;
+use App\Models\Category;
+use App\Models\Question;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +50,25 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * An active category holding $count playable questions (active, translated in Arabic and English, 4 options each).
+ */
+function categoryWithQuestions(int $count, ?Difficulty $difficulty = null, array $category = []): Category
+{
+    $category = Category::factory()->create($category);
+
+    Question::factory()
+        ->count($count)
+        ->withOptions()
+        ->create(['category_id' => $category->id, ...($difficulty ? ['difficulty' => $difficulty] : [])]);
+
+    return $category;
 }

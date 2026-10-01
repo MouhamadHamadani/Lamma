@@ -16,6 +16,12 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class RoomSettings implements Arrayable, Castable
 {
+    /** Game lengths the host can pick. */
+    public const QUESTION_COUNTS = [5, 10, 15, 20];
+
+    /** Seconds per question the host can pick. */
+    public const SECONDS_PER_QUESTION = [10, 20, 30];
+
     /**
      * @param  list<int>  $categoryIds
      */

@@ -179,6 +179,7 @@
                         <x-lamma.field name="email" type="email" label="Email address" value="not-an-email" />
                         @php view()->share('errors', $realErrors); @endphp
                     </div>
+                    <x-lamma.error>{{ $ar ? 'اختر فئة واحدة على الأقل.' : 'Pick at least one category.' }}</x-lamma.error>
                     <x-lamma.segmented class="max-w-md" selected="login" :options="['login' => ['label' => $ar ? 'تسجيل الدخول' : 'Log in', 'href' => '#login'], 'register' => ['label' => $ar ? 'سجّل الآن' : 'Sign up', 'href' => '#register']]" />
                 </div>
 

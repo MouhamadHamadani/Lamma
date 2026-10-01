@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LocaleController;
+use App\Livewire\Host\CreateRoom;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -18,7 +20,11 @@ Route::get('join', fn (Request $request) => view('placeholder', [
     'title' => __('Join a game'),
     'code' => (string) Str::of((string) $request->query('code'))->upper()->replaceMatches('/[^A-Z0-9]/', '')->limit(6, ''),
 ]))->name('join');
-Route::get('rooms/create', fn () => view('placeholder', ['title' => __('Host a game'), 'code' => null]))->middleware('auth')->name('rooms.create');
+// {room} is a room code, in any letter case.
+Route::bind('room', fn (string $code) => Room::where('code', Str::upper($code))->firstOrFail());
+
+Route::livewire('rooms/create', CreateRoom::class)->middleware('auth')->name('rooms.create');
+Route::get('host/{room}', fn (Room $room) => $room->code)->middleware('auth')->name('host.lobby'); // replaced by Host\HostLobby
 
 Route::get('locale/{locale}', LocaleController::class)->name('locale.switch');
 

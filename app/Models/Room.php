@@ -6,6 +6,7 @@ use App\Enums\RoomStatus;
 use App\Game\RoomSettings;
 use Database\Factories\RoomFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,6 +48,16 @@ class Room extends Model
             'started_at' => 'datetime',
             'finished_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Rooms still in use: in the lobby or being played.
+     *
+     * @param  Builder<Room>  $query
+     */
+    public function scopeActive(Builder $query): void
+    {
+        $query->whereIn('status', [RoomStatus::Lobby, RoomStatus::Playing]);
     }
 
     /** @return BelongsTo<User, $this> */

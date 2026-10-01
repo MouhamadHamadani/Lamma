@@ -37,10 +37,7 @@
     </div>
 
     @if ($error)
-        <p id="{{ $id }}-error" class="flex items-center gap-1.5 text-sm font-semibold text-coral-700">
-            <x-lamma.icon name="alert" :size="18" />
-            {{ $error }}
-        </p>
+        <x-lamma.error id="{{ $id }}-error">{{ $error }}</x-lamma.error>
     @endif
 
     {{ $slot }}

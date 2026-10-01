@@ -110,6 +110,6 @@ describe('placeholder screens', function () {
     it('lets hosts reach room creation but sends guests to log in', function () {
         $this->get('/rooms/create')->assertRedirect(route('login'));
 
-        $this->actingAs(User::factory()->create())->get('/rooms/create')->assertOk()->assertSee('Host a game');
+        $this->actingAs(User::factory()->create())->get('/rooms/create')->assertOk()->assertSee('Set up your game');
     });
 });
