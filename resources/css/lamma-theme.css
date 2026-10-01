@@ -1,0 +1,85 @@
+/*
+ * Lamma · لمّة — design tokens for Tailwind CSS v4
+ * Import in resources/css/app.css after `@import "tailwindcss";`
+ *   @import "./lamma-theme.css";
+ * Fonts (add to the <head> of the app layout):
+ *   <link rel="preconnect" href="https://fonts.googleapis.com">
+ *   <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+ */
+
+@theme {
+  /* Brand */
+  --color-coral: #FF5A5F;      /* primary: main buttons, answer A, Arabic wordmark */
+  --color-coral-700: #C2343A;  /* coral as TEXT on light (eyebrows, links, "Close room") — passes 4.5:1 */
+  --color-sun: #FFC23C;        /* accent: answer C, timers, highlights, CTA on navy */
+  --color-teal: #2EC4B6;       /* accent: answer B, Ready / correct states */
+  --color-teal-800: #0E6E66;   /* teal as TEXT on light */
+  --color-navy: #1B1F4B;       /* text, outlines, sticker shadows, answer D, dark panels */
+  --color-navy-700: #2B3066;   /* rows / chips on navy */
+  --color-navy-600: #353B7A;   /* highlighted row on navy */
+  --color-navy-900: #0E1030;   /* sticker shadow on navy surfaces */
+  --color-cream: #FFF7EC;      /* page background, English wordmark fill, text on navy */
+
+  /* Neutrals */
+  --color-ink-muted: #4B4F75;  /* body copy on cream/white */
+  --color-ink-subtle: #5B5F82; /* captions, hints, disabled text */
+  --color-ink-on-dark: #D5D7EA;/* body copy on navy */
+  --color-line: #F0E3CF;       /* card borders, dividers, input borders */
+  --color-line-strong: #C9BBA3;/* dashed placeholders, disabled borders, unchecked rings */
+
+  /* Tints (soft backgrounds — keep the page calm; full-strength brand colours only on buttons, answers, logo) */
+  --color-tint-teal: #E0F6F3;
+  --color-tint-coral: #FFE6E4;
+  --color-tint-sun: #FFF0CC;
+  --color-tint-navy: #E7E8F3;
+
+  /* Type */
+  --font-display: 'Baloo Bhaijaan 2', system-ui, sans-serif; /* headings, numbers, answers, wordmark — weight 700/800 */
+  --font-sans: 'IBM Plex Sans Arabic', system-ui, sans-serif; /* body, labels, inputs — 400–700 */
+
+  /* Radii */
+  --radius-chip: 999px;
+  --radius-input: 14px;
+  --radius-btn: 16px;
+  --radius-tile: 22px;
+  --radius-card: 28px;
+  --radius-panel: 32px;
+
+  /* Sticker shadows (hard offset, no blur) */
+  --shadow-sticker-sm: 3px 3px 0 var(--color-navy);
+  --shadow-sticker: 4px 4px 0 var(--color-navy);
+  --shadow-sticker-lg: 6px 6px 0 var(--color-navy);
+  --shadow-soft: 0 10px 30px rgb(27 31 75 / 0.06);
+}
+
+/* The Lamma "sticker": thick navy outline + hard offset shadow. Use on primary buttons, answer tiles, room-code letters, highlighted cards. */
+@utility sticker {
+  border: 3px solid var(--color-navy);
+  box-shadow: var(--shadow-sticker);
+}
+@utility sticker-sm {
+  border: 3px solid var(--color-navy);
+  box-shadow: var(--shadow-sticker-sm);
+}
+@utility sticker-lg {
+  border: 3px solid var(--color-navy);
+  box-shadow: var(--shadow-sticker-lg);
+}
+/* Press feedback: the sticker "pushes down" into its shadow */
+@utility sticker-press {
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+  &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-navy); }
+}
+
+/* Outlined wordmark (English: cream fill; Arabic: coral fill) */
+@utility wordmark {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1;
+  -webkit-text-stroke: 0.17em var(--color-navy);
+  paint-order: stroke fill;
+  text-shadow: 0.1em 0.1em 0 var(--color-navy);
+}
+
+/* Arabic typography: never track or uppercase Arabic — it breaks letter joining */
+:lang(ar) { letter-spacing: 0 !important; text-transform: none !important; }

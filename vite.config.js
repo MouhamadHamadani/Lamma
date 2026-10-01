@@ -17,6 +17,12 @@ export default defineConfig({
                     weights: [400, 500, 600, 700],
                     subsets: ['arabic', 'latin'],
                 }),
+                // Lamma display face (headings, numbers, answers, wordmark): --font-display in lamma-theme.css
+                bunny('Baloo Bhaijaan 2', {
+                    weights: [500, 600, 700, 800],
+                    subsets: ['arabic', 'latin'],
+                    preload: [{ weight: 700 }, { weight: 800 }],
+                }),
             ],
         }),
         tailwindcss(),
