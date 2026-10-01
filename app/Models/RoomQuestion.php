@@ -17,13 +17,14 @@ use Illuminate\Support\Carbon;
  * @property int $room_id
  * @property int $question_id
  * @property int $position
+ * @property list<int>|null $option_order Option ids in the order every screen shows them (A, B, C, D)
  * @property Carbon|null $started_at
  * @property Carbon|null $ends_at
  * @property Carbon|null $revealed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['room_id', 'question_id', 'position', 'started_at', 'ends_at', 'revealed_at'])]
+#[Fillable(['room_id', 'question_id', 'position', 'option_order', 'started_at', 'ends_at', 'revealed_at'])]
 class RoomQuestion extends Model
 {
     /** @use HasFactory<RoomQuestionFactory> */
@@ -35,6 +36,7 @@ class RoomQuestion extends Model
     {
         return [
             'position' => 'integer',
+            'option_order' => 'array',
             'started_at' => 'datetime',
             'ends_at' => 'datetime',
             'revealed_at' => 'datetime',

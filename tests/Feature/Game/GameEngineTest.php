@@ -9,6 +9,7 @@ use App\Models\RoomPlayer;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 
 function startError(Room $room, ?User $by = null): string
 {
@@ -23,13 +24,13 @@ function startError(Room $room, ?User $by = null): string
 
 function readyRoom(int $players = 2): Room
 {
-    $room = Room::factory()->create();
-    RoomPlayer::factory()->for($room)->count($players)->create(['is_ready' => true, 'left_at' => null]);
-
-    return $room;
+    return gameRoom($players);
 }
 
-beforeEach(fn () => Event::fake([GameStarted::class]));
+beforeEach(function () {
+    Event::fake([GameStarted::class]);
+    Queue::fake();
+});
 
 describe('starting', function () {
     it('moves a lobby with everyone ready to playing and sets the start time', function () {
@@ -55,7 +56,7 @@ describe('starting', function () {
         Event::assertDispatchedTimes(GameStarted::class, 1);
         Event::assertDispatched(GameStarted::class, fn (GameStarted $e) => $e->roomCode === $room->code
             && $e->broadcastOn()[0]->name === 'presence-room.'.$room->code
-            && $e->broadcastWith() === ['code' => $room->code]);
+            && $e->broadcastWith()['code'] === $room->code);
     });
 
     it('is not blocked by players who are disconnected', function () {

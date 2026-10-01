@@ -59,7 +59,7 @@ describe('every lobby event', function () {
         foreach ([$guest, $account] as $player) {
             $payload = (new PlayerJoined($room, $player))->broadcastWith();
 
-            expect(array_keys($payload))->toBe(['code', 'player'])
+            expect(array_keys($payload))->toBe(['code', 'server_time', 'player'])
                 ->and(array_keys($payload['player']))->toEqualCanonicalizing(PLAYER_KEYS)
                 ->and(json_encode($payload))->not->toContain(str_repeat('s', 64))->not->toContain('secret@example.com')->not->toContain('user_id')->not->toContain('guest_token');
         }
@@ -67,7 +67,9 @@ describe('every lobby event', function () {
     });
 
     it('carries only the code for a closed room', function () {
-        expect((new RoomClosed(Room::factory()->create(['code' => 'K7MP9Z'])))->broadcastWith())->toBe(['code' => 'K7MP9Z']);
+        $payload = (new RoomClosed(Room::factory()->create(['code' => 'K7MP9Z'])))->broadcastWith();
+
+        expect(array_keys($payload))->toBe(['code', 'server_time'])->and($payload['code'])->toBe('K7MP9Z')->and($payload['server_time'])->toBeInt();
     });
 
     it('keeps its snapshot after the player row is deleted', function () {

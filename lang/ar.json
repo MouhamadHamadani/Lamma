@@ -264,5 +264,6 @@
     "The host closed this room.": "أغلق المضيف هذه الغرفة.",
     "You're not in this room. Join again with the code.": "لست في هذه الغرفة. انضم مرة أخرى بالرمز.",
     "This room has been closed.": "تم إغلاق هذه الغرفة.",
-    "Leave this room?": "هل تريد مغادرة هذه الغرفة؟"
+    "Leave this room?": "هل تريد مغادرة هذه الغرفة؟",
+    "Only :available playable questions are left for a game of :needed.": "لم يبق سوى :available سؤالًا صالحًا للعب من أصل :needed."
 }

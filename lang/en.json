@@ -264,5 +264,6 @@
     "The host closed this room.": "The host closed this room.",
     "You're not in this room. Join again with the code.": "You're not in this room. Join again with the code.",
     "This room has been closed.": "This room has been closed.",
-    "Leave this room?": "Leave this room?"
+    "Leave this room?": "Leave this room?",
+    "Only :available playable questions are left for a game of :needed.": "Only :available playable questions are left for a game of :needed."
 }

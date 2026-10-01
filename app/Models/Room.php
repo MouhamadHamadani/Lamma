@@ -72,6 +72,15 @@ class Room extends Model
         return $this->hasMany(RoomPlayer::class);
     }
 
+    /**
+     * The question on screen now: the latest one that has started (open until it is revealed, then showing its answer).
+     * Null before the first question and in a lobby.
+     */
+    public function currentQuestion(): ?RoomQuestion
+    {
+        return $this->roomQuestions()->whereNotNull('started_at')->reorder('position', 'desc')->first();
+    }
+
     /** @return HasMany<RoomQuestion, $this> */
     public function roomQuestions(): HasMany
     {

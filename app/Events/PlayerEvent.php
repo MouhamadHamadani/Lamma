@@ -18,8 +18,8 @@ abstract class PlayerEvent extends RoomEvent
         $this->player = $player->toBroadcast();
     }
 
-    public function broadcastWith(): array
+    protected function payload(): array
     {
-        return ['code' => $this->roomCode, 'player' => $this->player];
+        return ['player' => $this->player];
     }
 }

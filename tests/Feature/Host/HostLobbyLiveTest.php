@@ -1,11 +1,9 @@
 <?php
 
-use App\Enums\HostScreenLocale;
 use App\Enums\RoomStatus;
 use App\Events\GameStarted;
 use App\Events\PlayerLeft;
 use App\Events\RoomClosed;
-use App\Game\RoomSettings;
 use App\Livewire\Host\HostLobby;
 use App\Models\Room;
 use App\Models\RoomPlayer;
@@ -232,12 +230,11 @@ describe('start button', function () {
         expect(startButton(liveLobby($room)))->toBe('enabled');
     });
 
-    it('starts the game: playing, "Get ready…" on the host screen, GameStarted broadcast', function () {
+    it('starts the game: playing, GameStarted broadcast', function () {
         Event::fake([GameStarted::class]);
-        $room = Room::factory()->create();
-        RoomPlayer::factory()->for($room)->create(['is_ready' => true, 'left_at' => null]);
+        $room = gameRoom(players: 1);
 
-        liveLobby($room)->call('start')->assertSee('Get ready…')->assertSeeHtml('data-test="get-ready"')->assertDontSeeHtml('data-test="player-list"');
+        liveLobby($room)->call('start');
 
         expect($room->fresh()->status)->toBe(RoomStatus::Playing);
         Event::assertDispatchedTimes(GameStarted::class, 1);
@@ -254,8 +251,7 @@ describe('start button', function () {
 
     it('starts once however many times it is clicked', function () {
         Event::fake([GameStarted::class]);
-        $room = Room::factory()->create();
-        RoomPlayer::factory()->for($room)->create(['is_ready' => true, 'left_at' => null]);
+        $room = gameRoom(players: 1);
 
         liveLobby($room)->call('start')->call('start');
 
@@ -269,13 +265,6 @@ describe('start button', function () {
         Livewire::actingAs(User::factory()->create())->test(HostLobby::class, ['room' => $room])->call('start')->assertForbidden();
 
         expect($room->fresh()->status)->toBe(RoomStatus::Lobby);
-    });
-
-    it('shows the Arabic line too on "Get ready…" when the screen language is Both', function () {
-        $room = Room::factory()->create(['settings' => new RoomSettings(hostScreenLocale: HostScreenLocale::Both)]);
-        RoomPlayer::factory()->for($room)->create(['is_ready' => true, 'left_at' => null]);
-
-        liveLobby($room)->call('start')->assertSee('استعدوا…')->assertSeeHtml('lang="ar" dir="rtl"');
     });
 
     it('clears an old refusal once the room becomes startable', function () {

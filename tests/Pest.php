@@ -1,8 +1,16 @@
 <?php
 
 use App\Enums\Difficulty;
+use App\Game\GameEngine;
+use App\Game\RoomSettings;
 use App\Models\Category;
+use App\Models\PlayerAnswer;
 use App\Models\Question;
+use App\Models\Room;
+use App\Models\RoomPlayer;
+use App\Models\RoomQuestion;
+use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -71,4 +79,58 @@ function categoryWithQuestions(int $count, ?Difficulty $difficulty = null, array
         ->create(['category_id' => $category->id, ...($difficulty ? ['difficulty' => $difficulty] : [])]);
 
     return $category;
+}
+
+/**
+ * A lobby ready to start: a category with enough playable questions, a room set up for $questions of them, and $players connected
+ * players who have tapped Ready. $settings overrides RoomSettings fields (secondsPerQuestion, difficulty, ...).
+ */
+function gameRoom(int $players = 2, int $questions = 3, array $settings = [], ?User $host = null, ?Category $category = null): Room
+{
+    $category ??= categoryWithQuestions(max(10, $questions + 4));
+
+    $room = Room::factory()->create([
+        ...($host ? ['host_id' => $host->id] : []),
+        'settings' => new RoomSettings(...[
+            'categoryIds' => [$category->id], 'questionCount' => $questions, 'secondsPerQuestion' => 20, ...$settings,
+        ]),
+    ]);
+    RoomPlayer::factory()->for($room)->count($players)->create(['is_ready' => true, 'left_at' => null]);
+
+    return $room;
+}
+
+/** Start the room's game as its host and return question 1 (open). */
+function startGame(Room $room): RoomQuestion
+{
+    app(GameEngine::class)->start($room, $room->host);
+
+    return $room->fresh()->currentQuestion();
+}
+
+/** The id of the correct option (or of the first wrong one) of a room question. */
+function optionOf(RoomQuestion $roomQuestion, bool $correct = true): int
+{
+    return $roomQuestion->question()->with('options')->first()->options
+        ->first(fn ($option) => $option->is_correct === $correct)->id;
+}
+
+/** A player answers right (true) or wrong (false). */
+function answer(RoomPlayer $player, RoomQuestion $roomQuestion, bool $correct = true): PlayerAnswer
+{
+    return app(GameEngine::class)->submitAnswer($player, optionOf($roomQuestion, $correct));
+}
+
+function at(string $time): void
+{
+    test()->travelTo(CarbonImmutable::parse("2026-10-01 {$time}"));
+}
+
+/** @return array{0: Room, 1: RoomQuestion, 2: Collection<int, RoomPlayer>} a started game with 3 players; the question runs 12:00:00.000 to 12:00:20.000 */
+function openQuestion(): array
+{
+    $room = gameRoom(players: 3);
+    $question = startGame($room);
+
+    return [$room, $question, $room->players()->orderBy('id')->get()];
 }

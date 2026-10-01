@@ -13,15 +13,22 @@ final class CategoryStyle
         'movies-tv' => 'film', 'food-drink' => 'utensils', 'general-knowledge' => 'bulb',
     ];
 
-    private const TINTS = ['bg-tint-teal', 'bg-tint-coral', 'bg-tint-sun', 'bg-tint-navy'];
+    private const TINTS = ['teal', 'coral', 'sun', 'navy'];
 
     public static function icon(string $slug): string
     {
         return self::ICONS[$slug] ?? 'sparkles';
     }
 
-    public static function tint(string $slug): string
+    /** The tint's name (teal, coral, sun, navy): also the chip tone and what the question payload carries. */
+    public static function tintName(string $slug): string
     {
         return self::TINTS[crc32($slug) % count(self::TINTS)];
+    }
+
+    /** The background utility for that tint. */
+    public static function tint(string $slug): string
+    {
+        return 'bg-tint-'.self::tintName($slug);
     }
 }
