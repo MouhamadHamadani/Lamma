@@ -65,12 +65,14 @@
                         <x-lamma.button href="#" variant="sun">As a link</x-lamma.button>
                         <x-lamma.button size="lg" disabled>Start game</x-lamma.button>
                     </div>
-                    <div class="relative flex flex-wrap items-center gap-4 overflow-hidden rounded-panel bg-navy p-8">
+                    <div class="relative overflow-hidden rounded-panel bg-navy p-8">
                         <x-lamma.confetti :count="8" />
-                        <x-lamma.button on-dark size="lg">Play again</x-lamma.button>
-                        <x-lamma.button variant="outline" on-dark size="lg">New game</x-lamma.button>
-                        <x-lamma.button variant="sun" size="lg">Host a game</x-lamma.button>
-                        <x-lamma.button variant="ghost" on-dark>Leave room</x-lamma.button>
+                        <div class="relative flex flex-wrap items-center gap-4">
+                            <x-lamma.button on-dark size="lg">Play again</x-lamma.button>
+                            <x-lamma.button variant="outline" on-dark size="lg">New game</x-lamma.button>
+                            <x-lamma.button variant="sun" size="lg">Host a game</x-lamma.button>
+                            <x-lamma.button variant="ghost" on-dark>Leave room</x-lamma.button>
+                        </div>
                     </div>
                 </div>
 

@@ -45,3 +45,25 @@ it('loads the brand fonts and theme tokens', function () {
     expect(file_get_contents(resource_path('css/lamma-theme.css')))->toContain('--font-display')->toContain('--color-coral')
         ->toContain(':lang(ar) { letter-spacing: 0 !important; text-transform: none !important; }');
 });
+
+it('draws the focus ring as a 3px sun outline at 2px offset, with a navy ring for contrast on cream', function () {
+    $css = file_get_contents(resource_path('css/app.css'));
+
+    expect($css)->toContain('.lamma :focus-visible')
+        ->toContain('outline: 3px solid var(--color-sun)')
+        ->toContain('outline-offset: 2px')
+        ->toContain('0 0 0 2px var(--color-navy)')
+        ->toContain('var(--tw-shadow, 0 0 #0000)'); // keeps the sticker shadow
+});
+
+it('has reduced-motion fallbacks for every entrance animation in the components', function () {
+    $views = glob(resource_path('views/components/lamma/*.blade.php'));
+    $source = collect($views)->map(fn ($f) => file_get_contents($f))->implode('
+');
+
+    // every animated class is either motion-safe: gated or has a motion-reduce: alternative
+    preg_match_all('/(?<![\w:-])animate-(?:fade-in|pop-in|row-in|reveal|drop-in|tick)/', $source, $bare);
+    expect($bare[0])->toBe([]);
+    expect($source)->toContain('motion-safe:animate-pop-in')->toContain('motion-reduce:animate-fade-in');
+
+});

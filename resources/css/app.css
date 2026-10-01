@@ -88,16 +88,18 @@ select:focus[data-flux-control] {
     @keyframes tick { 50% { scale: 1.12; } }
 }
 
-/* Sun on cream is ~1.5:1, so the ring is navy on light surfaces and sun only inside navy ones. */
-@layer base {
-    .lamma :focus-visible {
-        outline: 3px solid var(--color-navy);
-        outline-offset: 2px;
-    }
-
-    .lamma .bg-navy :focus-visible {
-        outline-color: var(--color-sun);
-    }
+/* Focus ring (HANDOFF §8): 3px sun outline, 2px offset. Sun on cream is only ~1.5:1, so the offset gap is filled with a 2px navy
+   ring (box-shadow, keeping the sticker shadow) to give the ring contrast on light surfaces; on navy the sun outline carries it.
+   Unlayered on purpose: it must beat the shadow-* utilities. */
+.lamma :focus-visible {
+    outline: 3px solid var(--color-sun);
+    outline-offset: 2px;
+    box-shadow:
+        var(--tw-inset-shadow, 0 0 #0000),
+        var(--tw-inset-ring-shadow, 0 0 #0000),
+        var(--tw-ring-offset-shadow, 0 0 #0000),
+        0 0 0 2px var(--color-navy),
+        var(--tw-shadow, 0 0 #0000);
 }
 
 [x-cloak] {
