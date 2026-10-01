@@ -33,10 +33,12 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDevCommands();
     }
 
-    /** `composer dev`: check the queue every second (not every three), so a question's reveal and next-question jobs run on time. */
+    /** `composer dev`: check the queue every second (not every three), so a question's reveal and next-question jobs run on time; run the scheduler. */
     protected function configureDevCommands(): void
     {
         DevCommands::artisan('queue:listen --tries=1 --timeout=0 --sleep=1', 'queue');
+        // The daily lamma:prune (and anything else scheduled).
+        DevCommands::artisan('schedule:work', 'schedule');
     }
 
     /** Guests are not Users: the "player" guard turns the lamma_guest cookie into their RoomPlayer for channel auth. */
