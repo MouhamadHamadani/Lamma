@@ -83,6 +83,7 @@ select:focus[data-flux-control] {
     --animate-fade-up: fade-up 250ms ease-out backwards;
     --animate-flip: flip 400ms ease-in-out backwards;
     --animate-chip-pop: chip-pop 350ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    --animate-bar-grow: bar-grow 600ms ease-out backwards;
 
     @keyframes fade-in { from { opacity: 0; } }
     @keyframes pop-in { from { opacity: 0; scale: .9; } }
@@ -97,6 +98,8 @@ select:focus[data-flux-control] {
     @keyframes flip { from { translate: 0 var(--dy, 0px); } }
     /* The phone's "+100" chip scales in with a little overshoot. */
     @keyframes chip-pop { from { scale: 0; } }
+    /* A podium bar grows up from the floor (use origin-bottom); the screen staggers 3rd, 2nd, 1st with animation-delay. */
+    @keyframes bar-grow { from { scale: 1 0; } }
 }
 
 /* Focus ring (HANDOFF §8): 3px sun outline, 2px offset. Sun on cream is only ~1.5:1, so the offset gap is filled with a 2px navy

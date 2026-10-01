@@ -19,12 +19,13 @@ use Illuminate\Support\Carbon;
  * @property int $host_id
  * @property RoomStatus $status
  * @property RoomSettings $settings
+ * @property int|null $next_room_id The room that replaced this one after "Play again"
  * @property Carbon|null $started_at
  * @property Carbon|null $finished_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['code', 'host_id', 'status', 'settings', 'started_at', 'finished_at'])]
+#[Fillable(['code', 'host_id', 'status', 'settings', 'next_room_id', 'started_at', 'finished_at'])]
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
@@ -58,6 +59,31 @@ class Room extends Model
     public function scopeActive(Builder $query): void
     {
         $query->whereIn('status', [RoomStatus::Lobby, RoomStatus::Playing]);
+    }
+
+    /**
+     * Games that ran to the end: finished, with questions, every one of them revealed. A room closed part-way is not one.
+     *
+     * @param  Builder<Room>  $query
+     */
+    public function scopeCompleted(Builder $query): void
+    {
+        $query->where('status', RoomStatus::Finished)
+            ->whereHas('roomQuestions', fn ($questions) => $questions->reorder())
+            ->whereDoesntHave('roomQuestions', fn ($questions) => $questions->reorder()->whereNull('revealed_at'));
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === RoomStatus::Finished
+            && $this->roomQuestions()->exists()
+            && ! $this->roomQuestions()->whereNull('revealed_at')->exists();
+    }
+
+    /** @return BelongsTo<Room, $this> */
+    public function nextRoom(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'next_room_id');
     }
 
     /** @return BelongsTo<User, $this> */

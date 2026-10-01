@@ -295,5 +295,15 @@
     "You finished :rank · :points pts": "You finished :rank · :points pts",
     "Correct! You got :points points.": "Correct! You got :points points.",
     "Not quite. The correct answer is :answer.": "Not quite. The correct answer is :answer.",
-    "Time's up. The correct answer is :answer.": "Time's up. The correct answer is :answer."
+    "Time's up. The correct answer is :answer.": "Time's up. The correct answer is :answer.",
+    "No winner this time": "No winner this time",
+    ":name wins!": ":name wins!",
+    ":names win!": ":names win!",
+    "It's a tie!": "It's a tie!",
+    "Game over · :count questions": "Game over · :count questions",
+    "Great game, everyone. Same players, another round?": "Great game, everyone. Same players, another round?",
+    "Play again": "Play again",
+    "New game": "New game",
+    "Podium": "Podium",
+    "Nobody scored this time.": "Nobody scored this time."
 }

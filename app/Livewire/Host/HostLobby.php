@@ -39,7 +39,8 @@ class HostLobby extends Component
     {
         $this->room = $room;
 
-        if ($room->status === RoomStatus::Finished) {
+        // A finished game shows its results (a refresh keeps them); a room closed before the game ran has nothing to show.
+        if ($room->status === RoomStatus::Finished && ! $room->isCompleted()) {
             return $this->redirectRoute('rooms.create');
         }
 

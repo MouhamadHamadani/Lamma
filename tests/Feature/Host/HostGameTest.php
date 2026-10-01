@@ -253,7 +253,7 @@ describe('the host\'s buttons', function () {
     it('Finish game ends the game after the last question', function () {
         [$room] = hostedGame(questions: 1);
 
-        hostGame($room)->call('skipTimer', 1)->call('next', 1)->assertSee("That's the game!")->assertSee('Here are the final scores.')->assertSeeHtml('data-test="host-again"');
+        hostGame($room)->call('skipTimer', 1)->call('next', 1)->assertSeeHtml('data-test="host-results"')->assertSeeHtml('data-test="play-again"');
 
         expect($room->fresh()->status)->toBe(RoomStatus::Finished);
         Event::assertDispatchedTimes(GameFinished::class, 1);

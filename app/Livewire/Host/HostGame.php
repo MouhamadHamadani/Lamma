@@ -90,6 +90,11 @@ class HostGame extends Component
         $state = $view->forRoom($room);
         $mode = $room->settings->hostScreenLocale;
 
+        // A room closed part-way has no results to show.
+        if ($state?->finished && ! $state->completed()) {
+            $this->redirectRoute('rooms.create');
+        }
+
         return view('livewire.host.host-game', [
             'state' => $state,
             'both' => $mode === HostScreenLocale::Both,

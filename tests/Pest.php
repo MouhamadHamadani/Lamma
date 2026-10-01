@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Difficulty;
+use App\Enums\RoomStatus;
 use App\Game\GameEngine;
 use App\Game\RoomSettings;
 use App\Models\Category;
@@ -133,4 +134,25 @@ function openQuestion(): array
     $question = startGame($room);
 
     return [$room, $question, $room->players()->orderBy('id')->get()];
+}
+
+/**
+ * A game that ran to the end: every question asked and revealed, the room finished, and these players (nickname => final score) in
+ * the room, connected. Call it where Event and Queue are faked (starting a game broadcasts and queues).
+ */
+function finishedGame(array $scores, int $questions = 3, array $settings = [], ?User $host = null): Room
+{
+    $room = gameRoom(players: 0, questions: $questions, settings: $settings, host: $host);
+    foreach (array_keys($scores) as $nickname) {
+        RoomPlayer::factory()->for($room)->create(['nickname' => $nickname, 'is_ready' => true, 'left_at' => null]);
+    }
+
+    startGame($room);
+    $room->roomQuestions()->update(['started_at' => now()->subMinute(), 'ends_at' => now()->subSeconds(40), 'revealed_at' => now()->subSeconds(39)]);
+    foreach ($scores as $nickname => $score) {
+        $room->players()->where('nickname', $nickname)->update(['score' => $score]);
+    }
+    $room->update(['status' => RoomStatus::Finished, 'finished_at' => now()]);
+
+    return $room->fresh();
 }

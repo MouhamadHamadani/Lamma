@@ -10,6 +10,11 @@
     $seconds = $room->settings->secondsPerQuestion;
     $nowMs = now()->getTimestampMs();
 @endphp
+<div>
+@if ($state?->finished)
+    {{-- The game is over: the results screen (podium, Play again) takes the whole screen. --}}
+    <livewire:host.host-results :room="$room" :key="'results-'.$room->id" />
+@else
 <div class="flex h-dvh flex-col overflow-hidden" wire:poll.2s="tick" data-test="host-game">
     <header class="flex h-[clamp(64px,9.8dvh,88px)] shrink-0 items-center justify-between gap-4 border-b-2 border-line bg-white {{ $gutter }}">
         <x-lamma.logo />
@@ -17,15 +22,13 @@
         @if ($state)
             <div class="flex items-center gap-3">
                 <x-lamma.chip size="lg" class="border-2 border-line bg-white" data-test="progress-label">
-                    @if ($state->finished)
-                        {{ __('Game over') }}
-                    @elseif ($revealed)
+                    @if ($revealed)
                         {{ __('Answer · Question :n', ['n' => $position]) }}
                     @else
                         {{ __('Question :n of :total', ['n' => $position, 'total' => $state->total]) }}
                     @endif
                 </x-lamma.chip>
-                <x-lamma.progress-dots :total="$state->total" :current="$state->finished ? $state->total + 1 : $position" />
+                <x-lamma.progress-dots :total="$state->total" :current="$position" />
             </div>
 
             <div class="flex items-center gap-3">
@@ -43,20 +46,6 @@
         <main class="flex grow flex-col items-center justify-center gap-6 px-5 text-center" data-test="get-ready" aria-live="polite">
             <x-lamma.dots class="[&>span]:size-5" />
             <h1 class="font-display text-[clamp(48px,7vw,96px)] font-extrabold leading-none">{{ __('Get ready…') }}</h1>
-        </main>
-
-    @elseif ($state->finished)
-        {{-- The end of the game. The results screens are the next phase; for now the final scores and a way to host again. --}}
-        <main wire:key="game-over" class="flex min-h-0 grow gap-9 pb-[clamp(16px,4dvh,40px)] pt-[clamp(16px,4dvh,36px)] {{ $gutter }}" data-test="game-over">
-            <div class="flex min-w-0 grow flex-col items-center justify-center gap-6 text-center">
-                <h1 class="font-display text-[clamp(44px,6vw,88px)] font-extrabold leading-none motion-safe:animate-fade-up">{{ __("That's the game!") }}</h1>
-                @if ($both)
-                    <p lang="ar" dir="rtl" class="font-display text-[clamp(28px,3.4vw,48px)] font-bold text-coral">{{ __("That's the game!", [], 'ar') }}</p>
-                @endif
-                <p class="text-xl text-ink-muted">{{ __('Here are the final scores.') }}</p>
-                <x-lamma.button :href="route('rooms.create')" size="lg" icon="play" data-test="host-again">{{ __('Host another game') }}</x-lamma.button>
-            </div>
-            <x-lamma.scoreboard :ranking="$state->ranking" :colors="$colors" :gained="false" class="w-[clamp(340px,29vw,420px)] shrink-0" />
         </main>
 
     @elseif (! $revealed)
@@ -164,4 +153,6 @@
             </x-lamma.scoreboard>
         </main>
     @endif
+</div>
+@endif
 </div>

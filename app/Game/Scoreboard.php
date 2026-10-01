@@ -51,14 +51,18 @@ class Scoreboard
     /** "2nd" in English; the plain number in Arabic (the phrase around it carries the meaning). */
     public static function ordinal(int $rank): string
     {
+        return $rank.self::suffix($rank);
+    }
+
+    /** "nd" for 2 in English; nothing in Arabic. */
+    public static function suffix(int $rank): string
+    {
         if (app()->getLocale() === 'ar') {
-            return (string) $rank;
+            return '';
         }
 
-        $suffix = in_array($rank % 100, [11, 12, 13], true) ? 'th' : match ($rank % 10) {
+        return in_array($rank % 100, [11, 12, 13], true) ? 'th' : match ($rank % 10) {
             1 => 'st', 2 => 'nd', 3 => 'rd', default => 'th',
         };
-
-        return $rank.$suffix;
     }
 }
