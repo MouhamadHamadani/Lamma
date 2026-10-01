@@ -152,8 +152,6 @@ describe('start button', function () {
     });
 });
 
-it('is static: the page is a database read, with nothing listening for broadcasts yet', function () {
-    $html = lobbyFor(Room::factory()->create())->html();
-
-    expect($html)->not->toContain('wire:poll')->not->toContain('Echo');
+it('keeps the start button disabled when nobody is in the room', function () {
+    expect(lobbyFor(Room::factory()->create())->html())->toMatch('/<button[^>]*\sdisabled[\s>][^>]*data-test="start-button"|<button[^>]*data-test="start-button"[^>]*\sdisabled[\s>]/s');
 });

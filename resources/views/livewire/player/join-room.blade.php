@@ -9,6 +9,8 @@
         <x-lamma.language-switcher />
     </header>
 
+    <x-lamma.notice class="relative" />
+
     <x-lamma.shape :index="2" :size="22" class="absolute end-7 top-[90px] rotate-[14deg] text-sun rtl:-rotate-[14deg]" />
     <x-lamma.shape :index="1" :size="12" class="absolute end-[74px] top-[134px] text-teal" />
 

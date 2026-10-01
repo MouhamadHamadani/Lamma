@@ -34,3 +34,27 @@ document.addEventListener('alpine:init', () => {
         },
     }));
 });
+
+// "Reconnecting…" card: shown while the Echo websocket is down, hidden once it is back. Not shown for the first connect.
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('lammaConnection', () => ({
+        offline: false,
+        wasConnected: false,
+
+        init() {
+            const connection = window.Echo?.connector?.pusher?.connection;
+            if (!connection) return;
+
+            const update = (state) => {
+                if (state === 'connected') {
+                    this.wasConnected = true;
+                    this.offline = false;
+                } else if (['unavailable', 'failed', 'disconnected'].includes(state) || (state === 'connecting' && this.wasConnected)) {
+                    this.offline = true;
+                }
+            };
+            update(connection.state);
+            connection.bind('state_change', ({ current }) => update(current));
+        },
+    }));
+});

@@ -185,6 +185,20 @@
                 </div>
 
                 <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Dots · notice · reconnecting card (hidden until the websocket drops)</h3>
+                    <div class="flex flex-wrap items-center gap-6">
+                        <x-lamma.dots />
+                        <x-lamma.status-pill disconnected />
+                        <ul class="w-[460px]">
+                            <x-lamma.player-row :player="['nickname' => $ar ? 'مايا' : 'Maya', 'locale' => $loc, 'is_ready' => true, 'left_at' => now()]" :index="2" class="border-2" />
+                        </ul>
+                    </div>
+                    @php session()->now('notice', $ar ? 'أغلق المضيف هذه الغرفة.' : 'The host closed this room.'); @endphp
+                    <x-lamma.notice class="max-w-md" />
+                    <x-lamma.reconnecting />
+                </div>
+
+                <div class="space-y-4">
                     <h3 class="font-display text-2xl font-bold">Icons · answer shapes · confetti</h3>
                     <div class="flex flex-wrap items-center gap-4">
                         @foreach ($icons as $icon)

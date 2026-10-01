@@ -254,5 +254,15 @@
     "Only the host can start the game.": "المضيف وحده يستطيع بدء اللعبة.",
     "Wait for at least one player to connect.": "انتظر حتى يتصل لاعب واحد على الأقل.",
     "Everyone needs to tap Ready first.": "يجب أن ينقر الجميع على «جاهز» أولًا.",
-    "The game is already starting.": "اللعبة تبدأ بالفعل."
+    "The game is already starting.": "اللعبة تبدأ بالفعل.",
+    "Disconnected": "غير متصل",
+    "Reconnecting…": "جارٍ إعادة الاتصال…",
+    "Remove :name": "إزالة :name",
+    "Leave room": "مغادرة الغرفة",
+    "Get ready…": "استعدوا…",
+    "The game is about to begin.": "اللعبة على وشك أن تبدأ.",
+    "The host closed this room.": "أغلق المضيف هذه الغرفة.",
+    "You're not in this room. Join again with the code.": "لست في هذه الغرفة. انضم مرة أخرى بالرمز.",
+    "This room has been closed.": "تم إغلاق هذه الغرفة.",
+    "Leave this room?": "هل تريد مغادرة هذه الغرفة؟"
 }

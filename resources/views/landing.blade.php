@@ -67,6 +67,10 @@
     </header>
 
     <main>
+        @if (session('notice'))
+            <div class="{{ $gutter }} pt-2"><x-lamma.notice /></div>
+        @endif
+
         {{-- HERO --}}
         <section class="relative mx-auto flex max-w-[1440px] flex-col gap-10 px-5 pb-6 pt-5 lg:px-[clamp(40px,8.33vw,120px)] lg:pb-20 lg:pt-10 xl:flex-row xl:items-center xl:gap-[60px]">
             <x-lamma.confetti :count="6" class="hidden xl:block" />

@@ -22,7 +22,9 @@ class EnsureRoomParticipant
         $player = $room instanceof Room ? $this->identity->playerIn($room) : null;
 
         if ($player === null) {
-            return redirect()->route('join', ['code' => $room instanceof Room ? $room->code : null]);
+            // A stranger, or someone the host removed or the lobby dropped: either way, join with the code.
+            return redirect()->route('join', ['code' => $room instanceof Room ? $room->code : null])
+                ->with('notice', __("You're not in this room. Join again with the code."));
         }
 
         app()->setLocale($player->locale);

@@ -254,5 +254,15 @@
     "Only the host can start the game.": "Only the host can start the game.",
     "Wait for at least one player to connect.": "Wait for at least one player to connect.",
     "Everyone needs to tap Ready first.": "Everyone needs to tap Ready first.",
-    "The game is already starting.": "The game is already starting."
+    "The game is already starting.": "The game is already starting.",
+    "Disconnected": "Disconnected",
+    "Reconnecting…": "Reconnecting…",
+    "Remove :name": "Remove :name",
+    "Leave room": "Leave room",
+    "Get ready…": "Get ready…",
+    "The game is about to begin.": "The game is about to begin.",
+    "The host closed this room.": "The host closed this room.",
+    "You're not in this room. Join again with the code.": "You're not in this room. Join again with the code.",
+    "This room has been closed.": "This room has been closed.",
+    "Leave this room?": "Leave this room?"
 }

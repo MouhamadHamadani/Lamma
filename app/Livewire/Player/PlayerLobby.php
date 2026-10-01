@@ -4,6 +4,8 @@ namespace App\Livewire\Player;
 
 use App\Enums\RoomStatus;
 use App\Game\PlayerIdentity;
+use App\Game\RoomPresence;
+use App\Game\RoomRoster;
 use App\Models\Room;
 use App\Models\RoomPlayer;
 use Illuminate\Contracts\View\View;
@@ -13,10 +15,12 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * The phone while waiting for the host. Static in this phase: the Ready toggle saves is_ready, nothing is broadcast yet.
- * The participant is found from the request (user or guest token) on every call, never from client state.
+ * The phone while waiting for the host, live: the room's broadcast events and presence changes refresh the list, the Ready
+ * toggle and Leave go through RoomRoster (which broadcasts). The participant is found from the request (user or guest
+ * token) on every call, never from client state. If the row is gone (removed by the host, dropped after being offline),
+ * the phone goes to the join screen with a message.
  */
-#[Layout('layouts::lamma')]
+#[Layout('layouts::lamma', ['realtime' => true])]
 class PlayerLobby extends Component
 {
     #[Locked]
@@ -31,6 +35,10 @@ class PlayerLobby extends Component
     public function hydrate(): void
     {
         $this->useOwnLocale();
+
+        if (app(PlayerIdentity::class)->playerIn($this->room) === null) {
+            $this->removedFromRoom();
+        }
     }
 
     /** A phone shows the player's own language, whatever the browser or site language is. */
@@ -41,15 +49,52 @@ class PlayerLobby extends Component
         }
     }
 
-    public function toggleReady(PlayerIdentity $identity): void
+    /** @return array<string, string> */
+    public function getListeners(): array
     {
-        $player = $identity->playerIn($this->room) ?? abort(403);
+        $channel = 'echo-presence:'.RoomPresence::channel($this->room->code);
 
-        if ($this->room->fresh()?->status !== RoomStatus::Lobby) {
-            return;
+        return [
+            "{$channel},here" => '$refresh',
+            "{$channel},joining" => '$refresh',
+            "{$channel},leaving" => '$refresh',
+            "{$channel},PlayerJoined" => '$refresh',
+            "{$channel},PlayerLeft" => '$refresh',
+            "{$channel},PlayerReadyChanged" => '$refresh',
+            "{$channel},GameStarted" => '$refresh',
+            "{$channel},RoomClosed" => 'roomClosed',
+        ];
+    }
+
+    public function toggleReady(PlayerIdentity $identity, RoomRoster $roster): void
+    {
+        if ($player = $identity->playerIn($this->room)) {
+            $roster->toggleReady($player);
+        }
+    }
+
+    public function leave(PlayerIdentity $identity, RoomRoster $roster): mixed
+    {
+        if ($player = $identity->playerIn($this->room)) {
+            $roster->leave($player);
         }
 
-        $player->update(['is_ready' => ! $player->is_ready]);
+        return $this->redirect(route('home'));
+    }
+
+    /** The host closed the room: say so on the way home. */
+    public function roomClosed(): mixed
+    {
+        session()->flash('notice', __('The host closed this room.'));
+
+        return $this->redirect(route('home'));
+    }
+
+    private function removedFromRoom(): void
+    {
+        session()->flash('notice', __("You're not in this room. Join again with the code."));
+        $this->redirectRoute('join', ['code' => $this->room->code]);
+        $this->skipRender();
     }
 
     public function render(PlayerIdentity $identity): View
@@ -58,12 +103,15 @@ class PlayerLobby extends Component
 
         /** @var Collection<int, RoomPlayer> $players */
         $players = $this->room->players()->orderBy('joined_at')->orderBy('id')->get();
+        $connected = $players->whereNull('left_at');
 
         return view('livewire.player.player-lobby', [
             'me' => $me,
             'players' => $players,
             'myIndex' => (int) $players->search(fn (RoomPlayer $player) => $player->is($me)),
-            'readyCount' => $players->where('is_ready', true)->count(),
+            'readyCount' => $connected->where('is_ready', true)->count(),
+            'connectedCount' => $connected->count(),
+            'status' => $this->room->status,
             'inLobby' => $this->room->status === RoomStatus::Lobby,
         ])->title(__('Lobby').' '.$this->room->code);
     }

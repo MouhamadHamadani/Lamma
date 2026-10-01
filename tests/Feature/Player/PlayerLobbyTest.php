@@ -67,10 +67,10 @@ describe('the screen', function () {
         $arabic->assertSeeHtml('أهلاً بك، <bdi dir="ltr">سارة</bdi>!');
     });
 
-    it('is static: no polling and no broadcasts yet', function () {
+    it('does not poll: it is refreshed by the room\'s events', function () {
         [, , $page] = phoneLobby();
 
-        expect($page->html())->not->toContain('wire:poll')->not->toContain('Echo');
+        expect($page->html())->not->toContain('wire:poll');
     });
 });
 
@@ -124,9 +124,9 @@ describe('the Ready toggle', function () {
         expect($player->fresh()->is_ready)->toBeFalse();
     });
 
-    it('hides the button and says so when the game has already started', function () {
+    it('hides the button and shows "Get ready…" once the game has started', function () {
         [, , $page] = phoneLobby(room: Room::factory()->playing()->create());
 
-        $page->assertSee('This game has already started')->assertDontSeeHtml('data-test="ready-button"');
+        $page->assertSee('Get ready…')->assertSeeHtml('data-test="get-ready"')->assertDontSeeHtml('data-test="ready-button"');
     });
 });

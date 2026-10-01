@@ -86,7 +86,8 @@ describe('/play/{code}: only the room participants', function () {
     it('sends a stranger to the join screen with the code filled in', function () {
         $room = Room::factory()->create();
 
-        $this->get(route('play', $room->code))->assertRedirect(route('join', ['code' => $room->code]));
+        $this->get(route('play', $room->code))->assertRedirect(route('join', ['code' => $room->code]))
+            ->assertSessionHas('notice', "You're not in this room. Join again with the code.");
         $this->actingAs(User::factory()->create())->get(route('play', $room->code))->assertRedirect(route('join', ['code' => $room->code]));
     });
 
@@ -138,14 +139,15 @@ describe('/play/{code}: only the room participants', function () {
         $this->withCookie('lamma_guest', TOKEN)->get(route('play', $room->code))->assertOk();
     })->with(['playing', 'finished']);
 
-    it('checks the participant again on every action', function () {
+    it('checks the participant again on every action: a player who is gone is sent to the join screen', function () {
         $room = Room::factory()->create();
-        $player = RoomPlayer::factory()->for($room)->create(['guest_token' => TOKEN]);
+        $player = RoomPlayer::factory()->for($room)->create(['guest_token' => TOKEN, 'is_ready' => false, 'locale' => 'en']);
 
         $page = Livewire::withCookie('lamma_guest', TOKEN)->test(PlayerLobby::class, ['room' => $room]);
-        $player->delete(); // no longer a participant by the time the action arrives
+        $player->delete(); // removed by the host in the meantime
 
-        $page->call('toggleReady')->assertForbidden();
+        $page->call('toggleReady')->assertRedirect(route('join', ['code' => $room->code]));
+        expect(session('notice'))->toBe("You're not in this room. Join again with the code.");
     });
 });
 
