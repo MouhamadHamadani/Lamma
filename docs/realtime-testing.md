@@ -1,6 +1,6 @@
-# Running and testing the real-time lobby
+# Running and testing the real-time lobby and the game
 
-The lobby is live over Laravel Reverb (websockets). Three things have to be running: the web app, Reverb, and (for a phone) built front-end assets.
+The lobby and the game are live over Laravel Reverb (websockets). Three things have to be running: the web app, Reverb, and (for a phone) built front-end assets. For a game, also keep the queue worker running (see below).
 
 ## What runs
 
@@ -9,9 +9,11 @@ The lobby is live over Laravel Reverb (websockets). Three things have to be runn
 | Web app | `php artisan serve` (127.0.0.1:8000) | everything |
 | Reverb | `php artisan reverb:start` (0.0.0.0:8080) | the live lobby |
 | Vite | `npm run dev` | CSS/JS on your laptop (not on phones, see below) |
-| Queue worker | `php artisan queue:listen --tries=1 --timeout=0` | **not needed yet** |
+| Queue worker | `php artisan queue:listen --tries=1 --timeout=0 --sleep=1` | the question timers (reveal, next question) |
 
-`composer dev` starts all four in one terminal. The lobby events are `ShouldBroadcastNow`: they are sent from the web request that caused them, so no queue worker is involved. The worker is for the question timers in Phase 5; leave it running anyway.
+`composer dev` starts all four in one terminal (its queue worker already checks every second). The game events are `ShouldBroadcastNow`: they are sent from the web request that caused them. What the queue does is the *timing*: when a question starts, a delayed `RevealQuestion` job is queued for its deadline, and after the reveal an `AdvanceQuestion` job for 5 seconds later.
+
+**The game keeps moving without a worker as long as the host screen is open.** The host screen calls `tick()` at the moment something is due (and polls every 2 s), and every transition is idempotent and locked, so the worker, the host screen and a double click can all fire without doing anything twice. With the worker stopped *and* the host screen closed, nothing reveals the question: phones just sit on the answered screen.
 
 Without Reverb the lobby pages still load, but they show the "Reconnecting…" card and nothing updates.
 
@@ -81,3 +83,22 @@ Laptop Wi-Fi address used below: `192.168.18.87` (check yours with `ipconfig`, "
 - Reverb is not running: `php artisan reverb:start --debug` prints every connection.
 - The page was opened by an address other than the one Reverb is reachable on (for example a VPN address).
 - The assets are stale: run `npm run build` after changing `.env`.
+
+## Playing a whole game
+
+Two origins give two cookie jars (see "One laptop, two browsers"). With the host on `http://localhost:8000` and a phone-sized window on `http://127.0.0.1:8000`:
+
+1. Host: create a room (try 5 questions, 10 s, language **Both**), then on the phone join with a nickname and tap **I'm ready!**. More phones: another browser profile or a private window per player.
+2. Host: **Start game**. The host shows question 1 (English with the Arabic line under it, the timer ring, "0 of 1 answered"); the phone shows the question with a timer bar and four tiles.
+3. Phone: tap an answer. It locks at once (no confirm) and shows "Answer locked in". When every connected player has answered, the reveal comes immediately; otherwise it comes when the timer ends (a half-second grace is allowed for slow phones).
+4. Reveal: the host shows the correct tile (others faded, mini avatars on what each player picked), the navy scoreboard re-orders and "+100" counts up, with a 5 s "Next question in" bar. **Next question** skips the wait; **Skip timer** (on the question screen) shows the answer now. The phone shows "Correct!" (teal), "Not quite!" or "Time's up!" with its rank, score and the correct answer.
+5. After the last question the host shows "That's the game!" with the final scores and the phone "You finished 1st · 300 pts". The results screens are the next phase.
+
+### What to check
+
+- Reload the host or a phone in the middle of a question: it comes back on the same question with the right time left (and the phone still shows its own answer if it gave one).
+- Switch a phone's Wi-Fi off during a question, answer on the others: the reveal does not wait for the disconnected one. Switch it back on before the timer ends and it can still answer.
+- Let a question run out with nobody answering: the host reveals after the timer (nothing is scored), phones show "Time's up!".
+- Arabic phone (use the language toggle on `/join` before joining): question, tiles, result and "You're 1st" are in Arabic and right-to-left; the nickname, score and timer stay left-to-right.
+- Resize the host window from 1280×720 to 1920×1080: nothing scrolls. On a short window the scoreboard shows 5 players; taller windows show up to 10.
+- Stop the queue worker (or never start it) with the host screen open: the game still advances, a fraction of a second later than with a worker.

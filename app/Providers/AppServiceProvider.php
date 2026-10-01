@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Game\RoomPresence;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
@@ -29,6 +30,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureGuards();
+        $this->configureDevCommands();
+    }
+
+    /** `composer dev`: check the queue every second (not every three), so a question's reveal and next-question jobs run on time. */
+    protected function configureDevCommands(): void
+    {
+        DevCommands::artisan('queue:listen --tries=1 --timeout=0 --sleep=1', 'queue');
     }
 
     /** Guests are not Users: the "player" guard turns the lamma_guest cookie into their RoomPlayer for channel auth. */
