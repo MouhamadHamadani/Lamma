@@ -250,5 +250,9 @@
     "I'm ready!": "أنا جاهز!",
     "I'm ready": "أنا جاهز",
     "Tap again if you need a minute.": "انقر مرة أخرى إذا احتجت دقيقة.",
-    "Tap when you're ready to play.": "انقر عندما تكون جاهزًا للعب."
+    "Tap when you're ready to play.": "انقر عندما تكون جاهزًا للعب.",
+    "Only the host can start the game.": "المضيف وحده يستطيع بدء اللعبة.",
+    "Wait for at least one player to connect.": "انتظر حتى يتصل لاعب واحد على الأقل.",
+    "Everyone needs to tap Ready first.": "يجب أن ينقر الجميع على «جاهز» أولًا.",
+    "The game is already starting.": "اللعبة تبدأ بالفعل."
 }

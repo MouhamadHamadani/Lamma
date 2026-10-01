@@ -250,5 +250,9 @@
     "I'm ready!": "I'm ready!",
     "I'm ready": "I'm ready",
     "Tap again if you need a minute.": "Tap again if you need a minute.",
-    "Tap when you're ready to play.": "Tap when you're ready to play."
+    "Tap when you're ready to play.": "Tap when you're ready to play.",
+    "Only the host can start the game.": "Only the host can start the game.",
+    "Wait for at least one player to connect.": "Wait for at least one player to connect.",
+    "Everyone needs to tap Ready first.": "Everyone needs to tap Ready first.",
+    "The game is already starting.": "The game is already starting."
 }
