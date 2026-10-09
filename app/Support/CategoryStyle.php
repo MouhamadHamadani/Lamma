@@ -11,6 +11,7 @@ final class CategoryStyle
     private const ICONS = [
         'geography' => 'globe', 'science' => 'flask', 'sports' => 'ball', 'history' => 'landmark',
         'movies-tv' => 'film', 'food-drink' => 'utensils', 'general-knowledge' => 'bulb',
+        'animals-nature' => 'leaf', 'arab-world' => 'compass',
     ];
 
     private const TINTS = ['teal', 'coral', 'sun', 'navy'];

@@ -2,22 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Locally: the admin from .env, the content and the test players. In production: the content only. The admin is created on purpose,
+     * with `php artisan db:seed --class=AdminSeeder --force` (see docs/deployment.md), and the test players never.
+     */
     public function run(): void
     {
-        $this->call([
-            AdminSeeder::class,
-            CategorySeeder::class,
-            QuestionSeeder::class,
-        ]);
+        if (! app()->isProduction()) {
+            $this->call(AdminSeeder::class);
+        }
 
-        // Local test players (password for all: "password").
-        User::factory()->create(['name' => 'Test User', 'email' => 'test@example.com', 'preferred_locale' => 'ar']);
-        User::factory()->create(['name' => 'English Player', 'email' => 'english@example.com', 'preferred_locale' => 'en']);
-        User::factory(3)->create();
+        $this->call(ContentSeeder::class);
+
+        if (! app()->isProduction()) {
+            $this->call(DevSeeder::class);
+        }
     }
 }

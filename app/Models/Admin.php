@@ -17,11 +17,12 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $email
  * @property string $password
+ * @property bool $is_active Only an active admin can open /admin
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class Admin extends Authenticatable implements FilamentUser
 {
@@ -33,11 +34,11 @@ class Admin extends Authenticatable implements FilamentUser
      */
     protected function casts(): array
     {
-        return ['password' => 'hashed'];
+        return ['password' => 'hashed', 'is_active' => 'boolean'];
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return true; // every row in `admins` is an admin
+        return $this->is_active;
     }
 }
