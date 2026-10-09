@@ -1,0 +1,49 @@
+name: deploy
+
+# Runs when the "tests" workflow (both its jobs) has finished successfully on a push to main. Pull requests and failed runs never deploy.
+# It connects to the server over SSH and runs deploy/deploy.sh there. Set these in GitHub > Settings > Secrets and variables > Actions:
+#   SSH_HOST         the server's address (IP or domain)
+#   SSH_USER         the Unix user that owns the app, "lamma" (docs/deployment.md)
+#   SSH_PRIVATE_KEY  the private key whose public half is in that user's ~/.ssh/authorized_keys
+#   SSH_PORT         the SSH port, usually 22
+#   APP_PATH         the app folder on the server, e.g. /var/www/lamma
+# Optional hardening: SSH_FINGERPRINT, the server's host key fingerprint (ssh-keyscan -t ed25519 <host> | ssh-keygen -lf -), so a man in the
+# middle cannot impersonate the server. Leave it unset to skip that check.
+
+on:
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+# One deploy at a time; a second one waits instead of running over the first.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        env:
+          APP_PATH: ${{ secrets.APP_PATH }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+          envs: APP_PATH
+          script_stop: true
+          command_timeout: 15m
+          script: |
+            cd "$APP_PATH"
+            bash deploy/deploy.sh

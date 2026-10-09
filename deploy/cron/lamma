@@ -1,0 +1,8 @@
+# Lamma cron jobs. Install:  sudo cp deploy/cron/lamma /etc/cron.d/lamma && sudo chmod 644 /etc/cron.d/lamma
+# Replace /var/www/lamma if the app lives elsewhere. Fields: minute hour day month weekday user command.
+
+# The Laravel scheduler, every minute (it runs lamma:prune daily and leaves the heartbeat lamma:doctor checks).
+* * * * * lamma cd /var/www/lamma && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
+
+# A MySQL backup every night at 02:30, kept for 7 days (deploy/backup.sh).
+30 2 * * * lamma /bin/bash /var/www/lamma/deploy/backup.sh >> /var/log/lamma-backup.log 2>&1
