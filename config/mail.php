@@ -115,4 +115,21 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Markdown Mail Theme
+    |--------------------------------------------------------------------------
+    |
+    | The Lamma theme (cream page, coral button with navy text, rtl when the
+    | mail is in Arabic) lives in resources/views/vendor/mail/html/themes.
+    |
+    */
+
+    'markdown' => [
+        'theme' => env('MAIL_MARKDOWN_THEME', 'lamma'),
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
 ];

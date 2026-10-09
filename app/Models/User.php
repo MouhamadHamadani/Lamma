@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,7 +32,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  */
 #[Fillable(['name', 'email', 'password', 'preferred_locale'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements HasLocalePreference, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -46,6 +48,18 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /** The language of every email we send this user (the notification sender applies it, queued or not). */
+    public function preferredLocale(): string
+    {
+        return $this->preferred_locale;
+    }
+
+    /** @param  string  $token */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     /**
