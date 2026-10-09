@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\DeleteAccount;
 use App\Concerns\PasswordValidationRules;
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Auth;
@@ -11,40 +12,44 @@ new class extends Component {
     public string $password = '';
 
     /**
-     * Delete the currently authenticated user.
+     * Delete the currently authenticated user (see DeleteAccount: other players keep their results, hosted open rooms are closed).
      */
-    public function deleteUser(Logout $logout): void
+    public function deleteUser(Logout $logout, DeleteAccount $deleteAccount): void
     {
         $this->validate([
             'password' => $this->currentPasswordRules(),
         ]);
 
-        tap(Auth::user(), $logout(...))->delete();
+        $user = Auth::user();
 
-        $this->redirect('/', navigate: true);
+        $logout();
+        $deleteAccount($user);
+
+        $this->redirect('/');
+    }
+
+    /** The dialog was closed (Cancel or Escape): forget what was typed. */
+    public function cancel(): void
+    {
+        $this->reset('password');
+        $this->resetErrorBag();
     }
 }; ?>
 
-<flux:modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
-    <form method="POST" wire:submit="deleteUser" class="space-y-6">
-        <div>
-            <flux:heading size="lg">{{ __('Are you sure you want to delete your account?') }}</flux:heading>
+<div>
+    <x-lamma.dialog
+        name="delete-account"
+        :title="__('Are you sure you want to delete your account?')"
+        :description="__('Once your account is deleted, your profile and saved games are gone for good. Please enter your password to confirm.')"
+        x-on:close="$wire.cancel()"
+    >
+        <form wire:submit="deleteUser" class="flex flex-col gap-5">
+            <x-lamma.field name="password" type="password" wire:model="password" viewable required autocomplete="current-password" :label="__('Password')" />
 
-            <flux:subheading>
-                {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
-            </flux:subheading>
-        </div>
-
-        <flux:input wire:model="password" :label="__('Password')" type="password" viewable />
-
-        <div class="flex justify-end space-x-2 rtl:space-x-reverse">
-            <flux:modal.close>
-                <flux:button variant="filled">{{ __('Cancel') }}</flux:button>
-            </flux:modal.close>
-
-            <flux:button variant="danger" type="submit" data-test="confirm-delete-user-button">
-                {{ __('Delete account') }}
-            </flux:button>
-        </div>
-    </form>
-</flux:modal>
+            <div class="flex flex-wrap justify-end gap-3">
+                <x-lamma.button variant="outline" x-on:click="$el.closest('dialog').close()">{{ __('Cancel') }}</x-lamma.button>
+                <x-lamma.button variant="danger" type="submit" icon="trash" data-test="confirm-delete-user-button">{{ __('Delete account') }}</x-lamma.button>
+            </div>
+        </form>
+    </x-lamma.dialog>
+</div>

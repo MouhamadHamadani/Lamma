@@ -5,7 +5,7 @@
         $planets = [['Venus', 'الزهرة'], ['Mars', 'المريخ'], ['Jupiter', 'المشتري'], ['Saturn', 'زحل']];
         $endsAt = now()->addSeconds(12);
         $endsSoon = now()->addSeconds(4);
-        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'sparkles'];
+        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'sparkles', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key'];
     @endphp
 
     <main class="mx-auto max-w-[1600px] space-y-20 p-8">
@@ -62,6 +62,7 @@
                         <x-lamma.button variant="teal" icon="check">I'm ready!</x-lamma.button>
                         <x-lamma.button variant="dark">Log in</x-lamma.button>
                         <x-lamma.button variant="outline">Sign up</x-lamma.button>
+                        <x-lamma.button variant="danger" icon="trash">Delete account</x-lamma.button>
                         <x-lamma.button variant="ghost">Forgot password?</x-lamma.button>
                         <x-lamma.button href="#" variant="sun">As a link</x-lamma.button>
                         <x-lamma.button size="lg" disabled>Start game</x-lamma.button>
@@ -227,6 +228,26 @@
                     @php session()->now('notice', $ar ? 'أغلق المضيف هذه الغرفة.' : 'The host closed this room.'); @endphp
                     <x-lamma.notice class="max-w-md" />
                     <x-lamma.reconnecting />
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Account menu · card · one-time code · dialog</h3>
+                    <div class="flex min-h-[340px] flex-wrap items-start gap-10">
+                        <x-lamma.user-menu :user="new \App\Models\User(['name' => $ar ? 'سارة' : 'Sara', 'email' => 'sara@example.com'])" />
+                        <x-lamma.card class="w-[420px]" :title="$ar ? 'تغيير كلمة المرور' : 'Update password'" :description="$ar ? 'استخدم كلمة مرور طويلة وعشوائية.' : 'Use a long, random password.'">
+                            <x-lamma.otp name="code-{{ $loc }}" :label="$ar ? 'رمز التحقق' : 'Authentication code'" />
+                            <x-lamma.button x-data x-on:click="$dispatch('open-dialog', { name: 'demo-{{ $loc }}' })">{{ $ar ? 'افتح النافذة' : 'Open dialog' }}</x-lamma.button>
+                        </x-lamma.card>
+                        <x-lamma.card class="w-[320px]" :sticker="false" :title="$ar ? 'بطاقة عادية' : 'Plain card'">
+                            <p class="text-ink-muted">{{ $ar ? 'حدّ بسيط بلا ظل.' : 'A plain border, no shadow.' }}</p>
+                        </x-lamma.card>
+                        <x-lamma.dialog name="demo-{{ $loc }}" :title="$ar ? 'هل أنت متأكد؟' : 'Are you sure?'" :description="$ar ? 'لا يمكن التراجع عن هذا الإجراء.' : 'This cannot be undone.'">
+                            <form method="dialog" class="flex justify-end gap-3">
+                                <x-lamma.button variant="outline" type="submit">{{ $ar ? 'إلغاء' : 'Cancel' }}</x-lamma.button>
+                                <x-lamma.button variant="danger" type="submit">{{ $ar ? 'حذف' : 'Delete' }}</x-lamma.button>
+                            </form>
+                        </x-lamma.dialog>
+                    </div>
                 </div>
 
                 <div class="space-y-4">

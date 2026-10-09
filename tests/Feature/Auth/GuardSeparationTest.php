@@ -34,7 +34,7 @@ it('does not log an admin in on the user side', function () {
     $this->actingAs($admin, 'admin');
     Auth::shouldUse('web'); // actingAs() switches the default guard; a real request uses web
 
-    $this->get('/dashboard')->assertRedirect(route('login'));
+    $this->get('/me/games')->assertRedirect(route('login'));
 
     $this->assertAuthenticatedAs($admin, 'admin');
     $this->assertGuest('web');

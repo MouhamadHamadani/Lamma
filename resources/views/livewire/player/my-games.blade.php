@@ -2,18 +2,7 @@
 @use('App\Game\Scoreboard')
 @use('App\Support\Isolate')
 <div class="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-8 px-5 pb-12">
-    <header class="flex h-[72px] shrink-0 items-center justify-between gap-3">
-        <a href="{{ route('home') }}"><x-lamma.logo /></a>
-        <nav class="flex items-center gap-2 text-sm font-semibold" aria-label="{{ __('Account') }}">
-            <x-lamma.language-switcher />
-            <a href="{{ route('rooms.create') }}" class="hidden h-11 items-center rounded-input px-3 hover:bg-tint-navy sm:flex">{{ __('Host a game') }}</a>
-            <a href="{{ route('profile.edit') }}" class="hidden h-11 items-center rounded-input px-3 hover:bg-tint-navy sm:flex">{{ __('Settings') }}</a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="h-11 rounded-input px-3 hover:bg-tint-navy" data-test="logout-button">{{ __('Log out') }}</button>
-            </form>
-        </nav>
-    </header>
+    @include('partials.account-header')
 
     <main class="flex flex-col gap-8">
         <div class="flex flex-col gap-1">

@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $code
- * @property int $host_id
+ * @property int|null $host_id
  * @property RoomStatus $status
  * @property RoomSettings $settings
  * @property int|null $next_room_id The room that replaced this one after "Play again"

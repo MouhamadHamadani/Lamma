@@ -1,4 +1,4 @@
-{{-- variant: primary (coral sticker) | teal (an "on" toggle, e.g. Ready) | dark | sun (CTA on navy) | outline | ghost. Disabled always shows the dashed lock look. --}}
+{{-- variant: primary (coral sticker) | teal (an "on" toggle, e.g. Ready) | dark | sun (CTA on navy) | outline | danger (outline in coral-700, destructive) | ghost. Disabled always shows the dashed lock look. --}}
 @props(['variant' => 'primary', 'size' => 'md', 'icon' => null, 'href' => null, 'type' => 'button', 'onDark' => false, 'disabled' => false])
 @php
     $disabled = (bool) $disabled;
@@ -20,7 +20,8 @@
         "$sticker bg-teal text-navy shadow-sticker" => ! $disabled && $variant === 'teal',
         "$sticker bg-navy text-cream shadow-sticker-coral-sm" => ! $disabled && $variant === 'dark',
         "$sticker bg-sun text-navy shadow-sticker-coral" => ! $disabled && $variant === 'sun',
-        'border-3 bg-transparent' => ! $disabled && $variant === 'outline',
+        'border-3 bg-transparent' => ! $disabled && in_array($variant, ['outline', 'danger']),
+        'border-coral-700 text-coral-700 hover:bg-tint-coral' => ! $disabled && $variant === 'danger',
         'border-navy text-navy hover:bg-tint-navy' => ! $disabled && $variant === 'outline' && ! $onDark,
         'border-cream text-cream hover:bg-white/10' => ! $disabled && $variant === 'outline' && $onDark,
         'hover:underline underline-offset-4' => ! $disabled && $variant === 'ghost',

@@ -2,14 +2,13 @@
 
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\SaveScoreController;
 use App\Livewire\Host\CreateRoom;
 use App\Livewire\Host\HostLobby;
 use App\Livewire\Player\JoinRoom;
 use App\Livewire\Player\MyGames;
 use App\Livewire\Player\PlayerLobby;
-use App\Models\Room;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 
 Route::get('/', LandingController::class)->name('home');
 
@@ -18,29 +17,17 @@ if (app()->environment('local')) {
     Route::view('_components', 'dev.components')->name('dev.components');
 }
 
-// {room} is a room code, in any letter case.
-Route::bind('room', fn (string $code) => Room::where('code', Str::upper($code))->firstOrFail());
-
 Route::livewire('rooms/create', CreateRoom::class)->middleware('auth')->name('rooms.create');
 Route::livewire('join', JoinRoom::class)->name('join');
 // The host screen: only the room's host. The phone screen: only the room's participants (user or guest token).
 Route::livewire('host/{room}', HostLobby::class)->middleware(['auth', 'can:host,room'])->name('host.lobby');
 Route::livewire('play/{room}', PlayerLobby::class)->middleware('room.player')->name('play');
-// "Save your score" on the results screen: remember to come back to the results page, then log in or sign up. Logging in on this device
-// attaches the guest results to the account (ClaimGuestResults), and the results page then says "Saved to your profile".
-Route::get('play/{room}/save/{action}', function (Room $room, string $action) {
-    session()->put('url.intended', route('play', $room->code));
-
-    return redirect()->route($action);
-})->whereIn('action', ['login', 'register'])->middleware('room.player')->name('play.save');
+// "Save your score" on the results screen: log in or sign up, then come back to the results page (SaveScoreController).
+Route::get('play/{room}/save/{action}', SaveScoreController::class)->whereIn('action', ['login', 'register'])->middleware('room.player')->name('play.save');
 
 // The logged-in user's saved games and totals.
 Route::livewire('me/games', MyGames::class)->middleware('auth')->name('me.games');
 
 Route::get('locale/{locale}', LocaleController::class)->name('locale.switch');
-
-Route::middleware(['auth'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
-});
 
 require __DIR__.'/settings.php';

@@ -1,20 +1,24 @@
-<div class="flex items-start max-md:flex-col">
-    <div class="me-10 w-full pb-4 md:w-[220px]">
-        <flux:navlist aria-label="{{ __('Settings') }}">
-            <flux:navlist.item :href="route('profile.edit')" wire:navigate>{{ __('Profile') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('security.edit')" wire:navigate>{{ __('Security') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
-        </flux:navlist>
-    </div>
+{{-- Shell for the settings pages: the shared account header, a page title, Profile / Security link tabs, and the page's cards.
+     Phone first, centred at ~640px on a desktop. `current` is the tab that is open: profile | security. --}}
+@props(['current', 'subtitle'])
+<div class="mx-auto flex min-h-dvh w-full max-w-[640px] flex-col gap-6 px-5 pb-12">
+    @include('partials.account-header')
 
-    <flux:separator class="md:hidden" />
-
-    <div class="flex-1 self-stretch max-md:pt-6">
-        <flux:heading>{{ $heading ?? '' }}</flux:heading>
-        <flux:subheading>{{ $subheading ?? '' }}</flux:subheading>
-
-        <div class="mt-5 w-full max-w-lg">
-            {{ $slot }}
+    <main class="flex flex-col gap-6">
+        <div class="flex flex-col gap-1">
+            <h1 class="font-display text-[clamp(36px,6vw,48px)] font-extrabold leading-tight">{{ __('Settings') }}</h1>
+            <p class="text-lg text-ink-muted">{{ $subtitle }}</p>
         </div>
-    </div>
+
+        <x-lamma.segmented
+            :label="__('Settings')"
+            :selected="$current"
+            :options="[
+                'profile' => ['label' => __('Profile'), 'href' => route('profile.edit')],
+                'security' => ['label' => __('Security'), 'href' => route('security.edit')],
+            ]"
+        />
+
+        {{ $slot }}
+    </main>
 </div>

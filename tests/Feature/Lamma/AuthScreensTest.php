@@ -31,9 +31,9 @@ describe('layout', function () {
             ->assertSee('lang="en" dir="ltr"', false);
     });
 
-    it('keeps the light-only look: no Flux dark-mode script', function () {
-        $this->get(route('login'))->assertDontSee('flux.appearance', false);
-        expect(Blade::render('<x-layouts::lamma>x</x-layouts::lamma>'))->not->toContain('flux.appearance');
+    it('keeps the light-only look: no dark-mode script or class', function () {
+        $this->get(route('login'))->assertDontSee('appearance', false)->assertDontSee('dark:', false);
+        expect(Blade::render('<x-layouts::lamma>x</x-layouts::lamma>'))->not->toContain('appearance');
     });
 });
 
@@ -80,7 +80,7 @@ describe('login', function () {
     it('still signs users in', function () {
         $user = User::factory()->create();
 
-        $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])->assertRedirect(route('dashboard', absolute: false));
+        $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])->assertRedirect(route('me.games', absolute: false));
         $this->assertAuthenticated();
     });
 });

@@ -47,17 +47,8 @@
                 @csrf
 
                 <div class="space-y-5 text-center">
-                    <div x-show="!showRecoveryInput">
-                        <div class="flex items-center justify-center my-5" x-ref="otp">
-                            <flux:otp
-                                x-model="code"
-                                length="6"
-                                name="code"
-                                :label="__('OTP Code')" dir="ltr"
-                                label:sr-only
-                                class="mx-auto"
-                             />
-                        </div>
+                    <div x-show="!showRecoveryInput" class="my-5 text-start" x-ref="otp">
+                        <x-lamma.otp name="code" :label="__('OTP Code')" x-model="code" x-bind:required="! showRecoveryInput" />
                     </div>
 
                     <div x-show="showRecoveryInput" class="my-5 text-start">

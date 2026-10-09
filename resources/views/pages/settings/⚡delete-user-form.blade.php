@@ -4,17 +4,14 @@ use Livewire\Component;
 
 new class extends Component {}; ?>
 
-<section class="mt-10 space-y-6">
-    <div class="relative mb-5">
-        <flux:heading>{{ __('Delete account') }}</flux:heading>
-        <flux:subheading>{{ __('Delete your account and all of its resources') }}</flux:subheading>
-    </div>
-
-    <flux:modal.trigger name="confirm-user-deletion">
-        <flux:button variant="danger" data-test="delete-user-button">
-            {{ __('Delete account') }}
-        </flux:button>
-    </flux:modal.trigger>
+<div>
+    <x-lamma.card :sticker="false" :title="__('Delete account')" :description="__('Deleting your account removes your profile and your saved games. Other players keep their own results.')">
+        <div>
+            <x-lamma.button variant="danger" icon="trash" x-data x-on:click="$dispatch('open-dialog', { name: 'delete-account' })" data-test="delete-user-button">
+                {{ __('Delete account') }}
+            </x-lamma.button>
+        </div>
+    </x-lamma.card>
 
     <livewire:pages::settings.delete-user-modal />
-</section>
+</div>

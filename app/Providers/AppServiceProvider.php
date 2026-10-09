@@ -3,14 +3,17 @@
 namespace App\Providers;
 
 use App\Game\RoomPresence;
+use App\Models\Room;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,7 +33,14 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureGuards();
+        $this->configureRouteBindings();
         $this->configureDevCommands();
+    }
+
+    /** {room} is a room code, in any letter case. Registered here, not in routes/web.php, so it survives `route:cache`. */
+    protected function configureRouteBindings(): void
+    {
+        Route::bind('room', fn (string $code) => Room::where('code', Str::upper($code))->firstOrFail());
     }
 
     /** `composer dev`: check the queue every second (not every three), so a question's reveal and next-question jobs run on time; run the scheduler. */

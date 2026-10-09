@@ -32,10 +32,11 @@ describe('who can see it', function () {
         $this->actingAs(User::factory()->create())->get('/me/games')->assertOk()->assertSee('My games');
     });
 
-    it('is linked from the user menu and the sidebar', function () {
-        $page = $this->actingAs(User::factory()->create())->get(route('dashboard'));
-
-        expect(substr_count($page->getContent(), 'href="'.route('me.games').'"'))->toBeGreaterThanOrEqual(2);
+    it('is linked from the account menu, which has Host a game, Settings and Log out too', function () {
+        $this->actingAs(User::factory()->create())->get(route('profile.edit'))
+            ->assertSee('href="'.route('me.games').'"', false)
+            ->assertSee('href="'.route('rooms.create').'"', false)
+            ->assertSee('action="'.route('logout').'"', false);
     });
 
     it('is linked from the landing page for a logged-in user, not for a guest', function () {

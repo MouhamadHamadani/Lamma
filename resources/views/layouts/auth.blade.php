@@ -41,9 +41,4 @@
             </div>
         </main>
     </div>
-
-    {{-- Flux's JS, for the two-factor code input only. --}}
-    @push('scripts')
-        @fluxScripts
-    @endpush
 </x-layouts::lamma>

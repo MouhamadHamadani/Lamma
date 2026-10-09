@@ -32,8 +32,7 @@
         <div class="flex items-center gap-2 lg:gap-5">
             <x-lamma.language-switcher />
             @auth
-                <a href="{{ route('me.games') }}" class="hidden font-semibold hover:text-coral-700 lg:block" data-test="my-games-link">{{ __('My games') }}</a>
-                <a href="{{ route('dashboard') }}" class="hidden h-12 items-center rounded-input border-2 border-navy px-[22px] font-semibold hover:bg-tint-navy lg:flex">{{ __('Dashboard') }}</a>
+                <x-lamma.user-menu />
             @else
                 <a href="{{ route('login') }}" class="hidden font-semibold hover:text-coral-700 lg:block">{{ __('Log in') }}</a>
                 @if (Route::has('register'))
@@ -58,7 +57,6 @@
             @endforeach
             @auth
                 <a href="{{ route('me.games') }}" class="flex h-12 items-center rounded-input px-3 font-semibold hover:bg-tint-navy">{{ __('My games') }}</a>
-                <a href="{{ route('dashboard') }}" class="flex h-12 items-center rounded-input px-3 font-semibold hover:bg-tint-navy">{{ __('Dashboard') }}</a>
             @else
                 <a href="{{ route('login') }}" class="flex h-12 items-center rounded-input px-3 font-semibold hover:bg-tint-navy">{{ __('Log in') }}</a>
                 @if (Route::has('register'))
@@ -333,7 +331,7 @@
                     <a href="#categories" class="hover:text-coral-700">{{ __('Categories') }}</a>
                 @endif
                 @auth
-                    <a href="{{ route('dashboard') }}" class="hover:text-coral-700">{{ __('Dashboard') }}</a>
+                    <a href="{{ route('me.games') }}" class="hover:text-coral-700">{{ __('My games') }}</a>
                 @else
                     <a href="{{ route('login') }}" class="hover:text-coral-700">{{ __('Log in') }}</a>
                     @if (Route::has('register'))

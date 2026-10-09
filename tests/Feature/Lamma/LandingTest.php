@@ -74,14 +74,16 @@ it('has the main sections and their anchors', function () {
         ->assertSee('href="#how"', false);
 });
 
-it('shows Log in and Sign up to guests, and the dashboard to signed-in users', function () {
+it('shows Log in and Sign up to guests, and the account menu to signed-in users', function () {
     $this->withSession(['locale' => 'en'])->get('/')
         ->assertSee('href="'.route('login').'"', false)->assertSee('href="'.route('register').'"', false)
-        ->assertDontSee('href="'.route('dashboard').'"', false);
+        ->assertDontSee('data-test="user-menu-button"', false);
 
-    $this->actingAs(User::factory()->create())->withSession(['locale' => 'en'])->get('/')
-        ->assertSee('href="'.route('dashboard').'"', false)
-        ->assertDontSee('href="'.route('register').'"', false);
+    $page = $this->actingAs(User::factory()->create(['name' => 'Sara Ahmad']))->withSession(['locale' => 'en'])->get('/');
+
+    $page->assertSee('data-test="user-menu-button"', false)->assertSee('Sara Ahmad')
+        ->assertSee('href="'.route('me.games').'"', false)->assertSee('href="'.route('profile.edit').'"', false)
+        ->assertDontSee('href="'.route('register').'"', false)->assertDontSee('/dashboard', false);
 });
 
 it('points the join box and the host button at the routes the next phase fills in', function () {
