@@ -67,10 +67,11 @@ describe('the screen', function () {
         $arabic->assertSeeHtml('أهلاً بك، <bdi dir="ltr">سارة</bdi>!');
     });
 
-    it('does not poll: it is refreshed by the room\'s events', function () {
+    it('is refreshed by the room\'s events, with a slow poll as the safety net for a phone whose socket dropped', function () {
         [, , $page] = phoneLobby();
 
-        expect($page->html())->not->toContain('wire:poll');
+        // Found by the browser test with Reverb off: without it a phone would stay in the lobby after the game started.
+        expect($page->html())->toContain('wire:poll.5s');
     });
 });
 

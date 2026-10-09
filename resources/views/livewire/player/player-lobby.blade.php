@@ -1,6 +1,8 @@
 @use('App\Enums\RoomStatus')
-{{-- Reference: docs/design/screens/player-2-lobby.html. Designed at 390x844; a phone-width column on bigger screens. Live. --}}
-<div>
+{{-- Reference: docs/design/screens/player-2-lobby.html. Designed at 390x844; a phone-width column on bigger screens. Live.
+     The 5 s poll is the safety net for a phone whose socket dropped (a locked screen, a bad signal): it still finds out that the game
+     started, that the host removed it or that the room closed. The game screen has its own poll. --}}
+<div @if ($inLobby) wire:poll.5s @endif>
 @if ($inGame)
     {{-- The game: its own component (PlayerGame) owns the whole screen. --}}
     <livewire:player.player-game :room="$room" :key="'game-'.$room->id" />

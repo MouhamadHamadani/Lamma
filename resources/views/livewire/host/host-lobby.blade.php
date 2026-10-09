@@ -1,6 +1,6 @@
 {{-- Reference: docs/design/screens/host-3-lobby.html. Live: presence + broadcast events refresh it, and wire:poll drops players who stay
      disconnected over 30 s. Both = left-to-right English with the Arabic lines marked lang="ar" dir="rtl". --}}
-<div @class(['flex flex-col', 'min-h-dvh' => $inLobby]) @if ($inLobby) wire:poll.5s="pruneDisconnected" @endif>
+<div @class(['flex flex-col', 'min-h-dvh lg:h-dvh lg:overflow-hidden' => $inLobby]) @if ($inLobby) wire:poll.5s="pruneDisconnected" @endif>
 @if (! $inLobby)
     {{-- The game: its own component (HostGame) owns the whole screen. This one keeps the presence bookkeeping. --}}
     <livewire:host.host-game :room="$room" :key="'game-'.$room->id" />
@@ -25,8 +25,8 @@
         </div>
     </header>
 
-        <main class="flex grow flex-col gap-9 px-5 py-9 lg:flex-row lg:px-14 lg:pb-11">
-            <section class="relative flex grow flex-col justify-between gap-8 overflow-hidden rounded-panel border-2 border-line bg-white p-6 lg:p-12">
+        <main class="flex grow flex-col gap-9 px-5 py-9 lg:min-h-0 lg:flex-row lg:px-14 lg:pb-11 laptop-short:gap-6 laptop-short:py-5">
+            <section class="relative flex grow flex-col justify-between gap-8 overflow-hidden rounded-panel border-2 border-line bg-white p-6 lg:min-h-0 lg:p-12 laptop-short:gap-4 laptop-short:p-8">
                 <x-lamma.confetti :count="3" />
 
                 <div class="relative flex flex-col gap-2.5">
@@ -56,13 +56,14 @@
                 </p>
             </section>
 
-            <aside class="flex flex-col gap-3.5 lg:w-[460px] lg:shrink-0">
+            <aside class="flex flex-col gap-3.5 lg:min-h-0 lg:w-[460px] lg:shrink-0">
                 <div class="flex items-baseline justify-between px-1 pb-1">
                     <h2 class="font-display text-[32px] font-extrabold">{{ __('Players') }} <span dir="ltr" class="text-ink-subtle" data-test="player-count">{{ $connectedCount }}</span></h2>
                     <span class="text-base font-semibold text-ink-muted" aria-live="polite" data-test="ready-count">{{ __(':ready of :total ready', ['ready' => $readyCount, 'total' => $connectedCount]) }}</span>
                 </div>
 
-                <ul class="flex flex-col gap-3.5" data-test="player-list">
+                {{-- A crowded room scrolls inside this list; the screen itself never does. --}}
+                <ul class="flex flex-col gap-3.5 lg:min-h-0 lg:overflow-y-auto lg:pe-1.5" data-test="player-list" tabindex="0" aria-label="{{ __('Players') }}">
                     @foreach ($players as $index => $player)
                         <x-lamma.player-row :player="$player" :index="$index" wire:key="player-{{ $player->id }}">
                             <x-slot:actions>

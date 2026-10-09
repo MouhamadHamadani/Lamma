@@ -67,6 +67,10 @@
             "Composer\\Config::disableProcessTimeout",
             "@test"
         ],
+        "test:browser": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php vendor/bin/pest tests/Browser"
+        ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
         ],

@@ -13,6 +13,7 @@ use App\Models\RoomQuestion;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
 /*
@@ -29,6 +30,9 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature', 'Browser');
+
+// Browser tests (tests/Browser, run with `vendor/bin/pest tests/Browser`) load the BUILT assets, never a developer's running Vite dev server.
+pest()->beforeEach(fn () => Vite::useHotFile(storage_path('framework/no-hot-file')))->in('Browser');
 
 /*
 |--------------------------------------------------------------------------

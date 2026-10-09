@@ -9,7 +9,7 @@
 <button
     type="button" aria-pressed="{{ $selected ? 'true' : 'false' }}"
     {{ $attributes->class([
-        'flex h-18 w-full items-center gap-3 rounded-[18px] px-3.5 text-start',
+        'flex h-18 laptop-short:h-14 w-full items-center gap-3 rounded-[18px] px-3.5 text-start',
         "sticker-sm $tint" => $selected,
         'border-2 border-line bg-white' => ! $selected,
     ]) }}
