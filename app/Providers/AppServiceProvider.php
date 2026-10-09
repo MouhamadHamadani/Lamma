@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Game\RoomPresence;
 use App\Models\Room;
+use App\Support\ErrorPage;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -34,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
         $this->configureGuards();
         $this->configureRouteBindings();
+        $this->configureErrorPages();
         $this->configureDevCommands();
     }
 
@@ -41,6 +44,12 @@ class AppServiceProvider extends ServiceProvider
     protected function configureRouteBindings(): void
     {
         Route::bind('room', fn (string $code) => Room::where('code', Str::upper($code))->firstOrFail());
+    }
+
+    /** The error pages choose their own language, before they render, without touching the database (see ErrorPage::locale). */
+    protected function configureErrorPages(): void
+    {
+        View::composer('errors::*', fn () => app()->setLocale(ErrorPage::locale(request())));
     }
 
     /** `composer dev`: check the queue every second (not every three), so a question's reveal and next-question jobs run on time; run the scheduler. */

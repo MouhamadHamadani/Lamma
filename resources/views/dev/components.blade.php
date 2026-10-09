@@ -5,7 +5,7 @@
         $planets = [['Venus', 'الزهرة'], ['Mars', 'المريخ'], ['Jupiter', 'المشتري'], ['Saturn', 'زحل']];
         $endsAt = now()->addSeconds(12);
         $endsSoon = now()->addSeconds(4);
-        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'sparkles', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key'];
+        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'sparkles', 'home', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key'];
     @endphp
 
     <main class="mx-auto max-w-[1600px] space-y-20 p-8">

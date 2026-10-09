@@ -23,6 +23,8 @@ class SetLocale
             ?? config('app.locale');
 
         app()->setLocale($locale);
+        // The error pages read it back: they must not query anything themselves (see ErrorPage::locale).
+        $request->attributes->set('locale', $locale);
 
         return $next($request);
     }
