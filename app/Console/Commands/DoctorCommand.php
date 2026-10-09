@@ -191,7 +191,11 @@ class DoctorCommand extends Command
     /** @return array{0: string, 1: string} */
     private function scheduler(): array
     {
-        $last = Cache::get(config('lamma.heartbeat_key'));
+        try {
+            $last = Cache::get(config('lamma.heartbeat_key'));
+        } catch (Throwable $e) {
+            return [self::FAIL, 'cannot read the cache, so the scheduler heartbeat is unknown: '.$e->getMessage()];
+        }
         $maxHours = (int) config('lamma.scheduler_max_hours');
 
         if ($last === null) {

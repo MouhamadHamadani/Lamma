@@ -214,6 +214,7 @@ describe('lamma:doctor', function () {
 
         [$code, $rows] = doctor();
         expect($code)->toBe(1)->and($rows['Redis'][0])->toBe('FAIL')->and($rows['Redis'][1])->toContain('unreachable');
+        expect($rows['Scheduler'][0])->toBe('FAIL')->and($rows['Scheduler'][1])->toContain('cannot read the cache');          // reported, not a crash
 
         config(['cache.default' => 'array', 'queue.default' => 'database', 'session.driver' => 'array']);
         expect(doctor()[1]['Redis'][0])->toBe('WARN');
