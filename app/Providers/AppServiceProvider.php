@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Number;
 use Illuminate\Support\ServiceProvider;
@@ -34,10 +35,19 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureUrls();
         $this->configureGuards();
         $this->configureRouteBindings();
         $this->configureErrorPages();
         $this->configureDevCommands();
+    }
+
+    /** Behind nginx the live site is https only: every generated URL (links, redirects, signed URLs, asset URLs) says so. */
+    protected function configureUrls(): void
+    {
+        if ($this->app->isProduction()) {
+            URL::forceScheme('https');
+        }
     }
 
     /** {room} is a room code, in any letter case. Registered here, not in routes/web.php, so it survives `route:cache`. */
