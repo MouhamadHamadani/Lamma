@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google Analytics ID
+    |--------------------------------------------------------------------------
+    | This value is the Google Analytics Measurement ID (e.g., G-XXXXXXXXXX) used
+    | for tracking website traffic and user interactions. Set this in your ".env" file
+    | to enable Google Analytics integration.
+    */
+
+    'google_analytics_id' => env('GOOGLE_ANALYTICS_ID', null),
+
 ];
