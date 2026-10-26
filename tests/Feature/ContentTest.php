@@ -50,6 +50,40 @@ describe('the content file', function () {
         expect($share('easy'))->toBeBetween(0.25, 0.45)->and($share('medium'))->toBeBetween(0.25, 0.45)->and($share('hard'))->toBeBetween(0.15, 0.40);
     });
 
+    it('has at least 1,200 questions', function () {
+        expect(collect(contentData()['questions'])->flatten(1)->count())->toBeGreaterThanOrEqual(1200);
+    });
+
+    it('has the subcategories of Sports and General Knowledge, each under its parent', function () {
+        $categories = contentData()['categories'];
+        $sub = fn (string $parent) => array_keys(array_filter($categories, fn (array $category) => ($category['parent'] ?? null) === $parent));
+
+        expect($sub('sports'))->toEqualCanonicalizing(['football', 'basketball', 'rugby', 'tennis', 'motorsport', 'olympics', 'combat-sports'])
+            ->and($sub('general-knowledge'))->toEqualCanonicalizing(['everyday-life', 'words-language', 'inventions', 'human-body', 'landmarks', 'arts-music']);
+        foreach ($categories as $slug => $category) {
+            if (isset($category['parent'])) {
+                expect($categories[$category['parent']] ?? null)->not->toBeNull("{$slug}: its parent exists")
+                    ->and($categories[$category['parent']]['parent'] ?? null)->toBeNull("{$slug}: its parent is top-level (one level only)");
+            }
+        }
+    });
+
+    it('meets the targets: a subcategory has 40 questions with 10 of each difficulty, a category without subcategories 80 with 20 of each', function () {
+        $categories = contentData()['categories'];
+        $hasChildren = collect($categories)->pluck('parent')->filter()->unique()->all();
+
+        foreach ($categories as $slug => $category) {
+            $questions = collect(contentData()['questions'][$slug] ?? []);
+            $target = isset($category['parent']) ? config('lamma.content.subcategory') : (in_array($slug, $hasChildren, true) ? null : config('lamma.content.category'));
+            $target ??= ['total' => 1, 'each' => 0]; // a parent keeps a handful of direct questions
+
+            expect($questions->count())->toBeGreaterThanOrEqual($target['total'], "{$slug} total");
+            foreach (['easy', 'medium', 'hard'] as $difficulty) {
+                expect($questions->where(0, $difficulty)->count())->toBeGreaterThanOrEqual($target['each'], "{$slug} {$difficulty}");
+            }
+        }
+    });
+
     it('has at least 10 questions for every category and difficulty a host can choose', function (string $slug, string $difficulty) {
         $count = collect(contentData()['questions'][$slug])->where(0, $difficulty)->count();
 
