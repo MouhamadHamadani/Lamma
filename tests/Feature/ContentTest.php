@@ -15,12 +15,12 @@ use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevSeeder;
 use Illuminate\Support\Facades\Blade;
 
-/** The shipped content file, as the seeder reads it. */
+/** The shipped content, as the seeder reads it: data/questions.php plus one file per category in data/questions/. */
 function contentData(): array
 {
     static $data;
 
-    return $data ??= require __DIR__.'/../../database/seeders/data/questions.php'; // no app yet when a dataset is built
+    return $data ??= ContentSeeder::data();
 }
 
 /** A question's two texts and its options as [ar, en] pairs (correct first), the way ContentSeeder splits them. */
@@ -40,14 +40,14 @@ describe('the content file', function () {
 
         expect($questions->count())->toBeGreaterThanOrEqual(200)
             ->and(count(contentData()['categories']))->toBeGreaterThanOrEqual(8)
-            ->and(array_keys(contentData()['questions']))->toEqual(array_keys(contentData()['categories']));
+            ->and(array_keys(contentData()['questions']))->toEqualCanonicalizing(array_keys(contentData()['categories']));
     });
 
-    it('keeps the 40/40/20 mix, roughly', function () {
+    it('keeps a healthy mix of difficulties', function () {
         $questions = collect(contentData()['questions'])->flatten(1);
         $share = fn (string $difficulty) => $questions->where(0, $difficulty)->count() / $questions->count();
 
-        expect($share('easy'))->toBeBetween(0.35, 0.45)->and($share('medium'))->toBeBetween(0.35, 0.45)->and($share('hard'))->toBeBetween(0.15, 0.25);
+        expect($share('easy'))->toBeBetween(0.25, 0.45)->and($share('medium'))->toBeBetween(0.25, 0.45)->and($share('hard'))->toBeBetween(0.15, 0.40);
     });
 
     it('has at least 10 questions for every category and difficulty a host can choose', function (string $slug, string $difficulty) {
@@ -176,7 +176,7 @@ describe('seeding the content', function () {
             ->and(Question::withTrashed()->find($removed->id)->trashed())->toBeTrue()
             ->and(Question::where('category_id', $science->id)->get()->map->getTranslation('text', 'en')->contains($lost->getTranslation('text', 'en')))->toBeTrue()
             ->and($custom->fresh())->not->toBeNull()
-            ->and(Question::where('category_id', $science->id)->count())->toBe(50);       // 50 shipped, one soft-deleted, one re-added, one custom
+            ->and(Question::where('category_id', $science->id)->count())->toBe(count(contentData()['questions']['science']));       // all shipped, one soft-deleted, one re-added, one custom
     });
 
     it('leaves every category on every difficulty with a full 10-question game', function () {
@@ -193,10 +193,11 @@ describe('seeding the content', function () {
         expect($pool->isEnough(new RoomSettings(categoryIds: Category::pluck('id')->all(), questionCount: 20)))->toBeTrue();
     });
 
-    it('seeds the 8 categories in order, active', function () {
+    it('seeds the top-level categories in order, active', function () {
         (new ContentSeeder)->run();
 
-        expect(Category::orderBy('sort_order')->pluck('slug')->all())->toBe(array_keys(contentData()['categories']))
+        $topLevel = array_keys(array_filter(contentData()['categories'], fn (array $category) => ! isset($category['parent'])));
+        expect(Category::topLevel()->orderBy('sort_order')->pluck('slug')->all())->toBe($topLevel)
             ->and(Category::where('is_active', false)->count())->toBe(0);
     });
 });

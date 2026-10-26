@@ -18,6 +18,16 @@ return [
     'heartbeat_key' => 'lamma.scheduler.last_run',
     'scheduler_max_hours' => 26,
 
+    // How many playable questions (active, in Arabic and English) a category needs, so no game on any difficulty runs out. A subcategory needs
+    // `total` questions with at least `each` on every difficulty; a top-level category WITHOUT subcategories needs its own (larger) numbers. A
+    // top-level category that has subcategories has no minimum of its own (its direct questions are a bonus). `lamma:questions-report` flags
+    // anything under these, `lamma:doctor` fails under them and warns within `warn_margin` of them.
+    'content' => [
+        'subcategory' => ['total' => 40, 'each' => 10],
+        'category' => ['total' => 80, 'each' => 20],
+        'warn_margin' => 3,
+    ],
+
     // Brand and sound files that are still PLACEHOLDERS: path under public/ => sha256 of the placeholder (SVG with LF line endings, see
     // App\Support\BrandFiles). The official files replace them under the same names; until they do, `lamma:doctor` warns. When you
     // replace one, you can delete its line here.
