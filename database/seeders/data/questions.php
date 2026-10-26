@@ -21,6 +21,9 @@ return [
         'food-drink' => ['ar' => 'طعام وشراب', 'en' => 'Food & Drink', 'icon' => '🍽️'],
         'animals-nature' => ['ar' => 'حيوانات وطبيعة', 'en' => 'Animals & Nature', 'icon' => '🦁'],
         'arab-world' => ['ar' => 'العالم العربي', 'en' => 'The Arab World', 'icon' => '🧭'],
+
+        // Subcategories (a question file per slug in questions/): they sit under a top-level category above.
+        'football' => ['ar' => 'كرة القدم', 'en' => 'Football', 'icon' => '⚽', 'parent' => 'sports'],
     ],
 
     'questions' => [

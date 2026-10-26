@@ -1,0 +1,61 @@
+<?php
+
+/*
+ * Football (a subcategory of Sports): 16 easy, 16 medium, 16 hard. Format as in ../questions.php: [difficulty, arabic, english, [correct, wrong, wrong, wrong]],
+ * an option is "arabic|english" or one string when both read the same. Rules, history and famous events only, nothing that goes out of date.
+ */
+return [
+    // ---- easy ----
+    ['easy', 'كم شوطاً تتألف منه مباراة كرة القدم؟', 'How many halves does a football match have?', ['2', '3', '4', '1']],
+    ['easy', 'ماذا نسمّي الهدف الذي يسجّله اللاعب بالخطأ في مرمى فريقه؟', 'What is it called when a player scores a goal into their own team\'s net?', ['هدف عكسي|An own goal', 'ركلة جزاء|A penalty', 'تسلل|Offside', 'ركلة ركنية|A corner kick']],
+    ['easy', 'أي بطاقة يرفعها الحكم في وجه اللاعب كإنذار أول؟', 'Which card does a referee show a player as a first warning?', ['البطاقة الصفراء|The yellow card', 'البطاقة الحمراء|The red card', 'البطاقة الخضراء|The green card', 'البطاقة البيضاء|The white card']],
+    ['easy', 'ماذا نسمّي نتيجة المباراة حين يسجّل الفريقان العدد نفسه من الأهداف؟', 'What is the result called when both teams score the same number of goals?', ['تعادل|A draw', 'فوز|A win', 'خسارة|A loss', 'هدف ذهبي|A golden goal']],
+    ['easy', 'ما لون القميص الأساسي التقليدي لمنتخب البرازيل؟', 'What colour is the Brazilian national team\'s traditional home shirt?', ['الأصفر|Yellow', 'الأزرق|Blue', 'الأخضر|Green', 'الأبيض|White']],
+    ['easy', 'ما البطولة الكبرى التي تُقام كل أربع سنوات بين منتخبات العالم في كرة القدم؟', 'Which major tournament for national football teams from all over the world is held every four years?', ['كأس العالم|The FIFA World Cup', 'دوري أبطال أوروبا|The Champions League', 'كأس السوبر|The Super Cup', 'كأس الملك|The King\'s Cup']],
+    ['easy', 'أي لاعب برازيلي لُقّب بـ«ملك كرة القدم» وفاز بكأس العالم ثلاث مرات؟', 'Which Brazilian player, called the "King of Football", won the World Cup three times?', ['بيليه|Pelé', 'روماريو|Romário', 'زيكو|Zico', 'سقراط|Sócrates']],
+    ['easy', 'أي لاعب سجّل هدف «يد الله» الشهير في كأس العالم 1986؟', 'Which player scored the famous "Hand of God" goal at the 1986 World Cup?', ['دييغو مارادونا|Diego Maradona', 'بيليه|Pelé', 'يوهان كرويف|Johan Cruyff', 'ميشيل بلاتيني|Michel Platini']],
+    ['easy', 'أي نادٍ إسباني يلعب مبارياته على ملعب «سانتياغو برنابيو»؟', 'Which Spanish club plays its home games at the Santiago Bernabéu stadium?', ['ريال مدريد|Real Madrid', 'برشلونة|Barcelona', 'أتلتيكو مدريد|Atlético Madrid', 'إشبيلية|Sevilla']],
+    ['easy', 'ما الجائزة التي بدأت مجلة فرنسية بمنحها عام 1956 لأفضل لاعب في العام؟', 'Which award, first given by a French magazine in 1956, honours the best player of the year?', ['الكرة الذهبية|The Ballon d\'Or', 'الحذاء الذهبي|The Golden Boot', 'القفاز الذهبي|The Golden Glove', 'الصافرة الذهبية|The Golden Whistle']],
+    ['easy', 'ما لون قميص المنتخب الهولندي التقليدي؟', 'What colour is the Netherlands national team\'s traditional shirt?', ['البرتقالي|Orange', 'الأحمر|Red', 'الأزرق|Blue', 'الأبيض|White']],
+    ['easy', 'ماذا نسمّي التسديدة الحرة نحو المرمى التي تُمنح بعد ارتكاب خطأ داخل منطقة الجزاء؟', 'What is the free shot at goal called that is awarded after a foul inside the penalty area?', ['ركلة جزاء|A penalty kick', 'رمية تماس|A throw-in', 'ركلة مرمى|A goal kick', 'ركلة ركنية|A corner kick']],
+    ['easy', 'ماذا نسمّي إعادة الكرة إلى الملعب باليدين بعد خروجها من خط التماس؟', 'What is it called when a player puts the ball back into play with both hands after it crosses the side line?', ['رمية تماس|A throw-in', 'ركلة ركنية|A corner kick', 'ركلة مرمى|A goal kick', 'ركلة حرة|A free kick']],
+    ['easy', 'في أي بلد يُلعب دوري «لا ليغا» الشهير؟', 'In which country is the famous league called "La Liga" played?', ['إسبانيا|Spain', 'إيطاليا|Italy', 'فرنسا|France', 'البرتغال|Portugal']],
+    ['easy', 'ماذا نسمّي اللاعب الذي تتركّز مهمته الأساسية في تسجيل الأهداف؟', 'What is a player whose main job is to score goals called?', ['مهاجم|A striker', 'مدافع|A defender', 'حارس مرمى|A goalkeeper', 'لاعب وسط|A midfielder']],
+    ['easy', 'ما لقب منتخب مصر لكرة القدم؟', 'What is the nickname of the Egyptian national football team?', ['الفراعنة|The Pharaohs', 'النسور|The Eagles', 'الأسود|The Lions', 'الصقور|The Falcons']],
+
+    // ---- medium ----
+    ['medium', 'كم تبعد نقطة ركلة الجزاء عن خط المرمى؟', 'How far is the penalty spot from the goal line?', ['11 متراً|11 metres', '9 أمتار|9 metres', '13 متراً|13 metres', '16.5 متراً|16.5 metres']],
+    ['medium', 'ماذا يعني الاختصار VAR في كرة القدم؟', 'What does VAR stand for in football?', ['حَكَم الفيديو المساعد|Video Assistant Referee', 'مراجعة الحركة الافتراضية|Virtual Action Review', 'تقرير تحليل الفيديو|Video Analysis Report', 'قواعد المساعد البصري|Visual Assistant Rules']],
+    ['medium', 'أي منتخب فاز بكأس العالم 1966 على أرضه؟', 'Which team won the 1966 World Cup on home soil?', ['إنجلترا|England', 'ألمانيا الغربية|West Germany', 'البرازيل|Brazil', 'إيطاليا|Italy']],
+    ['medium', 'أي دولة استضافت كأس العالم عام 1994؟', 'Which country hosted the 1994 World Cup?', ['الولايات المتحدة|The United States', 'المكسيك|Mexico', 'إيطاليا|Italy', 'فرنسا|France']],
+    ['medium', 'أي نادٍ إيطالي يُلقَّب بـ«السيدة العجوز»؟', 'Which Italian club is nicknamed the "Old Lady"?', ['يوفنتوس|Juventus', 'ميلان|AC Milan', 'روما|Roma', 'نابولي|Napoli']],
+    ['medium', 'أي نادٍ إنجليزي يُلقَّب بـ«المدفعجية» (The Gunners)؟', 'Which English club is nicknamed "The Gunners"?', ['آرسنال|Arsenal', 'تشيلسي|Chelsea', 'ليفربول|Liverpool', 'توتنهام|Tottenham']],
+    ['medium', 'أي منتخب يُعرف بلقب «الأزوري» (Azzurri)؟', 'Which national team is known as the "Azzurri"?', ['إيطاليا|Italy', 'فرنسا|France', 'الأرجنتين|Argentina', 'اليونان|Greece']],
+    ['medium', 'أي منتخب يُلقَّب بـ«ألبيسيليستي» (الأبيض والسماوي)؟', 'Which national team is nicknamed "La Albiceleste" (the white and sky-blue)?', ['الأرجنتين|Argentina', 'أوروغواي|Uruguay', 'إيطاليا|Italy', 'كولومبيا|Colombia']],
+    ['medium', 'ما القاعدة التي تُخالَف حين يستلم المهاجم الكرة وهو أقرب إلى خط المرمى من المدافع قبل الأخير؟', 'Which rule is broken when an attacker receives the ball while closer to the goal line than the second-last defender?', ['التسلل|Offside', 'لمسة اليد|Handball', 'الإعاقة|Obstruction', 'اللعب الخطر|Dangerous play']],
+    ['medium', 'ما اسم البطولة القارية الكبرى لمنتخبات أمريكا الجنوبية؟', 'What is the main continental tournament for national teams in South America called?', ['كوبا أمريكا|Copa América', 'كأس الأمم الأفريقية|Africa Cup of Nations', 'كأس آسيا|The Asian Cup', 'اليورو|The European Championship']],
+    ['medium', 'ما اسم المباراة الشهيرة بين ريال مدريد وبرشلونة؟', 'What is the famous match between Real Madrid and Barcelona called?', ['الكلاسيكو|El Clásico', 'ديربي ميلانو|The Derby della Madonnina', 'الكلاسيكر الألماني|Der Klassiker', 'كلاسيكو فرنسا|Le Classique']],
+    ['medium', 'ما أقل عدد من اللاعبين يجب أن يبقى في الملعب لكل فريق كي تستمر المباراة؟', 'What is the minimum number of players a team must have on the pitch for a match to continue?', ['7', '8', '9', '5']],
+    ['medium', 'ما المسافة التي يجب أن يبتعدها لاعبو الفريق المنافس عن الكرة عند تنفيذ ركلة حرة؟', 'How far must opposing players stand from the ball at a free kick?', ['9.15 متراً|9.15 metres', '5 أمتار|5 metres', '7 أمتار|7 metres', '11 متراً|11 metres']],
+    ['medium', 'أي منتخب فاز بكأس العالم 1998 على أرضه؟', 'Which team won the 1998 World Cup on home soil?', ['فرنسا|France', 'البرازيل|Brazil', 'إيطاليا|Italy', 'ألمانيا|Germany']],
+    ['medium', 'أي لاعب هولندي ارتبطت باسمه مراوغة شهيرة ظهرت في كأس العالم 1974؟', 'Which Dutch player gave his name to a famous dribbling move that appeared at the 1974 World Cup?', ['يوهان كرويف|Johan Cruyff', 'ماركو فان باستن|Marco van Basten', 'دينيس بيركامب|Dennis Bergkamp', 'رود خوليت|Ruud Gullit']],
+    ['medium', 'من سجّل هدفين برأسه في مرمى البرازيل في نهائي كأس العالم 1998؟', 'Who scored two headed goals against Brazil in the 1998 World Cup final?', ['زين الدين زيدان|Zinedine Zidane', 'تييري هنري|Thierry Henry', 'ديدييه ديشان|Didier Deschamps', 'ليليان تورام|Lilian Thuram']],
+
+    // ---- hard ----
+    ['hard', 'من سجّل ثلاثية (هاتريك) لإنجلترا في نهائي كأس العالم 1966؟', 'Which England player scored a hat-trick in the 1966 World Cup final?', ['جيوف هيرست|Geoff Hurst', 'بوبي تشارلتون|Bobby Charlton', 'بوبي مور|Bobby Moore', 'جاك تشارلتون|Jack Charlton']],
+    ['hard', 'أي منتخب فاجأ البرازيل في المباراة الحاسمة لكأس العالم 1950 على ملعب ماراكانا؟', 'Which team stunned Brazil in the decisive match of the 1950 World Cup at the Maracanã?', ['أوروغواي|Uruguay', 'إسبانيا|Spain', 'السويد|Sweden', 'إيطاليا|Italy']],
+    ['hard', 'أي منتخب فاز بأول بطولة لأمم أوروبا عام 1960؟', 'Which team won the first European Championship, in 1960?', ['الاتحاد السوفيتي|The Soviet Union', 'إسبانيا|Spain', 'فرنسا|France', 'يوغوسلافيا|Yugoslavia']],
+    ['hard', 'أي منتخب فاز ببطولة أمم أوروبا 1992 بعد أن شارك بديلاً عن يوغوسلافيا؟', 'Which team won the 1992 European Championship after being called in to replace Yugoslavia?', ['الدنمارك|Denmark', 'هولندا|The Netherlands', 'ألمانيا|Germany', 'السويد|Sweden']],
+    ['hard', 'أي منتخب فاز ببطولة أمم أوروبا 2004 في مفاجأة كبيرة؟', 'Which team won the 2004 European Championship in a huge surprise?', ['اليونان|Greece', 'البرتغال|Portugal', 'التشيك|The Czech Republic', 'فرنسا|France']],
+    ['hard', 'أي نادٍ فاز بأول نسخة من كأس أوروبا للأندية الأبطال عام 1956؟', 'Which club won the first European Cup, in 1956?', ['ريال مدريد|Real Madrid', 'بنفيكا|Benfica', 'ميلان|AC Milan', 'ريمس|Reims']],
+    ['hard', 'أي نادٍ كان أول فريق إنجليزي يفوز بكأس أوروبا للأندية الأبطال عام 1968؟', 'Which club became the first English team to win the European Cup, in 1968?', ['مانشستر يونايتد|Manchester United', 'ليفربول|Liverpool', 'أستون فيلا|Aston Villa', 'نوتنغهام فورست|Nottingham Forest']],
+    ['hard', 'أي نادٍ اسكتلندي كان أول فريق بريطاني يفوز بكأس أوروبا للأندية الأبطال عام 1967؟', 'Which Scottish club became the first British team to win the European Cup, in 1967?', ['سلتيك|Celtic', 'رينجرز|Rangers', 'أبردين|Aberdeen', 'هارتس|Hearts']],
+    ['hard', 'أي نادٍ هولندي فاز بكأس أوروبا للأندية الأبطال ثلاث مرات متتالية بين 1971 و1973؟', 'Which Dutch club won the European Cup three times in a row, from 1971 to 1973?', ['أياكس|Ajax', 'فينورد|Feyenoord', 'بي إس في أيندهوفن|PSV Eindhoven', 'إيه زد ألكمار|AZ Alkmaar']],
+    ['hard', 'في أي كأس عالم أحرز بيليه لقبه الأول وهو في السابعة عشرة من عمره؟', 'At which World Cup did a 17-year-old Pelé win his first title?', ['1958', '1962', '1966', '1970']],
+    ['hard', 'أي حارس مرمى سوفيتي يُلقَّب بـ«العنكبوت الأسود» وفاز بالكرة الذهبية عام 1963؟', 'Which Soviet goalkeeper, nicknamed the "Black Spider", won the Ballon d\'Or in 1963?', ['ليف ياشين|Lev Yashin', 'دينو زوف|Dino Zoff', 'غوردون بانكس|Gordon Banks', 'سيب ماير|Sepp Maier']],
+    ['hard', 'ما اسم الكرة ذات القطع البيضاء والسوداء التي استُخدمت في كأس العالم 1970؟', 'What was the name of the black-and-white panelled ball used at the 1970 World Cup?', ['تيلستار|Telstar', 'تانغو|Tango', 'جابولاني|Jabulani', 'براكوسا|Brazuca']],
+    ['hard', 'ما أقدم مسابقة كرة قدم وطنية في العالم، وقد أُقيمت أول مرة في موسم 1871–1872؟', 'Which is the oldest national football competition in the world, first played in 1871–72?', ['كأس الاتحاد الإنجليزي|The FA Cup', 'الدوري الإنجليزي|The Football League', 'كأس ملك إسبانيا|The Copa del Rey', 'كأس إيطاليا|The Coppa Italia']],
+    ['hard', 'أي منتخب فاز بكأس العالم 1978 على أرضه؟', 'Which team won the 1978 World Cup on home soil?', ['الأرجنتين|Argentina', 'هولندا|The Netherlands', 'البرازيل|Brazil', 'ألمانيا الغربية|West Germany']],
+    ['hard', 'أي منتخب فاز بكأس العالم 1954 في «معجزة برن» حين تغلّب على المجر؟', 'Which team won the 1954 World Cup final, the "Miracle of Bern", by beating Hungary?', ['ألمانيا الغربية|West Germany', 'النمسا|Austria', 'أوروغواي|Uruguay', 'إنجلترا|England']],
+    ['hard', 'في أي مدينة يقع ملعب «أزتيكا» الذي استضاف نهائي كأس العالم عامي 1970 و1986؟', 'In which city is the Azteca stadium, which hosted the World Cup finals of 1970 and 1986?', ['مكسيكو سيتي|Mexico City', 'غوادالاخارا|Guadalajara', 'مونتيري|Monterrey', 'ريو دي جانيرو|Rio de Janeiro']],
+];
