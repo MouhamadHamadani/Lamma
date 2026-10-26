@@ -35,6 +35,7 @@ return [
         'inventions' => ['ar' => 'اختراعات وتكنولوجيا', 'en' => 'Inventions & Technology', 'icon' => '⚙️', 'parent' => 'general-knowledge'],
         'human-body' => ['ar' => 'جسم الإنسان', 'en' => 'The Human Body', 'icon' => '🫀', 'parent' => 'general-knowledge'],
         'landmarks' => ['ar' => 'معالم شهيرة', 'en' => 'Famous Landmarks', 'icon' => '🗽', 'parent' => 'general-knowledge'],
+        'arts-music' => ['ar' => 'فنون وموسيقى', 'en' => 'Arts & Music', 'icon' => '🎵', 'parent' => 'general-knowledge'],
     ],
 
     'questions' => [
