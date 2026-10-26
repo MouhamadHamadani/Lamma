@@ -5,7 +5,8 @@
  *
  * Each question is [difficulty, arabic, english, [the correct option, then three wrong ones]]. An option is "arabic|english", or one string
  * when both languages read the same (numbers, symbols, Latin words). The seeder shuffles where the right answer sits; the order here does not matter.
- * Per category: 20 easy, 20 medium and 10 hard, so any category on any difficulty has far more than a 10-question game needs.
+ * This file holds the first 50 per original category (20 easy, 20 medium, 10 hard); data/questions/<slug>.php adds the rest, and the targets per
+ * category and subcategory are in config/lamma.php ("content"), checked by `php artisan lamma:questions-report`.
  *
  * Rules for new questions: natural Modern Standard Arabic and natural English (not word for word); one clearly correct answer and three
  * plausible wrong ones; nothing that goes out of date (office holders, "latest", records); nothing politically or religiously divisive;
