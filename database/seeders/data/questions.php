@@ -29,6 +29,7 @@ return [
         'tennis' => ['ar' => 'التنس', 'en' => 'Tennis', 'icon' => '🎾', 'parent' => 'sports'],
         'motorsport' => ['ar' => 'رياضة المحركات', 'en' => 'Motorsport', 'icon' => '🏎️', 'parent' => 'sports'],
         'olympics' => ['ar' => 'الألعاب الأولمبية', 'en' => 'Olympics', 'icon' => '🏅', 'parent' => 'sports'],
+        'combat-sports' => ['ar' => 'الرياضات القتالية', 'en' => 'Combat sports', 'icon' => '🥊', 'parent' => 'sports'],
     ],
 
     'questions' => [
