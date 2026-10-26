@@ -1,0 +1,60 @@
+<?php
+
+/*
+ * Basketball (a subcategory of Sports): 16 easy, 16 medium, 16 hard. Format as in ../questions.php. Rules, history and famous events only, nothing that goes out of date.
+ */
+return [
+    // ---- easy ----
+    ['easy', 'كم نقطة تساوي رمية حرة ناجحة في كرة السلة؟', 'How many points is a successful free throw worth in basketball?', ['1', '2', '3', '4']],
+    ['easy', 'كم نقطة تساوي التسديدة الناجحة من داخل خط الثلاث نقاط؟', 'How many points is a successful shot from inside the three-point line worth?', ['2', '1', '3', '4']],
+    ['easy', 'من هو مخترع كرة السلة؟', 'Who invented basketball?', ['جيمس نايسميث|James Naismith', 'مايكل جوردان|Michael Jordan', 'ماجيك جونسون|Magic Johnson', 'جون ستوكتون|John Stockton']],
+    ['easy', 'ما لون كرة السلة المعتادة؟', 'What colour is a standard basketball?', ['برتقالي|Orange', 'أخضر|Green', 'أزرق|Blue', 'أصفر|Yellow']],
+    ['easy', 'ماذا نسمّي التسديدة القوية التي يقفز فيها اللاعب ويدفع الكرة من فوق الحلقة إلى داخل السلة؟', 'What is it called when a player jumps and slams the ball down through the hoop from above?', ['دانك (تغطيس)|A dunk', 'رمية حرة|A free throw', 'تمريرة مرتدة|A bounce pass', 'ثلاثية|A three-pointer']],
+    ['easy', 'إلى كم ربعاً تنقسم مباراة كرة السلة الرسمية؟', 'Into how many quarters is an official basketball game divided?', ['4', '2', '3', '6']],
+    ['easy', 'أي فريق من لوس أنجلوس يرتدي اللونين الأرجواني والذهبي؟', 'Which Los Angeles NBA team wears purple and gold?', ['ليكرز|The Lakers', 'كليبرز|The Clippers', 'وريورز|The Warriors', 'صنز|The Suns']],
+    ['easy', 'مع أي فريق فاز مايكل جوردان بستة ألقاب في دوري المحترفين الأمريكي؟', 'With which team did Michael Jordan win six NBA championships?', ['شيكاغو بولز|The Chicago Bulls', 'بوسطن سلتيكس|The Boston Celtics', 'ميامي هيت|The Miami Heat', 'ديترويت بيستونز|The Detroit Pistons']],
+    ['easy', 'ما اسم الدوري الأقوى لكرة السلة للمحترفين في أمريكا الشمالية؟', 'What is the name of the main professional basketball league in North America?', ['إن بي إيه (NBA)|The NBA', 'إن إف إل (NFL)|The NFL', 'إم إل بي (MLB)|The MLB', 'إن إتش إل (NHL)|The NHL']],
+    ['easy', 'ماذا نسمّي المخالفة التي يتحرك فيها اللاعب بالكرة دون أن يرتّبها على الأرض؟', 'What is the violation called when a player moves with the ball without dribbling it?', ['خطوات (ترافلينغ)|Travelling', 'عرقلة|Charging', 'تسلل|Offside', 'لمسة يد|Handball']],
+    ['easy', 'ماذا نسمّي ارتداد الكرة على الأرض باليد الواحدة أثناء التحرك بها؟', 'What do we call bouncing the ball on the floor with one hand while moving with it?', ['المحاورة (الدريبلينغ)|Dribbling', 'التصويب|Shooting', 'الحجب|Blocking', 'التمرير|Passing']],
+    ['easy', 'ماذا نسمّي التقاط الكرة بعد تسديدة لم تدخل السلة؟', 'What is it called when a player grabs the ball after a missed shot?', ['ريباوند (كرة مرتدة)|A rebound', 'ستيل|A steal', 'أسيست|An assist', 'بلوك|A block']],
+    ['easy', 'ماذا نسمّي التمريرة التي تقود مباشرة إلى تسجيل زميل للنقاط؟', 'What is a pass that directly leads to a teammate\'s score called?', ['أسيست (تمريرة حاسمة)|An assist', 'ريباوند|A rebound', 'ستيل|A steal', 'فاول|A foul']],
+    ['easy', 'ماذا نسمّي انتزاع الكرة من اللاعب المنافس؟', 'What is it called when a defender takes the ball away from an opponent?', ['ستيل (اعتراض الكرة)|A steal', 'أسيست|An assist', 'ريباوند|A rebound', 'ترافلينغ|Travelling']],
+    ['easy', 'ماذا نسمّي إيقاف تسديدة المنافس بضرب الكرة بعيداً عن السلة؟', 'What is it called when a defender stops a shot by knocking the ball away?', ['بلوك (صدّ التسديدة)|A block', 'ستيل|A steal', 'أسيست|An assist', 'دانك|A dunk']],
+    ['easy', 'أي فريق من ميامي شعاره لهب ويحمل اسم درجة حرارة مرتفعة؟', 'Which NBA team from Miami has a flame in its logo and is named after a high temperature?', ['ميامي هيت|The Miami Heat', 'ميامي بيرنز|The Miami Burns', 'ميامي فليمز|The Miami Flames', 'ميامي صنز|The Miami Suns']],
+
+    // ---- medium ----
+    ['medium', 'كم ثانية تبلغ مدة ساعة الهجوم في دوري المحترفين الأمريكي؟', 'How many seconds is the shot clock in the NBA?', ['24', '30', '20', '35']],
+    ['medium', 'كم دقيقة يستغرق كل ربع في مباراة دوري المحترفين الأمريكي؟', 'How long is each quarter in an NBA game?', ['12 دقيقة|12 minutes', '10 دقائق|10 minutes', '15 دقيقة|15 minutes', '20 دقيقة|20 minutes']],
+    ['medium', 'بعد كم خطأ شخصي يُستبعد اللاعب من المباراة في دوري المحترفين الأمريكي؟', 'After how many personal fouls is a player disqualified in the NBA?', ['6', '4', '5', '7']],
+    ['medium', 'أي لاعب يُلقَّب بـ«سيّد الهواء» (His Airness)؟', 'Which player is nicknamed "His Airness"?', ['مايكل جوردان|Michael Jordan', 'كوبي براينت|Kobe Bryant', 'ليبرون جيمس|LeBron James', 'شاكيل أونيل|Shaquille O\'Neal']],
+    ['medium', 'أي لاعب لُقّب بـ«السحر» (ماجيك) وارتبط اسمه بفريق ليكرز؟', 'Which Lakers player was nicknamed "Magic"?', ['إيرفين «ماجيك» جونسون|Earvin "Magic" Johnson', 'مايكل جوردان|Michael Jordan', 'لاري بيرد|Larry Bird', 'كريم عبد الجبار|Kareem Abdul-Jabbar']],
+    ['medium', 'أي لاعب في بوسطن سلتيكس لُقّب بـ«لاري الأسطورة» (Larry Legend)؟', 'Which Boston Celtics forward was nicknamed "Larry Legend"?', ['لاري بيرد|Larry Bird', 'بيل راسل|Bill Russell', 'ماجيك جونسون|Magic Johnson', 'تيم دنكان|Tim Duncan']],
+    ['medium', 'ما قطر حلقة السلة في كرة السلة؟', 'What is the diameter of a basketball hoop\'s rim?', ['45 سم|45 cm', '35 سم|35 cm', '55 سم|55 cm', '60 سم|60 cm']],
+    ['medium', 'أي فريق من تورونتو يحمل شعار ديناصور؟', 'Which Toronto NBA team has a dinosaur as its logo?', ['رابتورز|The Raptors', 'بيستونز|The Pistons', 'هوكس|The Hawks', 'بولز|The Bulls']],
+    ['medium', 'في أي دورة أولمبية لعب «فريق الأحلام» الأمريكي من نجوم المحترفين لأول مرة؟', 'At which Olympic Games did the famous "Dream Team" of NBA stars first play?', ['برشلونة 1992|Barcelona 1992', 'سيول 1988|Seoul 1988', 'أتلانتا 1996|Atlanta 1996', 'سيدني 2000|Sydney 2000']],
+    ['medium', 'ماذا يعني الاختصار MVP في الرياضة؟', 'What does MVP stand for in sports?', ['اللاعب الأكثر قيمة|Most Valuable Player', 'أفضل لاعب في الفريق|Main Valued Player', 'أقوى لاعب محترف|Most Valued Pro', 'أفضل لاعب خارجي|Most Valuable Provider']],
+    ['medium', 'أي لاعب اشتهر بتسديدة «سكاي هوك» (الخطّاف السماوي)؟', 'Which player was famous for the "skyhook" shot?', ['كريم عبد الجبار|Kareem Abdul-Jabbar', 'ستيفن كاري|Stephen Curry', 'ديرك نوفيتسكي|Dirk Nowitzki', 'أللن آيفرسون|Allen Iverson']],
+    ['medium', 'ماذا نسمّي أن يحقق اللاعب رقماً من خانتين في ثلاث إحصاءات في مباراة واحدة، كالنقاط والريباوند والأسيست؟', 'What is it called when a player reaches double figures in three statistics in one game, such as points, rebounds and assists?', ['ثلاثية مزدوجة (تريبل دبل)|A triple-double', 'ثلاثية (ثري بوينتر)|A three-pointer', 'ضربة مزدوجة|A double dribble', 'سلة ذهبية|A golden basket']],
+    ['medium', 'ماذا نسمّي تمريرة تُرمى قرب الحلقة ليلتقطها زميل ويسجّلها في الهواء؟', 'What is a pass thrown near the rim for a teammate to catch and score in mid-air called?', ['ألي أوب|An alley-oop', 'جامب بول|A jump ball', 'فاست بريك|A fast break', 'بيك آند رول|A pick and roll']],
+    ['medium', 'كم ثانية يُسمح للمهاجم بالبقاء فيها داخل منطقة الدفاع المطلية (الدائرة تحت السلة) قبل أن تُحتسب عليه مخالفة؟', 'How many seconds may an attacker stay in the painted area under the basket before a violation is called?', ['3', '5', '8', '10']],
+    ['medium', 'ما اسم الدوري المحترف الأول لكرة السلة للسيدات في الولايات المتحدة؟', 'What is the name of the main professional women\'s basketball league in the United States?', ['دبليو إن بي إيه (WNBA)|The WNBA', 'إن بي إيه ويمن|The NBA Women', 'إل بي إف (LBF)|The LBF', 'إيه بي إل (ABL)|The ABL']],
+    ['medium', 'ما البطولة الجامعية الأمريكية التي تُلقَّب بـ«جنون مارس» (March Madness)؟', 'Which US competition is nicknamed "March Madness"?', ['بطولة كرة السلة الجامعية|The college basketball tournament', 'نهائيات الدوري المحترف|The NBA Finals', 'بطولة العالم للأندية|The Club World Cup', 'مباراة كل النجوم|The All-Star Game']],
+
+    // ---- hard ----
+    ['hard', 'في أي مدينة أمريكية اخترع جيمس نايسميث كرة السلة؟', 'In which US city did James Naismith invent basketball?', ['سبرينغفيلد (ماساتشوستس)|Springfield, Massachusetts', 'شيكاغو|Chicago', 'نيويورك|New York', 'بوسطن|Boston']],
+    ['hard', 'ماذا استخدم نايسميث كسلال في أول مباراة لكرة السلة؟', 'What did Naismith use as the baskets in the first games of basketball?', ['سلال خوخ|Peach baskets', 'سلال قمامة|Bins', 'حلقات معدنية|Metal rings', 'سلال خبز|Bread baskets']],
+    ['hard', 'كم قاعدة كتب نايسميث في قواعد اللعبة الأصلية؟', 'How many rules did Naismith write in the original rules of the game?', ['13', '10', '20', '7']],
+    ['hard', 'من المدرب الذي قاد بوسطن سلتيكس إلى تسعة ألقاب في دوري المحترفين؟', 'Which coach led the Boston Celtics to nine NBA championships?', ['ريد أورباخ|Red Auerbach', 'فيل جاكسون|Phil Jackson', 'جريغ بوبوفيتش|Gregg Popovich', 'بات رايلي|Pat Riley']],
+    ['hard', 'من اللاعب الذي سجّل 100 نقطة في مباراة واحدة من دوري المحترفين عام 1962؟', 'Which player scored 100 points in a single NBA game in 1962?', ['ويلت تشامبرلين|Wilt Chamberlain', 'بيل راسل|Bill Russell', 'أوسكار روبرتسون|Oscar Robertson', 'جيري ويست|Jerry West']],
+    ['hard', 'أي فريق فاز بثمانية ألقاب متتالية في دوري المحترفين بين 1959 و1966؟', 'Which team won eight NBA championships in a row between 1959 and 1966?', ['بوسطن سلتيكس|The Boston Celtics', 'ليكرز|The Lakers', 'نيكس|The Knicks', 'فيلادلفيا 76|The 76ers']],
+    ['hard', 'ما اسم الكأس التي يتسلّمها بطل دوري المحترفين الأمريكي؟', 'What is the trophy awarded to the NBA champions called?', ['كأس لاري أوبراين|The Larry O\'Brien Trophy', 'كأس ستانلي|The Stanley Cup', 'كأس ليكرز|The Lakers Cup', 'كأس نايسميث|The Naismith Cup']],
+    ['hard', 'من أي مدينة انتقل فريق يوتا جاز عام 1979؟', 'From which city did the Utah Jazz move in 1979?', ['نيو أورلينز|New Orleans', 'لوس أنجلوس|Los Angeles', 'دالاس|Dallas', 'دنفر|Denver']],
+    ['hard', 'أي سنتر في بوسطن سلتيكس فاز بـ11 لقباً في دوري المحترفين؟', 'Which Boston Celtics centre won 11 NBA championships as a player?', ['بيل راسل|Bill Russell', 'ويلت تشامبرلين|Wilt Chamberlain', 'كريم عبد الجبار|Kareem Abdul-Jabbar', 'شاكيل أونيل|Shaquille O\'Neal']],
+    ['hard', 'ما أبعاد ملعب كرة السلة وفق قواعد الاتحاد الدولي (فيبا)؟', 'What are the dimensions of a basketball court under FIBA rules?', ['28 × 15 متراً|28 × 15 metres', '24 × 12 متراً|24 × 12 metres', '30 × 18 متراً|30 × 18 metres', '26 × 14 متراً|26 × 14 metres']],
+    ['hard', 'في أي موسم أدخل دوري المحترفين الأمريكي خط الثلاث نقاط؟', 'In which season did the NBA introduce the three-point line?', ['1979–1980', '1969–1970', '1989–1990', '1959–1960']],
+    ['hard', 'ما المنظمة المختصرة بالأحرف FIBA التي تشرف على كرة السلة دولياً؟', 'Which organisation, abbreviated FIBA, governs basketball internationally?', ['الاتحاد الدولي لكرة السلة|The International Basketball Federation', 'اللجنة الأولمبية الدولية|The International Olympic Committee', 'الاتحاد الأمريكي لكرة السلة|USA Basketball', 'رابطة المحترفين العالمية|The World Pro Association']],
+    ['hard', 'أي منتخب فاز بأول بطولة عالم لكرة السلة عام 1950 على أرضه؟', 'Which team won the first basketball World Championship in 1950 on home soil?', ['الأرجنتين|Argentina', 'الولايات المتحدة|The United States', 'الاتحاد السوفيتي|The Soviet Union', 'يوغوسلافيا|Yugoslavia']],
+    ['hard', 'في أي دورة أولمبية أُدرجت كرة السلة لأول مرة رياضةً أولمبية؟', 'At which Olympic Games did basketball first become an Olympic sport?', ['برلين 1936|Berlin 1936', 'لندن 1948|London 1948', 'باريس 1924|Paris 1924', 'هلسنكي 1952|Helsinki 1952']],
+    ['hard', 'لأي فريق لعب مايكل جوردان حين عاد إلى الملاعب عام 2001؟', 'Which team did Michael Jordan play for when he returned to the game in 2001?', ['واشنطن ويزاردز|The Washington Wizards', 'شيكاغو بولز|The Chicago Bulls', 'نيويورك نيكس|The New York Knicks', 'أورلاندو ماجيك|The Orlando Magic']],
+    ['hard', 'أي فريق اختار اللاعب الصيني ياو مينغ أولاً في الدرافت عام 2002؟', 'Which team picked the Chinese centre Yao Ming first overall in the 2002 draft?', ['هيوستن روكتس|The Houston Rockets', 'لوس أنجلوس ليكرز|The Los Angeles Lakers', 'دالاس مافريكس|The Dallas Mavericks', 'ميامي هيت|The Miami Heat']],
+];
