@@ -28,6 +28,7 @@ return [
         'rugby' => ['ar' => 'الرغبي', 'en' => 'Rugby', 'icon' => '🏉', 'parent' => 'sports'],
         'tennis' => ['ar' => 'التنس', 'en' => 'Tennis', 'icon' => '🎾', 'parent' => 'sports'],
         'motorsport' => ['ar' => 'رياضة المحركات', 'en' => 'Motorsport', 'icon' => '🏎️', 'parent' => 'sports'],
+        'olympics' => ['ar' => 'الألعاب الأولمبية', 'en' => 'Olympics', 'icon' => '🏅', 'parent' => 'sports'],
     ],
 
     'questions' => [
