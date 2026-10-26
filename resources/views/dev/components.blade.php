@@ -197,6 +197,19 @@
                             <x-lamma.category-toggle :category="$category" :selected="$n < 2" />
                         @endforeach
                     </div>
+
+                    <h3 class="pt-4 font-display text-2xl font-bold">Category with subcategories · off, partial, all · subcategory chips</h3>
+                    <div class="grid max-w-3xl grid-cols-3 gap-3">
+                        <x-lamma.category-toggle :category="$categories[2]" state="off" :expand="['type' => 'button']" />
+                        <x-lamma.category-toggle :category="$categories[2]" state="partial" :subtitle="$ar ? '2 من 7' : '2 of 7'" :expand="['type' => 'button']" :expanded="true" />
+                        <x-lamma.category-toggle :category="$categories[2]" state="all" :expand="['type' => 'button']" />
+                    </div>
+                    <div class="flex max-w-3xl flex-wrap gap-2">
+                        <x-lamma.subcategory-chip :category="['slug' => 'football', 'name' => $ar ? 'كرة القدم' : 'Football']" tint="bg-tint-sun" :selected="true" />
+                        <x-lamma.subcategory-chip :category="['slug' => 'basketball', 'name' => $ar ? 'كرة السلة' : 'Basketball']" tint="bg-tint-sun" :selected="true" />
+                        <x-lamma.subcategory-chip :category="['slug' => 'tennis', 'name' => $ar ? 'التنس' : 'Tennis']" tint="bg-tint-sun" />
+                        <x-lamma.subcategory-chip :category="['slug' => 'olympics', 'name' => $ar ? 'الألعاب الأولمبية' : 'Olympics']" tint="bg-tint-sun" />
+                    </div>
                 </div>
 
                 <div class="space-y-4">

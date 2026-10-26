@@ -3,7 +3,6 @@
 namespace App\Livewire\Player;
 
 use App\Game\PlayerStats;
-use App\Models\Category;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -24,13 +23,10 @@ class MyGames extends Component
         $user = Auth::guard('web')->user() ?? abort(403);
         $games = $stats->history($user);
 
-        $categories = Category::query()->whereIn('id', $games->getCollection()->flatMap(fn ($game) => $game->room->settings->categoryIds)->unique()->all())->get()->keyBy('id');
-
         return view('livewire.player.my-games', [
             'user' => $user,
             'totals' => $stats->totals($user),
             'games' => $games,
-            'categories' => $categories,
         ])->title(__('My games'));
     }
 }

@@ -1,7 +1,10 @@
 {{-- Reference: docs/design/screens/host-2-create-room.html. Game rules (availability, one room per host) live in App\Game. --}}
 @use('App\Enums\Difficulty')
+@use('App\Game\CategorySelection')
 @use('App\Game\RoomSettings')
+@use('App\Support\CategoryStyle')
 @use('App\Support\Isolate')
+@use('Illuminate\Support\HtmlString')
 @php
     $user = auth()->user();
     $both = $hostScreenLocale === 'both';
@@ -10,7 +13,8 @@
         'en' => ['English', 'en'],
         default => null,
     };
-    $chosen = $this->categories->whereIn('id', $categoryIds)->pluck('name');
+    $chosen = CategorySelection::label($categoryIds);
+    $expanded = $this->categories->firstWhere('id', $expandedId);
     $short = $categoryIds !== [] && $this->available < $questionCount;
 @endphp
 <div class="flex min-h-dvh flex-col">
@@ -34,25 +38,61 @@
         </div>
 
         <div class="flex grow flex-col gap-7 xl:flex-row xl:items-stretch">
-            <div class="flex grow flex-col gap-[30px] rounded-card border-2 border-line bg-white p-5 laptop-short:gap-4 laptop-short:p-5 lg:p-8">
+            <div class="flex min-w-0 grow flex-col gap-[30px] rounded-card border-2 border-line bg-white p-5 laptop-short:gap-4 laptop-short:p-5 lg:p-8">
                 {{-- Categories --}}
                 <div class="flex flex-col gap-2.5">
                     <div class="flex items-baseline justify-between">
                         <h2 class="text-base font-bold">{{ __('Categories') }}</h2>
-                        <span class="text-[13px] font-medium text-ink-subtle">{{ __('Pick one or more') }}</span>
+                        {{-- On a short laptop screen the "pick one" error moves up here (the line under the grid would push the page into a scroll). --}}
+                        <span @class(['text-[13px] font-medium text-ink-subtle', 'laptop-short:hidden' => $categoryIds === []])>{{ __('Pick one or more') }}</span>
+                        @if ($categoryIds === [])
+                            <span class="hidden items-center gap-1.5 text-[13px] font-semibold text-coral-700 laptop-short:flex">
+                                <x-lamma.icon name="alert" :size="16" />{{ __('Pick at least one category.') }}
+                            </span>
+                        @endif
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($this->categories as $category)
+                            @php
+                                $state = CategorySelection::state($category, $categoryIds);
+                                $kids = $category->children;
+                                $on = $kids->filter(fn ($child) => in_array($child->id, $categoryIds, true))->count();
+                            @endphp
                             <x-lamma.category-toggle
-                                :category="$category" :selected="in_array($category->id, $categoryIds)"
+                                :category="$category" :state="$state"
+                                :subtitle="$state === 'partial' ? new HtmlString(__(':count of :total', ['count' => Isolate::ltr($on), 'total' => Isolate::ltr($kids->count())])) : null"
+                                :expand="$kids->isEmpty() ? null : ['wire:click' => 'toggleExpanded('.$category->id.')']"
+                                :expanded="$expandedId === $category->id" :panel="'subcategories-'.$category->id"
                                 wire:key="category-{{ $category->id }}" wire:click="toggleCategory({{ $category->id }})"
+                                data-test="category-{{ $category->slug }}"
                             />
                         @endforeach
                     </div>
 
+                    {{-- The subcategories of the category being expanded. On a short laptop screen the label sits beside one row of chips that scrolls sideways, so the page never does. --}}
+                    @if ($expanded)
+                        <div
+                            id="subcategories-{{ $expanded->id }}" wire:key="subcategories-{{ $expanded->id }}" role="group"
+                            aria-label="{{ __('Subcategories of :category', ['category' => $expanded->name]) }}" data-test="subcategories"
+                            class="flex flex-col gap-2 rounded-2xl border-2 border-line bg-cream px-3 py-2.5 laptop-short:flex-row laptop-short:items-center laptop-short:gap-3 laptop-short:py-1.5"
+                        >
+                            <p class="text-[13px] font-semibold leading-tight text-ink-muted laptop-short:max-w-40 laptop-short:shrink-0"><span class="font-bold text-navy">{{ $expanded->name }}</span><span class="laptop-short:hidden"> · {{ __('Pick all of it, or only some') }}</span></p>
+                            <div class="-mx-1 flex flex-wrap gap-2 px-1 py-1 laptop-short:min-w-0 laptop-short:grow laptop-short:flex-nowrap laptop-short:overflow-x-auto">
+                                @foreach ($expanded->children as $child)
+                                    <x-lamma.subcategory-chip
+                                        :category="$child" :tint="CategoryStyle::tint($expanded->slug)"
+                                        :selected="in_array($child->id, $categoryIds, true) || in_array($expanded->id, $categoryIds, true)"
+                                        wire:key="subcategory-{{ $child->id }}" wire:click="toggleSubcategory({{ $child->id }})"
+                                        data-test="subcategory-{{ $child->slug }}"
+                                    />
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     @if ($categoryIds === [])
-                        <x-lamma.error>{{ __('Pick at least one category.') }}</x-lamma.error>
+                        <x-lamma.error class="laptop-short:hidden">{{ __('Pick at least one category.') }}</x-lamma.error>
                     @endif
                 </div>
 
@@ -93,8 +133,8 @@
                 <h2 id="summary-title" class="pb-1.5 font-display text-[28px] font-extrabold">{{ __('Your game') }}</h2>
 
                 @foreach ([
-                    [__('Categories'), $chosen->isEmpty() ? '—' : $chosen->join(', ')],
-                    [__('Questions'), $questionCount],
+                    [__('Categories'), $chosen === '' ? '—' : $chosen],
+                    [__('Questions'), new HtmlString($questionCount.($categoryIds === [] ? '' : ' <span class="text-[13px] font-medium text-ink-subtle" data-test="available">('.__(':count available', ['count' => Isolate::ltr($this->available)]).')</span>'))],
                     [__('Time'), __(':seconds s each', ['seconds' => $secondsPerQuestion])],
                     [__('Difficulty'), Difficulty::tryFrom($difficulty)?->getLabel() ?? __('Mixed')],
                 ] as [$label, $value])

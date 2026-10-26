@@ -4,13 +4,13 @@ namespace App\Livewire\Host;
 
 use App\Enums\HostScreenLocale;
 use App\Enums\RoomStatus;
+use App\Game\CategorySelection;
 use App\Game\GameEngine;
 use App\Game\GameStartException;
 use App\Game\PlayerIdentity;
 use App\Game\RoomManager;
 use App\Game\RoomPresence;
 use App\Game\RoomRoster;
-use App\Models\Category;
 use App\Models\Room;
 use App\Models\RoomPlayer;
 use App\Support\QrCode;
@@ -203,7 +203,7 @@ class HostLobby extends Component
             'canStart' => $canStart,
             'inLobby' => $inLobby,
             'both' => $settings->hostScreenLocale === HostScreenLocale::Both,
-            'categoryNames' => Category::whereIn('id', $settings->categoryIds)->orderBy('sort_order')->orderBy('id')->get()->pluck('name'),
+            'categoryLabel' => CategorySelection::label($settings->categoryIds),
             'joinUrl' => $joinUrl,
             'joinAddress' => preg_replace('#^https?://#', '', route('join')),
             'qr' => QrCode::svg($joinUrl),

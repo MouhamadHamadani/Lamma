@@ -103,10 +103,13 @@ describe('the summary card', function () {
         $geo = categoryWithQuestions(12, category: ['name' => ['en' => 'Geography', 'ar' => 'جغرافيا']]);
         $sci = categoryWithQuestions(12, category: ['name' => ['en' => 'Science', 'ar' => 'علوم']]);
 
-        createRoomPage()
+        $page = createRoomPage()
             ->call('toggleCategory', $geo->id)->call('toggleCategory', $sci->id)
-            ->set('questionCount', 15)->set('secondsPerQuestion', 30)->set('difficulty', 'hard')->set('hostScreenLocale', 'en')
-            ->assertSeeInOrder(['Categories', 'Geography, Science', 'Questions', '15', 'Time', '30 s each', 'Difficulty', 'Hard', 'Big screen', 'English']);
+            ->set('questionCount', 15)->set('secondsPerQuestion', 30)->set('difficulty', 'hard')->set('hostScreenLocale', 'en');
+
+        // (html(), not assertSee: the update response carries the markup JSON-escaped, so the middle dot would not match)
+        expect($page->html())->toContain('Geography · Science');
+        $page->assertSeeInOrder(['Categories', 'Questions', '15', 'Time', '30 s each', 'Difficulty', 'Hard', 'Big screen', 'English']);
     });
 
     it('shows Mixed and both languages by default', function () {
@@ -262,5 +265,164 @@ describe('fresh questions for the host\'s usual group', function () {
         app()->setLocale('ar');
 
         createRoomPage()->call('toggleCategory', $category->id)->assertSee('من الأسئلة الجديدة لهذه المجموعة');
+    });
+});
+
+describe('subcategories', function () {
+    /** Sports (3 own questions) with Football (5), Basketball (4), Tennis (6), plus Science (12). */
+    function sportsWithSubcategories(): array
+    {
+        $sports = categoryWithQuestions(3, category: ['name' => ['en' => 'Sports', 'ar' => 'رياضة'], 'slug' => 'sports', 'sort_order' => 1]);
+        $football = categoryWithQuestions(5, category: ['name' => ['en' => 'Football', 'ar' => 'كرة القدم'], 'slug' => 'football', 'parent_id' => $sports->id, 'sort_order' => 1]);
+        $basketball = categoryWithQuestions(4, category: ['name' => ['en' => 'Basketball', 'ar' => 'كرة السلة'], 'slug' => 'basketball', 'parent_id' => $sports->id, 'sort_order' => 2]);
+        $tennis = categoryWithQuestions(6, category: ['name' => ['en' => 'Tennis', 'ar' => 'التنس'], 'slug' => 'tennis', 'parent_id' => $sports->id, 'sort_order' => 3]);
+        $science = categoryWithQuestions(12, category: ['name' => ['en' => 'Science', 'ar' => 'علوم'], 'slug' => 'science', 'sort_order' => 2]);
+
+        return [$sports, $football, $basketball, $tennis, $science];
+    }
+
+    it('offers only the top-level categories as tiles, with an expand control just on those that have subcategories', function () {
+        [$sports] = sportsWithSubcategories();
+
+        $html = createRoomPage()->html();
+
+        expect($html)->toContain('data-test="category-sports"')->and($html)->toContain('data-test="category-science"')
+            ->and($html)->not->toContain('data-test="category-football"')
+            ->and(substr_count($html, 'aria-expanded='))->toBe(1)
+            ->and($html)->toContain('aria-controls="subcategories-'.$sports->id.'"')
+            ->and($html)->not->toContain('data-test="subcategories"');
+    });
+
+    it('shows the subcategory chips when expanded, one category at a time, and hides them again', function () {
+        [$sports, , , , $science] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleExpanded', $sports->id)
+            ->assertSet('expandedId', $sports->id)
+            ->assertSeeHtml('aria-expanded="true"')->assertSeeHtml('data-test="subcategories"')
+            ->assertSeeHtml('data-test="subcategory-football"')->assertSeeHtml('data-test="subcategory-tennis"')
+            ->call('toggleExpanded', $science->id)->assertSet('expandedId', null)->assertDontSeeHtml('data-test="subcategories"')
+            ->call('toggleExpanded', $sports->id)->call('toggleExpanded', $sports->id)->assertSet('expandedId', null);
+    });
+
+    it('uses real buttons that are at least 44px tall, with aria-pressed', function () {
+        [$sports] = sportsWithSubcategories();
+
+        $html = createRoomPage()->call('toggleExpanded', $sports->id)->html();
+
+        preg_match_all('/<button[^>]*data-test="subcategory-[a-z]+"[^>]*>/s', $html, $chips);
+        expect($chips[0])->toHaveCount(3);
+        foreach ($chips[0] as $chip) {
+            expect($chip)->toContain('aria-pressed="false"')->and($chip)->toContain('min-h-11');
+        }
+    });
+
+    it('selects all of a category with its tile, and switches it off with a second tap', function () {
+        [$sports] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleCategory', $sports->id)->assertSet('categoryIds', [$sports->id])
+            ->call('toggleExpanded', $sports->id)
+            ->assertSeeHtml('data-test="subcategory-football"')
+            ->call('toggleCategory', $sports->id)->assertSet('categoryIds', []);
+    });
+
+    it('selects only the chosen subcategories and shows the parent as partly chosen', function () {
+        [$sports, $football, $basketball] = sportsWithSubcategories();
+
+        $page = createRoomPage()->call('toggleExpanded', $sports->id)
+            ->call('toggleSubcategory', $football->id)->assertSet('categoryIds', [$football->id]);
+
+        preg_match('/<button[^>]*data-test="category-sports"[^>]*>/s', $page->html(), $tile);
+        expect($tile[0])->toContain('aria-pressed="mixed"');
+        expect($page->html())->toContain('<bdi dir="ltr">1</bdi> of <bdi dir="ltr">3</bdi>');
+        $page->call('toggleSubcategory', $basketball->id)->assertSet('categoryIds', [$football->id, $basketball->id]);
+        expect($page->html())->toContain('<bdi dir="ltr">2</bdi> of <bdi dir="ltr">3</bdi>');
+        $page->call('toggleSubcategory', $football->id)->assertSet('categoryIds', [$basketball->id]);
+    });
+
+    it('treats every subcategory chosen one by one as the whole category', function () {
+        [$sports, $football, $basketball, $tennis] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleSubcategory', $football->id)->call('toggleSubcategory', $basketball->id)->call('toggleSubcategory', $tennis->id)
+            ->assertSet('categoryIds', [$sports->id]);
+    });
+
+    it('selects everything when the parent is tapped from a partial choice, then clears it', function () {
+        [$sports, $football] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleSubcategory', $football->id)
+            ->call('toggleCategory', $sports->id)->assertSet('categoryIds', [$sports->id])
+            ->call('toggleCategory', $sports->id)->assertSet('categoryIds', []);
+    });
+
+    it('leaves the siblings when a chip is switched off under a fully chosen parent', function () {
+        [$sports, $football, $basketball, $tennis] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleCategory', $sports->id)
+            ->call('toggleSubcategory', $football->id)
+            ->assertSet('categoryIds', [$basketball->id, $tennis->id]);
+    });
+
+    it('ignores ids that are not an active subcategory or category', function () {
+        [, $football] = sportsWithSubcategories();
+        $football->update(['is_active' => false]);
+
+        createRoomPage()->call('toggleSubcategory', $football->id)->call('toggleSubcategory', 999999)->call('toggleCategory', $football->id)->call('toggleExpanded', 999999)
+            ->assertSet('categoryIds', [])->assertSet('expandedId', null);
+    });
+
+    it('lists the selection compactly in the summary', function () {
+        [, $football, $basketball, , $science] = sportsWithSubcategories();
+
+        $page = createRoomPage()
+            ->call('toggleSubcategory', $football->id)->call('toggleSubcategory', $basketball->id)->call('toggleCategory', $science->id);
+        expect($page->html())->toContain('Sports: Football, Basketball · Science');
+    });
+
+    it('counts the available questions for the selection and the difficulty', function () {
+        [$sports, $football, $basketball, , $science] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleSubcategory', $football->id)->assertSet('available', 5)
+            ->call('toggleSubcategory', $basketball->id)->assertSet('available', 9)
+            ->call('toggleCategory', $sports->id)->assertSet('available', 3 + 5 + 4 + 6)
+            ->call('toggleCategory', $science->id)->assertSet('available', 3 + 5 + 4 + 6 + 12)
+            ->set('difficulty', 'hard')->assertSet('available', Question::query()->where('difficulty', Difficulty::Hard)->count());
+    });
+
+    it('says how many are available, and warns when the subcategory alone is too small', function () {
+        [, $football] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleSubcategory', $football->id)
+            ->assertSeeHtml('<bdi dir="ltr">5</bdi> available')
+            ->assertSee('Only 5 questions match this choice, but you picked 10.')
+            ->assertSeeHtml('data-test="not-enough-questions"');
+    });
+
+    it('creates a room that stores the subcategory ids, not the parent', function () {
+        [, $football, $basketball, , $science] = sportsWithSubcategories();
+
+        createRoomPage()
+            ->call('toggleSubcategory', $football->id)->call('toggleSubcategory', $basketball->id)->call('toggleCategory', $science->id)
+            ->set('questionCount', 5)->call('create')->assertHasNoErrors();
+
+        expect(Room::sole()->settings->categoryIds)->toEqualCanonicalizing([$football->id, $basketball->id, $science->id]);
+    });
+
+    it('renders with the subcategories expanded in English and in Arabic', function () {
+        [$sports, $football] = sportsWithSubcategories();
+
+        $this->actingAs($this->host)->withSession(['locale' => 'en']);
+        createRoomPage()->call('toggleExpanded', $sports->id)->call('toggleSubcategory', $football->id)
+            ->assertSee('Subcategories of Sports')->assertSee('Football')->assertSee('Basketball')->assertSee('Pick all of it, or only some');
+
+        app()->setLocale('ar');
+        createRoomPage()->call('toggleExpanded', $sports->id)->call('toggleSubcategory', $football->id)
+            ->assertSee('كرة القدم')->assertSee('كرة السلة')->assertSee('الفئات الفرعية في رياضة')->assertSee('اختر الفئة كاملة أو بعضها فقط')->assertSee('رياضة: كرة القدم');
     });
 });

@@ -364,5 +364,9 @@
     "Only :count fresh questions left for this group.": "Only :count fresh questions left for this group.",
     "A category cannot be its own parent.": "A category cannot be its own parent.",
     "A subcategory can only sit under a top-level category.": "A subcategory can only sit under a top-level category.",
-    "A category with subcategories cannot become a subcategory.": "A category with subcategories cannot become a subcategory."
+    "A category with subcategories cannot become a subcategory.": "A category with subcategories cannot become a subcategory.",
+    "Subcategories of :category": "Subcategories of :category",
+    ":count of :total": ":count of :total",
+    "Pick all of it, or only some": "Pick all of it, or only some",
+    ":count available": ":count available"
 }

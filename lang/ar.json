@@ -364,5 +364,9 @@
     "Only :count fresh questions left for this group.": "لم يتبقَّ سوى :count من الأسئلة الجديدة لهذه المجموعة.",
     "A category cannot be its own parent.": "لا يمكن أن تكون الفئة تابعة لنفسها.",
     "A subcategory can only sit under a top-level category.": "لا يمكن وضع الفئة الفرعية إلا تحت فئة رئيسية.",
-    "A category with subcategories cannot become a subcategory.": "لا يمكن تحويل فئة لها فئات فرعية إلى فئة فرعية."
+    "A category with subcategories cannot become a subcategory.": "لا يمكن تحويل فئة لها فئات فرعية إلى فئة فرعية.",
+    "Subcategories of :category": "الفئات الفرعية في :category",
+    ":count of :total": ":count من :total",
+    "Pick all of it, or only some": "اختر الفئة كاملة أو بعضها فقط",
+    ":count available": ":count متاح"
 }

@@ -14,7 +14,7 @@
         <x-lamma.chip tone="sun" size="md">{{ __('Lobby') }}</x-lamma.chip>
 
         <div class="flex items-center gap-3">
-            <x-lamma.chip size="lg" class="hidden xl:inline-flex">{{ $categoryNames->join(' · ') }}</x-lamma.chip>
+            <x-lamma.chip size="lg" class="hidden xl:inline-flex">{{ $categoryLabel }}</x-lamma.chip>
             <x-lamma.chip size="lg" class="hidden lg:inline-flex">
                 {{ __(':count questions', ['count' => $room->settings->questionCount]) }} · {{ __(':seconds s', ['seconds' => $room->settings->secondsPerQuestion]) }}
             </x-lamma.chip>

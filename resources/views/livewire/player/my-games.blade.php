@@ -1,4 +1,5 @@
 {{-- /me/games: totals, then one card per saved game (newest first). Only games tied to the account are listed. --}}
+@use('App\Game\CategorySelection')
 @use('App\Game\Scoreboard')
 @use('App\Support\Isolate')
 <div class="mx-auto flex min-h-dvh w-full max-w-3xl flex-col gap-8 px-5 pb-12">
@@ -40,7 +41,7 @@
                     @php
                         $rank = (int) $game->rank;
                         $tile = $rank === 1 ? 'bg-sun' : ($rank === 2 ? 'bg-teal' : 'bg-coral');
-                        $names = collect($game->room->settings->categoryIds)->map(fn ($id) => $categories[$id]->name ?? null)->filter()->values();
+                        $names = CategorySelection::label($game->room->settings->categoryIds);
                     @endphp
                     <li class="flex items-center gap-4 rounded-tile border-2 border-line bg-white px-4 py-3.5" wire:key="game-{{ $game->id }}" data-test="game" data-rank="{{ $rank }}">
                         <span class="{{ $tile }} flex size-[60px] shrink-0 -rotate-3 items-center justify-center rounded-2xl border-3 border-navy font-display text-2xl font-extrabold shadow-sticker-sm" dir="ltr" role="img" aria-label="{{ __('Your place: :rank', ['rank' => Scoreboard::ordinal($rank)]) }}">{{ $rank }}<span class="text-sm">{{ Scoreboard::suffix($rank) }}</span></span>
@@ -50,7 +51,7 @@
                                 <span class="font-display text-xl font-extrabold" data-test="score">{!! __(':points pts', ['points' => Isolate::ltr($game->score)]) !!}</span>
                                 <time datetime="{{ $game->room->finished_at?->toDateString() }}" class="text-sm font-semibold text-ink-muted" data-test="date">{{ $game->room->finished_at?->locale(app()->getLocale())->translatedFormat('j F Y') }}</time>
                             </div>
-                            <p class="line-clamp-2 text-sm text-ink-muted" data-test="categories">{{ $names->join(' · ') }}</p>
+                            <p class="line-clamp-2 text-sm text-ink-muted" data-test="categories">{{ $names }}</p>
                             <p class="text-xs font-semibold text-ink-subtle">
                                 {!! __(':correct of :total', ['correct' => Isolate::ltr($game->correct_count), 'total' => Isolate::ltr($game->questions_count)]) !!} ·
                                 {{ __('Players: :count', ['count' => $game->players_count]) }}
