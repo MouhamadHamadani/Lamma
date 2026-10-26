@@ -33,6 +33,7 @@ return [
         'everyday-life' => ['ar' => 'الحياة اليومية', 'en' => 'Everyday Life', 'icon' => '☕', 'parent' => 'general-knowledge'],
         'words-language' => ['ar' => 'كلمات ولغة', 'en' => 'Words & Language', 'icon' => '📖', 'parent' => 'general-knowledge'],
         'inventions' => ['ar' => 'اختراعات وتكنولوجيا', 'en' => 'Inventions & Technology', 'icon' => '⚙️', 'parent' => 'general-knowledge'],
+        'human-body' => ['ar' => 'جسم الإنسان', 'en' => 'The Human Body', 'icon' => '🫀', 'parent' => 'general-knowledge'],
     ],
 
     'questions' => [
