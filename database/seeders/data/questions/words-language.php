@@ -57,4 +57,5 @@ return [
     ['hard', 'من أي لغة جاءت كلمة «كيندرغارتن» (Kindergarten) التي تعني روضة الأطفال؟', 'From which language does the word "kindergarten" come?', ['الألمانية|German', 'الفرنسية|French', 'الإيطالية|Italian', 'الهولندية|Dutch']],
     ['hard', 'كم حرفاً في الأبجدية العبرية؟', 'How many letters are there in the Hebrew alphabet?', ['22', '24', '26', '28']],
     ['hard', 'ماذا تعني العبارة اللاتينية «إت سيتيرا» (et cetera)؟', 'What does the Latin phrase "et cetera" mean?', ['وبقية الأشياء|And the rest', 'وهكذا دائماً|And so always', 'مع الاحترام|With respect', 'في النهاية|In the end']],
+    ['hard', 'ماذا نسمّي الكلمة التي تنتقل من لغة إلى أخرى وتُستعمل فيها، مثل «سكّر» و«قهوة»؟', 'What do we call a word that one language borrows from another and uses as its own?', ['كلمة دخيلة (مقترَضة)|A loanword', 'كلمة متناظرة|A palindrome', 'اختصار|An acronym', 'مثنّى|A dual']],
 ];
