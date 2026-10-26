@@ -31,7 +31,7 @@ return [
     ['hard', 'ماذا نسمّي مجموعة من طيور النحام (الفلامنغو)؟', 'What do we call a group of flamingos?', ['فلامبويانس (بهرجة)|A flamboyance', 'سرب عادي|A flock', 'بحيرة|A lake', 'مجلس|A council']],
     ['hard', 'ماذا نسمّي مجموعة من الزرافات؟', 'What do we call a group of giraffes?', ['برج|A tower', 'قطيع الغزلان|A herd of deer', 'سلسلة|A chain', 'غابة|A forest']],
     ['hard', 'ماذا نسمّي الحيوانات التي تنشط عند الفجر والغسق؟', 'What do we call animals that are most active at dawn and dusk?', ['شفقية (كريبسكيولر)|Crepuscular', 'ليلية|Nocturnal', 'نهارية|Diurnal', 'شتوية|Hibernating']],
-    ['hard', 'ما أكبر أنواع الغزلان في العالم؟', 'What is the largest species of deer in the world?', ['الأيل الأمريكي (الموظ)|The moose', 'الرنة|The reindeer', 'الإيلك|The elk', 'الأيل الأحمر|The red deer']],
+    ['hard', 'ما أكبر أنواع الغزلان في العالم؟', 'What is the largest species of deer in the world?', ['الأيل الأمريكي (الموظ)|The moose', 'الرنة|The reindeer', 'الأيل الأسمر|The fallow deer', 'الأيل الأحمر|The red deer']],
     ['hard', 'ما أكبر البرمائيات الحية في العالم؟', 'What is the largest living amphibian in the world?', ['السلمندر الصيني العملاق|The Chinese giant salamander', 'الضفدع الثور|The bullfrog', 'السمندل النمري|The tiger salamander', 'ضفدع غوليات|The goliath frog']],
     ['hard', 'أي حيوان يمتلك أقوى عضة بين الحيوانات التي قيست قوتها؟', 'Which animal has the strongest measured bite force?', ['التمساح البحري|The saltwater crocodile', 'الأسد|The lion', 'القرش الأبيض|The great white shark', 'الضبع|The hyena']],
     ['hard', 'أي طائر يبيض أكبر بيضة في العالم؟', 'Which bird lays the largest egg in the world?', ['النعامة|The ostrich', 'البطريق الإمبراطور|The emperor penguin', 'النسر|The eagle', 'الإوزة|The goose']],
