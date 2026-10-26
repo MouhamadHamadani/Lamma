@@ -25,6 +25,7 @@ return [
         // Subcategories (a question file per slug in questions/): they sit under a top-level category above.
         'football' => ['ar' => 'كرة القدم', 'en' => 'Football', 'icon' => '⚽', 'parent' => 'sports'],
         'basketball' => ['ar' => 'كرة السلة', 'en' => 'Basketball', 'icon' => '🏀', 'parent' => 'sports'],
+        'rugby' => ['ar' => 'الرغبي', 'en' => 'Rugby', 'icon' => '🏉', 'parent' => 'sports'],
     ],
 
     'questions' => [
