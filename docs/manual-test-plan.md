@@ -2,7 +2,7 @@
 
 A full run of Lamma by hand, start to finish. It takes about 60 minutes. Tick each box as you go and write down anything that
 differs from "Expect". For how to start the servers and put phones on the laptop's network, see
-[realtime-testing.md](realtime-testing.md); this file assumes that works. The last part (section 15) is the same game on the **live domain**,
+[realtime-testing.md](realtime-testing.md); this file assumes that works. The last part (section 17) is the same game on the **live domain**,
 after a deploy ([deployment.md](deployment.md)).
 
 ## What the automated tests already prove
@@ -202,7 +202,44 @@ Finish the game (5 questions). Try to end with a **tie** between two players if 
 | ☐ | **Forgot password** with a real address: the email arrives within a minute **in the account's language** (Arabic: right-to-left, «لمّة» header), the button works, the link expires after 60 minutes. | ResetPasswordEmailTest (content), the delivery is yours |
 | ☐ | `php artisan down --render="errors::503"`: every page shows the bilingual maintenance page with its own styling; `php artisan up` brings the site back. | ErrorPagesTest |
 
-## 15. On the live domain (after a deploy)
+## 15. Subcategories and repeated questions (new)
+
+Run `php artisan migrate:fresh --seed` first so the 13 subcategories and the 1,200+ questions are there (`php artisan lamma:questions-report` prints what each has).
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **Set up your game**: **Sports** and **General Knowledge** have a small chevron on their tile. Tap the chevron of Sports: one row of chips opens under the grid (Football, Basketball, Rugby, Tennis, Motorsport, Olympics, Combat sports), the chevron points up and a screen reader says "expanded". The other categories have no chevron. | CreateRoomTest, SubcategoriesTest (browser) |
+| ☐ | Tap **Football**: the chip is selected (tint and a check), the **Sports** tile shows a dash and "1 of 7" (not a full check), the summary reads "Sports: Football" and shows how many questions are available. Tap **Basketball** too: "Sports: Football, Basketball · ..." and "2 of 7". | CreateRoomTest, SubcategoriesTest |
+| ☐ | Tap the **Sports** tile: everything under it is selected (all chips on, a full check). Tap it again: all off. From a partial choice, one tap selects all of it. | CreateRoomTest |
+| ☐ | With Sports fully selected, tap one chip: it goes off and the other six stay on. Tap all seven chips one by one: it becomes "Sports" as a whole again. | CreateRoomTest |
+| ☐ | **1280x720**: with a category opened, the page does not scroll (the chip row scrolls sideways inside itself). On a **phone** the chips wrap and the page does not scroll sideways. Arabic mirrors everything (the chevron on the left, the chips from the right). | SubcategoriesTest (browser) |
+| ☐ | Pick only **Football**, Hard: if fewer than the number of questions are available the red message names the count. Pick more categories or fewer questions and **Create room**. | CreateRoomTest |
+| ☐ | Play the game: the host screen chip and the phones show **Sports · Football** (Arabic: **رياضة · كرة القدم**), in the colour of Sports. Only football questions are asked. | SubcategoriesTest (browser), SubcategoriesTest |
+| ☐ | **No repeats, twice in a row with the same friends:** host a 10-question game from one or two categories with 2-3 phones, finish it, then **Play again** (or **New game** with the same categories) and play 10 more. **No question appears in both games** (and none twice inside one game). Do it a third time: still fresh while the pool allows. | QuestionHistoryTest, QuestionPickerTest |
+| ☐ | Use a narrow choice (one subcategory, one difficulty) so the pool is small: **Set up your game** says "Only N fresh questions left for this group" once you have played it with the same people, and the game still starts. | CreateRoomTest |
+| ☐ | A **guest** who plays, then logs in on the same phone within 24 hours, keeps not seeing those questions again (the account inherits what the guest saw). | QuestionHistoryTest |
+| ☐ | **Admin > Categories**: a "Subcategories" column and a parent column; the Football row sits under Sports. Edit **Sports**: a **Subcategories** tab lists its seven. A category with subcategories has no Delete button and its parent field is locked. The parent choices never include a subcategory. | SubcategoriesAdminTest |
+| ☐ | **Admin > Questions**: the category column reads "Sports · Football"; filter by **Category** (Sports shows its own and all its subcategories) and by **Subcategory**; the category select in the form is grouped by parent. **Import CSV** (and **CSV template**): import a file with a "Sports > Football" row, a slug row, an Arabic-name row and a row with an unknown category: the good rows are added, the bad one is listed with its line number. | SubcategoriesAdminTest |
+| ☐ | **Dashboard > Most-played categories**: Football games count for **Sports**; switch the filter to **Subcategories** to see Football itself. | SubcategoriesAdminTest |
+| ☐ | `php artisan lamma:questions-report` ends with "Every category meets its target." and exit code 0 (`echo $?`). `php artisan lamma:doctor` has a **PASS** on *Questions*. | ContentTest, DoctorTest |
+
+## 16. Google Analytics and the cookie notice (new)
+
+Needs a real property: set `GOOGLE_ANALYTICS_ID` (a `G-` ID) on the live server (or locally with `APP_ENV=production`), and open **Admin > DebugView** or **Reports > Realtime** in Google Analytics on
+your laptop. Use a **private window** on the phone so nothing is remembered.
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | `php artisan lamma:doctor`: *Google Analytics* is **PASS**. Empty is a **WARN**, a malformed ID (`G-XXXXXXX`) a **FAIL**. | DoctorTest |
+| ☐ | **Phone, first visit** to the landing page and the join page: a small notice "Help us improve Lamma" with **Accept** and **Decline** (Arabic: «أوافق» / «أرفض»), not covering the join button. **Before you tap anything** nothing shows up in Realtime and no `_ga` cookie exists (phone: Settings or, on a laptop, DevTools > Application > Cookies). | AnalyticsTest (browser) |
+| ☐ | Tap **Decline**: still nothing in Realtime, the notice does not come back. **Cookie settings** (landing footer, bottom of the join page) opens it again. | AnalyticsTest (browser) |
+| ☐ | Tap **Accept**: a user appears in Realtime within a minute, on a page called `join` (or `home`) whose path is `/join`, **never with a room code** in it. | AnalyticsTest (browser) |
+| ☐ | **Join a game and play it** (host on the laptop, a phone, 5 questions), then **Play again**, switch the language, finish. In DebugView/Realtime the events `player_joined` (language), `game_started`, `game_finished`, `play_again_clicked`, `language_switched`, `room_created`, `subcategory_selected` (when you pick a chip) appear **once each**. | AnalyticsTest, SubcategoriesTest |
+| ☐ | **Nothing personal anywhere:** open each event and the page reports: no nickname, no room code (the page is `/host/:room` or `/play/:room`), no e-mail, no user id, no token; the page title is the route name (`host.lobby`, `play`, `join`), the referrer at most a bare address. Google signals is off. | AnalyticsTest |
+| ☐ | The notice is **never on the host screen** (create room, lobby, question, reveal, podium), only on the landing page, the join page and the phone results. `/admin` has no analytics at all. | AnalyticsTest |
+| ☐ | On the **live site**: `view-source:` of the landing page has no `googletagmanager.com` address before consent (it is added by script only after Accept), and the Network tab shows no request to Google until you accept. | AnalyticsTest (browser) |
+
+## 17. On the live domain (after a deploy)
 
 Follow [deployment.md](deployment.md) section 15 with real phones on **mobile data**, and also tick:
 
@@ -236,6 +273,8 @@ Follow [deployment.md](deployment.md) section 15 with real phones on **mobile da
 | 12 Accessibility | | |
 | 13 Account area | | |
 | 14 Errors, emails, maintenance | | |
-| 15 Live domain | | |
+| 15 Subcategories and repeats | | |
+| 16 Google Analytics | | |
+| 17 Live domain | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

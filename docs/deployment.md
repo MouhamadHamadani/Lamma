@@ -101,7 +101,7 @@ cp .env.production.example .env
 nano .env
 ```
 
-Fill in: `APP_URL` and `REVERB_HOST` (your domain), `DB_PASSWORD`, the `MAIL_*` values, and `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`
+Fill in: `APP_URL` and `REVERB_HOST` (your domain), `DB_PASSWORD`, the `MAIL_*` values, optionally `GOOGLE_ANALYTICS_ID` (section 17), and `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`
 (any random strings: `php -r 'echo bin2hex(random_bytes(16)),PHP_EOL;'`, three times). Leave `ADMIN_*` for section 9. Then:
 
 ```bash
@@ -170,7 +170,7 @@ bash deploy/deploy.sh
 
 `deploy/deploy.sh` is the same script every later deploy uses. In order: maintenance page on (`php artisan down --render="errors::503" --retry=15`),
 `git pull --ff-only`, `composer install --no-dev --optimize-autoloader`, `npm ci && npm run build`, `php artisan migrate --force`,
-`php artisan db:seed --class=ContentSeeder --force` (adds the 400 shipped questions; it only ever adds what is missing), `storage:link` if missing,
+`php artisan db:seed --class=ContentSeeder --force` (adds the shipped questions, about 1,200, and the subcategories; it only ever adds what is missing), `storage:link` if missing,
 `php artisan optimize`, `queue:restart`, `reverb:restart`, maintenance page off (`php artisan up`), and finally `php artisan lamma:doctor`.
 It stops at the first error and brings the site back up. It is safe to run again.
 
@@ -312,3 +312,46 @@ The full hand test is in `docs/manual-test-plan.md`.
 | Disk full | `df -h`; old logs in `storage/logs`; old dumps in `/var/backups/lamma` |
 
 After changing `.env`, run `php artisan optimize` (config is cached) and `php artisan queue:restart && php artisan reverb:restart`.
+
+## 17. Google Analytics (optional)
+
+Lamma can count visits with Google Analytics 4. It is **off** until you give it a measurement ID, it only runs in production, and it is built to be private (players can be children and the
+pages carry room codes).
+
+**Switch it on**
+
+1. In Google Analytics create a property and a **web data stream** for `https://<your domain>`. Copy its **Measurement ID** (looks like `G-ABC123DEF4`).
+2. In `.env` on the server: `GOOGLE_ANALYTICS_ID=G-ABC123DEF4`, then `bash deploy/deploy.sh` (or `php artisan config:cache`).
+3. `php artisan lamma:doctor`: the *Google Analytics* row is a **warn** while the ID is empty and a **fail** if it is not in the `G-` + 10 letters or digits form.
+
+Leave it empty to run without analytics: no script, no notice, no cookie.
+
+**What it does and does not do**
+
+- **Consent first.** Consent Mode v2 starts with everything denied. The Google script is not even added to the page until a visitor taps **Accept** in the notice (shown on the landing page, the
+  join page and the phone results, never on the host screen or during a question). The choice is kept in the browser (`lamma_consent` in localStorage); **Cookie settings** in the landing footer and on
+  the join page reopens it. **Decline** loads nothing.
+- **No personal data.** Google Signals and ad personalization are off. A page is reported by its route pattern (`/host/:room`, `/play/:room`, `/join`), never with a room code, join code, token or
+  query string, with the route name as its title and only the *origin* of the referrer. Events carry only counts, slugs and language codes: never a nickname, e-mail, user id, guest token or code.
+- **Not on the admin.** `/admin` never loads it.
+- **Events** (GA4 > Reports > Engagement > Events): `room_created` (difficulty, question_count, categories_count), `subcategory_selected` (parent_category, subcategory: slugs), `game_started`
+  (player_count, question_count, difficulty, language), `player_joined` (language), `game_finished` (player_count, question_count, duration_seconds, rounded to 10 s), `play_again_clicked`,
+  `language_switched` (to), `sign_up`, `login`. Each fires once.
+
+**To do in the Google Analytics dashboard (Lamma cannot do these)**
+
+1. Create the property and the web data stream (above); copy the Measurement ID.
+2. Admin > Data collection and modification > **Data collection**: check that **Google signals data collection is OFF**, and leave **ads personalization** off.
+3. Admin > Data collection and modification > **Data retention**: set **Event data retention** to 2 months or 14 months, as you prefer (the default is 2 months).
+4. Admin > Data display > **Events**: mark the events you care about as **key events** (for example `game_started`, `game_finished`, `sign_up`).
+5. Admin > Data display > **Custom definitions**: to see an event parameter in reports (for example `difficulty` or `subcategory`) register it as a custom dimension (event scope). `player_count`
+   and `question_count` can be custom metrics.
+6. Check it works on a real phone with **Admin > DebugView** or **Reports > Realtime** (see section 16 of `docs/manual-test-plan.md`).
+
+If you ever add a Content-Security-Policy header, allow `https://www.googletagmanager.com` for scripts and `https://*.google-analytics.com` and `https://*.analytics.google.com` for connections.
+
+**Upgrade notes from before Phase 8**
+
+`deploy/deploy.sh` needs no change: `migrate --force` adds `question_seen` (what each player has already seen), a unique (room, question) index on `room_questions`, `categories.parent_id` and
+`questions.seed_key` (filled for the existing questions), and `ContentSeeder` then adds the 13 subcategories and the new questions without touching what exists. Games already in the database are
+safe: nothing is deleted or rewritten, the unique index refuses to be added (with a clear message, changing nothing) only if a room somehow has the same question twice, which the game never produces.

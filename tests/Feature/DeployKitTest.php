@@ -340,7 +340,7 @@ describe('docs/manual-test-plan.md', function () {
     it('covers the account area, the error pages and the live domain', function () {
         $plan = deployFile('docs/manual-test-plan.md');
 
-        foreach (['13. The account area', '14. Error pages, emails and maintenance', '15. On the live domain', 'Delete account', 'errors::503', 'lamma:doctor'] as $needle) {
+        foreach (['13. The account area', '14. Error pages, emails and maintenance', '15. Subcategories and repeated questions', '16. Google Analytics and the cookie notice', '17. On the live domain', 'Delete account', 'errors::503', 'lamma:doctor'] as $needle) {
             expect($plan)->toContain($needle);
         }
     });
