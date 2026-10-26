@@ -19,7 +19,7 @@ class QuestionStarted extends RoomEvent
     {
         parent::__construct($room->code);
 
-        $question = $roomQuestion->question()->with(['category', 'options'])->firstOrFail();
+        $question = $roomQuestion->question()->with(['category.parent', 'options'])->firstOrFail();
         $options = collect($roomQuestion->option_order)->map(fn (int $id) => $question->options->firstWhere('id', $id))->filter();
 
         $this->question = [
@@ -27,8 +27,9 @@ class QuestionStarted extends RoomEvent
             'total' => $room->roomQuestions()->count(),
             'seconds' => $room->settings->secondsPerQuestion,
             'category' => [
-                'name' => self::translations($question->category, 'name'),
-                'tint' => CategoryStyle::tintName($question->category->slug),
+                // "Sports · Football" for a subcategory, in each language.
+                'name' => ['ar' => $question->category->fullName('ar'), 'en' => $question->category->fullName('en')],
+                'tint' => CategoryStyle::tintName($question->category->tintSlug()),
                 'icon' => CategoryStyle::icon($question->category->slug),
             ],
             'text' => self::translations($question, 'text'),

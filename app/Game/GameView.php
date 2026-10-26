@@ -24,7 +24,7 @@ class GameView
         }
 
         /** @var Question $question */
-        $question = $roomQuestion->question()->with(['category', 'options'])->firstOrFail();
+        $question = $roomQuestion->question()->with(['category.parent', 'options'])->firstOrFail();
         $revealed = $roomQuestion->revealed_at !== null;
         $ranking = $revealed ? $this->scoreboard->ranking($room, $roomQuestion) : [];
         $progress = $this->engine->progress($room, $roomQuestion);

@@ -27,6 +27,12 @@ class CategoryFactory extends Factory
         ];
     }
 
+    /** A subcategory of this top-level category. */
+    public function under(Category $parent): static
+    {
+        return $this->state(['parent_id' => $parent->id]);
+    }
+
     public function inactive(): static
     {
         return $this->state(['is_active' => false]);

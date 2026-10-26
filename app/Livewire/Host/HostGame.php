@@ -100,7 +100,7 @@ class HostGame extends Component
             'both' => $mode === HostScreenLocale::Both,
             // The language of the main line; Both is English with Arabic lines under it.
             'main' => $mode === HostScreenLocale::Ar ? 'ar' : 'en',
-            'tone' => $state ? CategoryStyle::tintName($state->category->slug) : null,
+            'tone' => $state ? CategoryStyle::tintName($state->category->tintSlug()) : null,
             'icon' => $state ? CategoryStyle::icon($state->category->slug) : null,
             // Milliseconds until the next thing is due, relative, so the browser's clock does not matter.
             'dueInMs' => $state ? $this->dueInMs($state, $engine) : null,

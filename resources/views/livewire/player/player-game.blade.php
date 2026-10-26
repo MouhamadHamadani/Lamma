@@ -58,7 +58,7 @@
                 <x-lamma.timer-bar :ends-at="$state->roomQuestion->ends_at" :seconds="$seconds" data-test="timer" />
 
                 <div class="flex flex-col gap-2 rounded-tile border-2 border-line bg-white px-5 py-[18px] motion-safe:animate-fade-up">
-                    <span class="flex items-center gap-1.5 text-[13px] font-bold text-ink-muted"><x-lamma.icon :name="$icon" :size="16" />{{ $tr($state->category, 'name') }}</span>
+                    <span class="flex items-center gap-1.5 text-[13px] font-bold text-ink-muted"><x-lamma.icon :name="$icon" :size="16" />{{ $state->category->fullName($lang) }}</span>
                     <h1 lang="{{ $lang }}" class="text-balance font-display text-[25px] font-extrabold leading-tight" data-test="question-text">{{ $tr($state->question, 'text') }}</h1>
                 </div>
 

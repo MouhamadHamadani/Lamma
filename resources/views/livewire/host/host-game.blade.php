@@ -41,7 +41,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <x-lamma.chip :tone="$tone" size="lg" :icon="$icon" class="hidden md:inline-flex" data-test="category">{{ $tr($state->category, 'name', $main) }}</x-lamma.chip>
+                <x-lamma.chip :tone="$tone" size="lg" :icon="$icon" class="hidden md:inline-flex" data-test="category">{{ $state->category->fullName($main) }}</x-lamma.chip>
                 <x-lamma.room-code :code="$room->code" size="chip" data-test="room-code">{{ __('Room') }}</x-lamma.room-code>
                 <x-lamma.sound-toggle />
                 <button

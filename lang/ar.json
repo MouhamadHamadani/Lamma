@@ -361,5 +361,8 @@
     "See you at the next game, Lamma": "نلتقي في اللعبة القادمة، لمّة",
     "All rights reserved.": "جميع الحقوق محفوظة.",
     "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "إذا واجهت مشكلة في الضغط على زر «:actionText»، انسخ الرابط أدناه والصقه\nفي متصفحك:",
-    "Only :count fresh questions left for this group.": "لم يتبقَّ سوى :count من الأسئلة الجديدة لهذه المجموعة."
+    "Only :count fresh questions left for this group.": "لم يتبقَّ سوى :count من الأسئلة الجديدة لهذه المجموعة.",
+    "A category cannot be its own parent.": "لا يمكن أن تكون الفئة تابعة لنفسها.",
+    "A subcategory can only sit under a top-level category.": "لا يمكن وضع الفئة الفرعية إلا تحت فئة رئيسية.",
+    "A category with subcategories cannot become a subcategory.": "لا يمكن تحويل فئة لها فئات فرعية إلى فئة فرعية."
 }
