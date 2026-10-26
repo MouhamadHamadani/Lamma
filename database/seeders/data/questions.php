@@ -31,6 +31,7 @@ return [
         'olympics' => ['ar' => 'الألعاب الأولمبية', 'en' => 'Olympics', 'icon' => '🏅', 'parent' => 'sports'],
         'combat-sports' => ['ar' => 'الرياضات القتالية', 'en' => 'Combat sports', 'icon' => '🥊', 'parent' => 'sports'],
         'everyday-life' => ['ar' => 'الحياة اليومية', 'en' => 'Everyday Life', 'icon' => '☕', 'parent' => 'general-knowledge'],
+        'words-language' => ['ar' => 'كلمات ولغة', 'en' => 'Words & Language', 'icon' => '📖', 'parent' => 'general-knowledge'],
     ],
 
     'questions' => [
