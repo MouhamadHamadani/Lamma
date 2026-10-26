@@ -1,6 +1,7 @@
 {{-- Reference: docs/design/screens/host-2-create-room.html. Game rules (availability, one room per host) live in App\Game. --}}
 @use('App\Enums\Difficulty')
 @use('App\Game\RoomSettings')
+@use('App\Support\Isolate')
 @php
     $user = auth()->user();
     $both = $hostScreenLocale === 'both';
@@ -120,6 +121,13 @@
                         {{ $errors->first('questionCount') ?: __('Only :available questions match this choice, but you picked :count.', ['available' => $this->available, 'count' => $questionCount]) }}
                         {{ __('Pick more categories, another difficulty, or fewer questions.') }}
                     </x-lamma.error>
+                @endif
+
+                @if (! $short && $this->freshLeft !== null && $this->freshLeft < $questionCount)
+                    <p class="mt-3 flex items-start gap-2 rounded-xl bg-tint-sun px-3.5 py-2.5 text-sm font-semibold" data-test="few-fresh-questions">
+                        <x-lamma.icon name="alert" :size="18" class="mt-0.5" />
+                        <span>{!! __('Only :count fresh questions left for this group.', ['count' => Isolate::ltr($this->freshLeft)]) !!}</span>
+                    </p>
                 @endif
 
                 <x-lamma.button

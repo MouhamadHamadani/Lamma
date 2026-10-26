@@ -37,6 +37,7 @@ class ClaimGuestResults
                 ->lockForUpdate()
                 ->get();
 
+            $claimed = [];
             foreach ($guestRows as $row) {
                 // One row per user per room (unique index): if they already played this room as themselves, leave the guest row alone.
                 if (RoomPlayer::where('room_id', $row->room_id)->where('user_id', $user->id)->exists()) {
@@ -44,6 +45,12 @@ class ClaimGuestResults
                 }
 
                 $row->update(['user_id' => $user->id]);
+                $claimed[] = $row->room_id;
+            }
+
+            // What this device saw as a guest now counts for the account, so the next game avoids those questions too.
+            if ($claimed !== []) {
+                DB::table('question_seen')->whereNull('user_id')->where('guest_token', $token)->whereIn('room_id', $claimed)->update(['user_id' => $user->id, 'guest_token' => null]);
             }
         });
     }

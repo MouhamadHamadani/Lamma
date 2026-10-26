@@ -6,6 +6,7 @@ use App\Enums\Difficulty;
 use App\Enums\HostScreenLocale;
 use App\Game\NotEnoughQuestions;
 use App\Game\PlayerIdentity;
+use App\Game\QuestionPicker;
 use App\Game\QuestionPool;
 use App\Game\RoomManager;
 use App\Game\RoomSettings;
@@ -24,6 +25,7 @@ use Livewire\Component;
  * @property-read RoomSettings $settings
  * @property-read int $available
  * @property-read bool $canCreate
+ * @property-read int|null $freshLeft
  */
 #[Layout('layouts::lamma')]
 class CreateRoom extends Component
@@ -76,6 +78,21 @@ class CreateRoom extends Component
     public function available(): int
     {
         return $this->categoryIds === [] ? 0 : app(QuestionPool::class)->available($this->settings);
+    }
+
+    /** How many playable questions the host's usual group (the players of their latest game) has not seen yet; null when we cannot tell. */
+    #[Computed]
+    public function freshLeft(): ?int
+    {
+        $host = app(PlayerIdentity::class)->user();
+        if ($host === null || $this->categoryIds === []) {
+            return null;
+        }
+
+        $picker = app(QuestionPicker::class);
+        $group = $picker->lastGroup($host);
+
+        return $group->isEmpty() ? null : $picker->freshFor($this->settings, $group);
     }
 
     #[Computed]

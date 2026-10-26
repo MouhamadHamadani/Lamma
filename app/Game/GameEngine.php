@@ -44,6 +44,7 @@ class GameEngine
     public function __construct(
         private readonly QuestionPicker $picker,
         private readonly ScoringService $scoring,
+        private readonly SeenQuestions $seen,
     ) {}
 
     /**
@@ -180,6 +181,7 @@ class GameEngine
             }
 
             $question->update(['revealed_at' => now()]);
+            $this->seen->record($fresh, $question->question_id);
             foreach ($question->answers()->where('points', '>', 0)->get() as $answer) {
                 RoomPlayer::query()->whereKey($answer->room_player_id)->increment('score', $answer->points);
             }

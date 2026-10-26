@@ -12,7 +12,7 @@ class Housekeeping
     /** A lobby nobody started within this many hours was abandoned. */
     public const LOBBY_HOURS = 6;
 
-    public function __construct(private readonly RoomManager $rooms) {}
+    public function __construct(private readonly RoomManager $rooms, private readonly SeenQuestions $seen) {}
 
     /**
      * Finish lobbies older than LOBBY_HOURS (a host who opened a room and left). It goes through RoomManager::close, so any phone still
@@ -46,5 +46,15 @@ class Housekeeping
             ->whereNotNull('guest_token')
             ->where('created_at', '<', now()->subHours((int) config('lamma.guest_claim_hours')))
             ->update(['guest_token' => null]);
+    }
+
+    /**
+     * Forget which questions guests have seen once the claim window is over (the same window as claiming a guest's results).
+     *
+     * @return int how many rows went
+     */
+    public function forgetGuestSightings(): int
+    {
+        return $this->seen->pruneGuests();
     }
 }

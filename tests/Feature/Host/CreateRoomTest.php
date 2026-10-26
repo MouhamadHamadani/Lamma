@@ -7,7 +7,10 @@ use App\Livewire\Host\CreateRoom;
 use App\Models\Category;
 use App\Models\Question;
 use App\Models\Room;
+use App\Models\RoomPlayer;
+use App\Models\RoomQuestion;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -214,4 +217,50 @@ describe('creating the room', function () {
         'difficulty' => ['difficulty', 'impossible'],
         'screen language' => ['hostScreenLocale', 'fr'],
     ]);
+});
+
+describe('fresh questions for the host\'s usual group', function () {
+    /** The host's latest game: 8 of the category's 14 questions, played by one guest who saw them all. */
+    function lastGroupSawEight(User $host): void
+    {
+        $ids = Question::pluck('id')->take(8)->all();
+        $room = Room::factory()->for($host, 'host')->finished()->create();
+        RoomPlayer::factory()->for($room)->create(['guest_token' => str_repeat('q', 64)]);
+        foreach ($ids as $position => $id) {
+            RoomQuestion::factory()->create(['room_id' => $room->id, 'question_id' => $id, 'position' => $position + 1]);
+            DB::table('question_seen')->insert(['question_id' => $id, 'user_id' => null, 'guest_token' => str_repeat('q', 64), 'room_id' => $room->id, 'seen_at' => now()]);
+        }
+    }
+
+    it('warns how many are left when that is fewer than the game needs, and still lets the host create', function () {
+        $category = categoryWithQuestions(14);
+        lastGroupSawEight($this->host);
+
+        $page = createRoomPage()->call('toggleCategory', $category->id);
+
+        $page->assertSeeHtml('data-test="few-fresh-questions"')->assertSeeHtml('<bdi dir="ltr">6</bdi>')
+            ->call('create')->assertHasNoErrors();
+        expect(Room::where('host_id', $this->host->id)->active()->count())->toBe(1);
+    });
+
+    it('says nothing when enough are left, when nothing is chosen yet, or when there was no earlier game', function () {
+        $category = categoryWithQuestions(14);
+
+        createRoomPage()->call('toggleCategory', $category->id)->assertDontSeeHtml('data-test="few-fresh-questions"');
+
+        lastGroupSawEight($this->host);
+        createRoomPage()->assertDontSeeHtml('data-test="few-fresh-questions"')
+            ->call('toggleCategory', $category->id)->set('questionCount', 5)->assertDontSeeHtml('data-test="few-fresh-questions"')
+            ->set('questionCount', 10)->assertSeeHtml('data-test="few-fresh-questions"');
+    });
+
+    it('shows the warning in Arabic too', function () {
+        $category = categoryWithQuestions(14);
+        lastGroupSawEight($this->host);
+
+        $this->actingAs($this->host)->withSession(['locale' => 'ar']);
+        app()->setLocale('ar');
+
+        createRoomPage()->call('toggleCategory', $category->id)->assertSee('من الأسئلة الجديدة لهذه المجموعة');
+    });
 });
