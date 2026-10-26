@@ -45,7 +45,7 @@ function sawQuestions(User|string $who, array $questionIds, int $ago = 60): void
 }
 
 /** A lobby with exactly these participants (users or guest tokens), all connected and ready. */
-function lobbyFor(array $who, int $questions, $category, ?User $host = null): Room
+function lobbyOf(array $who, int $questions, $category, ?User $host = null): Room
 {
     $room = gameRoom(players: 0, questions: $questions, host: $host, category: $category);
     foreach ($who as $person) {
@@ -86,7 +86,7 @@ describe('no question twice in one game', function () {
         for ($game = 0; $game < 200; $game++) {
             $count = [5, 10, 15, 20][$game % 4];
             $group = collect($people)->shuffle()->take(2 + $game % 3)->all();
-            $room = lobbyFor($group, $count, $category, $hosts[$game % 2]);
+            $room = lobbyOf($group, $count, $category, $hosts[$game % 2]);
 
             startGame($room);
 
@@ -102,7 +102,7 @@ describe('what each player has seen', function () {
     it('is written at the reveal, for the users and the guests of the room', function () {
         $user = User::factory()->create();
         $token = str_repeat('a', 64);
-        $room = lobbyFor([$user, $token], 3, categoryWithQuestions(8));
+        $room = lobbyOf([$user, $token], 3, categoryWithQuestions(8));
         startGame($room);
         $first = $room->roomQuestions()->where('position', 1)->first();
 
@@ -126,7 +126,7 @@ describe('what each player has seen', function () {
         $token = str_repeat('b', 64);
         sawQuestions($user, array_slice($ids, 0, 8));
         sawQuestions($token, array_slice($ids, 6, 8));   // 0-13 are seen by somebody; 14-23 by nobody
-        $room = lobbyFor([$user, $token], 10, $category);
+        $room = lobbyOf([$user, $token], 10, $category);
 
         startGame($room);
 
@@ -140,7 +140,7 @@ describe('what each player has seen', function () {
         $two = User::factory()->create();
         sawQuestions($one, array_slice($ids, 0, 6));      // 0-5
         sawQuestions($two, array_slice($ids, 4, 5));      // 4-8: so 4 and 5 are seen by both
-        $room = lobbyFor([$one, $two], 10, $category);
+        $room = lobbyOf([$one, $two], 10, $category);
 
         startGame($room);
 
@@ -155,7 +155,7 @@ describe('what each player has seen', function () {
         foreach ($ids as $index => $id) {
             sawQuestions($user, [$id], ago: 100 - $index * 10);   // the first was seen longest ago
         }
-        $room = lobbyFor([$user], 5, $category);
+        $room = lobbyOf([$user], 5, $category);
 
         startGame($room);
 
@@ -167,7 +167,7 @@ describe('what each player has seen', function () {
         $ids = Question::pluck('id')->all();
         $user = User::factory()->create();
         sawQuestions($user, $ids);
-        $room = lobbyFor([$user], 10, $category);
+        $room = lobbyOf([$user], 10, $category);
 
         startGame($room);
 
@@ -179,7 +179,7 @@ describe('what each player has seen', function () {
         $ids = Question::pluck('id')->all();
         sawQuestions(User::factory()->create(), array_slice($ids, 0, 6));
         sawQuestions(str_repeat('z', 64), array_slice($ids, 0, 6));
-        $room = lobbyFor([User::factory()->create(), str_repeat('y', 64)], 12, $category);
+        $room = lobbyOf([User::factory()->create(), str_repeat('y', 64)], 12, $category);
 
         expect(app(QuestionPicker::class)->freshFor($room->settings, $room->players()->get()))->toBe(12);
     });
@@ -191,7 +191,7 @@ describe('what each player has seen', function () {
         $token = str_repeat('c', 64);
         sawQuestions($user, array_slice($ids, 0, 12));
         sawQuestions($token, array_slice($ids, 8, 6));    // 0-13 seen by somebody: 6 are left
-        $room = lobbyFor([$user, $token], 10, $category);
+        $room = lobbyOf([$user, $token], 10, $category);
 
         expect(app(QuestionPicker::class)->freshFor($room->settings, $room->players()->get()))->toBe(6);
     });
@@ -201,7 +201,7 @@ describe('play again', function () {
     it('avoids the questions just played when there are enough others', function () {
         $category = categoryWithQuestions(15);
         $host = User::factory()->create();
-        $room = lobbyFor([str_repeat('d', 64), str_repeat('e', 64)], 5, $category, $host);
+        $room = lobbyOf([str_repeat('d', 64), str_repeat('e', 64)], 5, $category, $host);
         startGame($room);
         $played = $room->roomQuestions()->pluck('question_id')->all();
         playThrough($room);
@@ -218,12 +218,12 @@ describe('play again', function () {
     it('avoids them even when the players are different people, through the host\'s recent rooms', function () {
         $category = categoryWithQuestions(15);
         $host = User::factory()->create();
-        $first = lobbyFor([str_repeat('f', 64)], 5, $category, $host);
+        $first = lobbyOf([str_repeat('f', 64)], 5, $category, $host);
         startGame($first);
         $played = $first->roomQuestions()->pluck('question_id')->all();
         playThrough($first);
 
-        $second = lobbyFor([str_repeat('g', 64), User::factory()->create()], 5, $category, $host);
+        $second = lobbyOf([str_repeat('g', 64), User::factory()->create()], 5, $category, $host);
         startGame($second);
 
         expect(array_intersect($played, $second->roomQuestions()->pluck('question_id')->all()))->toBe([]);
@@ -251,10 +251,10 @@ describe('housekeeping', function () {
     it('is attached to the account when the device logs in', function () {
         $token = str_repeat('l', 64);
         $user = User::factory()->create();
-        $room = lobbyFor([$token], 3, categoryWithQuestions(8));
+        $room = lobbyOf([$token], 3, categoryWithQuestions(8));
         startGame($room);
         playThrough($room);
-        $stranger = lobbyFor([str_repeat('m', 64)], 3, categoryWithQuestions(8));
+        $stranger = lobbyOf([str_repeat('m', 64)], 3, categoryWithQuestions(8));
         startGame($stranger);
         playThrough($stranger);
 

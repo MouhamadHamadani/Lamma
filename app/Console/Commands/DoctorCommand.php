@@ -268,7 +268,7 @@ class DoctorCommand extends Command
             return [self::WARN, 'GOOGLE_ANALYTICS_ID is empty: no analytics on the site'];
         }
         if (! is_string($id) || preg_match(Analytics::ID_PATTERN, $id) !== 1) {
-            return [self::FAIL, 'GOOGLE_ANALYTICS_ID is not a measurement ID like G-ABC123DEF4 (G- and ten letters or digits)'];
+            return [self::FAIL, 'GOOGLE_ANALYTICS_ID is not a measurement ID (it is G- followed by ten letters or digits, from the web data stream)'];
         }
 
         return app()->isProduction()
