@@ -5,6 +5,7 @@ use App\Models\Admin;
 use App\Models\Category;
 use App\Models\Question;
 use App\Models\User;
+use Database\Seeders\ContentSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -53,10 +54,12 @@ function goodProduction(bool $official = true, bool $redisUp = true)
     app()->usePublicPath($public);
     test()->afterEach(fn () => File::deleteDirectory($public));
 
-    // One category with a full set of questions on every difficulty (the real content has its own tests, and is slow to seed).
+    // One category with a full set of questions on every difficulty (the real content has its own tests, and is slow to seed). The targets are small
+    // here: 10 of each difficulty and 30 in all, and the fixture has 14 of each (42), which is clear of the warning margin.
+    config(['lamma.content' => ['subcategory' => ['total' => 6, 'each' => 2], 'category' => ['total' => 30, 'each' => 10], 'warn_margin' => 3], 'lamma.analytics.id' => 'G-ABC123DEF4']);
     $category = Category::factory()->create(['slug' => 'sports']);
     foreach (Difficulty::cases() as $difficulty) {
-        Question::factory()->count(10)->create(['category_id' => $category->id, 'difficulty' => $difficulty]);
+        Question::factory()->withOptions()->count(14)->create(['category_id' => $category->id, 'difficulty' => $difficulty]);
     }
     Admin::factory()->create();
 
@@ -86,7 +89,7 @@ describe('lamma:doctor', function () {
 
         expect($code)->toBe(0);
         foreach (['Environment', 'APP_KEY', 'Debug off', 'APP_URL is https', 'Database', 'Redis', 'Queue is not sync', 'Reverb config', 'Reverb is listening', 'Scheduler', 'Mail',
-            'Session cookie', 'Storage link', 'Storage is writable', 'Front-end build', 'Questions', 'Active admin', 'No test players', 'Official brand and sound files'] as $label) {
+            'Session cookie', 'Storage link', 'Storage is writable', 'Front-end build', 'Questions', 'Google Analytics', 'Active admin', 'No test players', 'Official brand and sound files'] as $label) {
             expect($rows[$label][0] ?? null)->toBe('PASS', "{$label}: ".($rows[$label][1] ?? 'missing'));
         }
         expect(collect($rows)->pluck(0)->contains('FAIL'))->toBeFalse();
@@ -156,14 +159,94 @@ describe('lamma:doctor', function () {
         'test players exist' => ['No test players', fn () => User::factory()->create(['email' => 'test@example.com'])],
     ]);
 
-    it('names the categories and difficulties that are short of questions', function () {
+    it('names the categories and difficulties that are under their minimum, with what they have and what they need', function () {
         $socket = goodProduction();
         $category = Category::where('slug', 'sports')->firstOrFail();
-        Question::where('category_id', $category->id)->where('difficulty', 'hard')->take(2)->get()->each->forceDelete();
+        Question::where('category_id', $category->id)->where('difficulty', 'hard')->take(6)->get()->each->forceDelete();
+
+        [$code, $rows] = doctor();
+
+        expect($code)->toBe(1)->and($rows['Questions'][0])->toBe('FAIL')->and($rows['Questions'][1])->toContain('sports hard (8/10)');
+        fclose($socket);
+    });
+
+    it('only warns while a category is within the margin of its minimum', function () {
+        $socket = goodProduction();
+        $category = Category::where('slug', 'sports')->firstOrFail();
+        Question::where('category_id', $category->id)->where('difficulty', 'hard')->take(3)->get()->each->forceDelete();
+
+        [$code, $rows] = doctor();
+
+        expect($code)->toBe(0)->and($rows['Questions'][0])->toBe('WARN')->and($rows['Questions'][1])->toContain('close to the minimum')->toContain('sports hard (11/10)');
+        fclose($socket);
+    });
+
+    it('holds a subcategory to its own target, and a parent with subcategories to none', function () {
+        $socket = goodProduction();
+        $sports = Category::where('slug', 'sports')->firstOrFail();
+        $football = Category::factory()->under($sports)->create(['slug' => 'football']);
+        foreach (Difficulty::cases() as $difficulty) {
+            Question::factory()->withOptions()->count(1)->create(['category_id' => $football->id, 'difficulty' => $difficulty]);
+        }
 
         [, $rows] = doctor();
 
-        expect($rows['Questions'][0])->toBe('FAIL')->and($rows['Questions'][1])->toContain('sports hard (8)');
+        // The parent is now a parent: its 42 direct questions have no minimum. The subcategory needs 2 of each and 6 in all.
+        expect($rows['Questions'][0])->toBe('FAIL')->and($rows['Questions'][1])->toContain('sports > football easy (1/2)')->toContain('sports > football total (3/6)')->not->toContain('sports hard');
+        fclose($socket);
+    });
+
+    it('does not count questions that are inactive or missing a language', function () {
+        $socket = goodProduction();
+        Question::query()->where('difficulty', 'easy')->take(3)->update(['is_active' => false]);
+        Question::query()->where('difficulty', 'medium')->take(3)->update(['text' => json_encode(['en' => 'English only?'])]);
+
+        [$code, $rows] = doctor();
+
+        expect($code)->toBe(0)->and($rows['Questions'][0])->toBe('WARN')->and($rows['Questions'][1])->toContain('sports easy (11/10)')->toContain('sports medium (11/10)');
+        fclose($socket);
+    });
+
+    it('is happy with the shipped content (each subcategory and category at its real target)', function () {
+        $socket = goodProduction();
+        Question::query()->forceDelete();
+        Category::query()->delete();
+        config(['lamma.content' => ['subcategory' => ['total' => 40, 'each' => 10], 'category' => ['total' => 80, 'each' => 20], 'warn_margin' => 3]]);
+        (new ContentSeeder)->run();
+
+        [$code, $rows] = doctor();
+
+        expect($rows['Questions'][0])->toBe('PASS', $rows['Questions'][1])->and($code)->toBe(0);
+        fclose($socket);
+    });
+
+    it('warns when production has no Google Analytics ID, and fails when it is malformed', function (?string $id, string $status) {
+        $socket = goodProduction();
+        config(['lamma.analytics.id' => $id]);
+
+        [$code, $rows] = doctor();
+
+        expect($rows['Google Analytics'][0])->toBe($status, $rows['Google Analytics'][1])->and($code)->toBe($status === 'FAIL' ? 1 : 0);
+        fclose($socket);
+    })->with([
+        'valid' => ['G-ABC123DEF4', 'PASS'],
+        'valid with digits only' => ['G-0123456789', 'PASS'],
+        'not set' => [null, 'WARN'],
+        'empty' => ['', 'WARN'],
+        'the old placeholder' => ['G-XXXXXXX', 'FAIL'],
+        'too long' => ['G-ABC123DEF456', 'FAIL'],
+        'lower case' => ['g-abc123def4', 'FAIL'],
+        'a Universal Analytics id' => ['UA-12345678-1', 'FAIL'],
+        'a tag manager id' => ['GTM-ABC1234', 'FAIL'],
+    ]);
+
+    it('explains the Google Analytics warning outside production', function () {
+        $socket = goodProduction();
+        app()['env'] = 'staging';
+
+        [, $rows] = doctor();
+
+        expect($rows['Google Analytics'][0])->toBe('WARN')->and($rows['Google Analytics'][1])->toContain('only runs when APP_ENV=production');
         fclose($socket);
     });
 

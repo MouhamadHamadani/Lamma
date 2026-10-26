@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\Difficulty;
+use App\Game\QuestionReport;
 use App\Models\Admin;
-use App\Models\Category;
 use App\Models\User;
+use App\Support\Analytics;
 use App\Support\BrandFiles;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -25,9 +25,6 @@ class DoctorCommand extends Command
     private const WARN = 'warn';
 
     private const FAIL = 'fail';
-
-    /** Every category needs at least this many questions on every difficulty, so a 10-question game never runs out. */
-    private const MIN_QUESTIONS = 10;
 
     public function handle(): int
     {
@@ -84,6 +81,7 @@ class DoctorCommand extends Command
                 ? [self::PASS, 'config and routes are cached']
                 : [self::WARN, 'run php artisan optimize'],
             'Questions' => $this->questions(...),
+            'Google Analytics' => $this->analytics(...),
             'Active admin' => fn () => Admin::where('is_active', true)->exists()
                 ? [self::PASS, 'at least one active admin']
                 : [self::WARN, 'no active admin: run php artisan db:seed --class=AdminSeeder --force'],
@@ -218,31 +216,64 @@ class DoctorCommand extends Command
         return $blocked === [] ? [self::PASS, 'storage/ and bootstrap/cache are writable'] : [self::FAIL, 'not writable: '.implode(', ', $blocked)];
     }
 
-    /** @return array{0: string, 1: string} */
+    /**
+     * Every category and subcategory against its target in config/lamma.php (`content`): fail under a minimum (a game on that choice could run
+     * out), warn within `warn_margin` of it (the next edit could tip it). The same numbers as `lamma:questions-report`.
+     *
+     * @return array{0: string, 1: string}
+     */
     private function questions(): array
     {
-        $categories = Category::query()->where('is_active', true)->get();
-        if ($categories->isEmpty()) {
+        $rows = app(QuestionReport::class)->rows();
+        if ($rows === []) {
             return [self::FAIL, 'no active categories: run php artisan db:seed --class=ContentSeeder --force'];
         }
 
-        $counts = DB::table('questions')->whereNull('deleted_at')->where('is_active', true)
-            ->select('category_id', 'difficulty', DB::raw('count(*) as total'))->groupBy('category_id', 'difficulty')->get()
-            ->mapWithKeys(fn ($row) => [$row->category_id.'/'.$row->difficulty => (int) $row->total]);
+        $margin = (int) config('lamma.content.warn_margin');
+        $under = $near = [];
+        foreach ($rows as $row) {
+            if ($row['target'] === null) {
+                continue;
+            }
 
-        $short = [];
-        foreach ($categories as $category) {
-            foreach (Difficulty::cases() as $difficulty) {
-                $have = $counts[$category->id.'/'.$difficulty->value] ?? 0;
-                if ($have < self::MIN_QUESTIONS) {
-                    $short[] = "{$category->slug} {$difficulty->value} ({$have})";
+            $name = ($row['parent'] ? $row['parent']->slug.' > ' : '').$row['category']->slug;
+            foreach ([...$row['counts'], 'total' => $row['total']] as $cell => $have) {
+                $min = $cell === 'total' ? $row['target']['total'] : $row['target']['each'];
+                if ($have < $min) {
+                    $under[] = "{$name} {$cell} ({$have}/{$min})";
+                } elseif ($have < $min + $margin) {
+                    $near[] = "{$name} {$cell} ({$have}/{$min})";
                 }
             }
         }
 
-        return $short === []
-            ? [self::PASS, $categories->count().' categories, at least '.self::MIN_QUESTIONS.' questions on every difficulty']
-            : [self::FAIL, 'fewer than '.self::MIN_QUESTIONS.': '.implode(', ', $short)];
+        return match (true) {
+            $under !== [] => [self::FAIL, 'under the minimum: '.implode(', ', $under)],
+            $near !== [] => [self::WARN, 'close to the minimum: '.implode(', ', $near)],
+            default => [self::PASS, count($rows).' categories, all at their targets (see lamma:questions-report)'],
+        };
+    }
+
+    /**
+     * Google Analytics: no ID is a warning (the live site then has no analytics, fine if you meant it), a malformed ID a failure (nothing would ever
+     * be counted).
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function analytics(): array
+    {
+        $id = config('lamma.analytics.id');
+
+        if (blank($id)) {
+            return [self::WARN, 'GOOGLE_ANALYTICS_ID is empty: no analytics on the site'];
+        }
+        if (! is_string($id) || preg_match(Analytics::ID_PATTERN, $id) !== 1) {
+            return [self::FAIL, 'GOOGLE_ANALYTICS_ID is not a measurement ID like G-ABC123DEF4 (G- and ten letters or digits)'];
+        }
+
+        return app()->isProduction()
+            ? [self::PASS, "{$id}: loaded after a visitor accepts the notice"]
+            : [self::WARN, "{$id} is valid, but analytics only runs when APP_ENV=production"];
     }
 
     /** @return array{0: string, 1: string} */
