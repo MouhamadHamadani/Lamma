@@ -81,5 +81,8 @@
                 <a href="{{ route('login') }}" class="font-bold text-navy underline underline-offset-4">{{ __('Log in') }}</a>
             </p>
         @endguest
+
+        <x-lamma.consent-banner />
+        <x-lamma.cookie-settings class="self-center text-sm" />
     </div>
 </form>

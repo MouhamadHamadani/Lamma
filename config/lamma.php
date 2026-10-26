@@ -28,6 +28,12 @@ return [
         'warn_margin' => 3,
     ],
 
+    // Google Analytics (GA4). Off unless GOOGLE_ANALYTICS_ID is a measurement ID like G-ABC123DEF4 AND the app runs in production (App\Support\Analytics).
+    // Nothing is sent before the visitor accepts the notice, and no names, codes or accounts are ever sent: see CLAUDE.md and docs/deployment.md.
+    'analytics' => [
+        'id' => env('GOOGLE_ANALYTICS_ID'),
+    ],
+
     // Brand and sound files that are still PLACEHOLDERS: path under public/ => sha256 of the placeholder (SVG with LF line endings, see
     // App\Support\BrandFiles). The official files replace them under the same names; until they do, `lamma:doctor` warns. When you
     // replace one, you can delete its line here.

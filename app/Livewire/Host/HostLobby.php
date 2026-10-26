@@ -13,6 +13,7 @@ use App\Game\RoomPresence;
 use App\Game\RoomRoster;
 use App\Models\Room;
 use App\Models\RoomPlayer;
+use App\Support\Analytics;
 use App\Support\QrCode;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -156,6 +157,13 @@ class HostLobby extends Component
         try {
             $engine->start($this->room, $identity->user() ?? abort(403));
             $this->startError = '';
+            $settings = $this->room->settings;
+            Analytics::dispatch($this, 'game_started', [
+                'player_count' => $this->room->players()->count(),
+                'question_count' => $settings->questionCount,
+                'difficulty' => $settings->difficulty->value ?? 'mixed',
+                'language' => $settings->hostScreenLocale->value,
+            ]);
         } catch (GameStartException $e) {
             $this->startError = $e->getMessage();
         }

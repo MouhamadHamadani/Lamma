@@ -154,6 +154,14 @@
                 </div>
 
                 <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Analytics notice (shown only when analytics is on) · cookie settings link</h3>
+                    <div class="max-w-md space-y-3">
+                        <x-lamma.consent-banner preview />
+                        <x-lamma.cookie-settings preview />
+                    </div>
+                </div>
+
+                <div class="space-y-4">
                     <h3 class="font-display text-2xl font-bold">Sound toggle · off by default, light and on navy</h3>
                     <div class="flex items-center gap-6">
                         <x-lamma.sound-toggle />

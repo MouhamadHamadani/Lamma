@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Analytics;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -13,6 +14,7 @@ class LocaleController extends Controller
 
         $request->session()->put('locale', $locale);
         $request->user('web')?->update(['preferred_locale' => $locale]);
+        Analytics::flash('language_switched', ['to' => $locale]);
 
         return back();
     }

@@ -85,5 +85,7 @@
 
         <p class="text-sm text-ink-subtle">{{ __("Stay here. If the host starts another round, you're in.") }}</p>
         <x-lamma.button :href="route('home')" variant="outline" class="w-full" data-test="leave-button">{{ __('Leave room') }}</x-lamma.button>
+
+        <x-lamma.consent-banner />
     </main>
 </div>

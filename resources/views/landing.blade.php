@@ -338,8 +338,11 @@
                         <a href="{{ route('register') }}" class="hover:text-coral-700">{{ __('Sign up') }}</a>
                     @endif
                 @endauth
+                <x-lamma.cookie-settings />
             </nav>
             <span class="text-[13px] text-ink-subtle lg:text-sm">&copy; {{ now()->year }} Lamma · <span lang="ar">لمّة</span></span>
         </div>
     </footer>
+
+    <x-lamma.consent-banner floating />
 </x-layouts::lamma>

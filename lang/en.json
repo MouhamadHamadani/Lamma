@@ -368,5 +368,10 @@
     "Subcategories of :category": "Subcategories of :category",
     ":count of :total": ":count of :total",
     "Pick all of it, or only some": "Pick all of it, or only some",
-    ":count available": ":count available"
+    ":count available": ":count available",
+    "Help us improve Lamma": "Help us improve Lamma",
+    "We use Google Analytics to count visits and see which features people use. It never receives names, e-mail addresses or room codes.": "We use Google Analytics to count visits and see which features people use. It never receives names, e-mail addresses or room codes.",
+    "Accept": "Accept",
+    "Decline": "Decline",
+    "Cookie settings": "Cookie settings"
 }

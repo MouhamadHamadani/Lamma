@@ -14,7 +14,7 @@
     $barColor = [1 => 'bg-sun', 2 => 'bg-teal', 3 => 'bg-coral'];
     $barDelay = [3 => 0, 2 => 750, 1 => 1500]; // 600ms each, 150ms apart: third, second, first
 @endphp
-<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results" x-init="$store.sound.play('podium')">
+<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results" x-init="$store.sound.play('podium'); window.lammaTrack('game_finished', {{ Js::from($finished) }}, 'finished-{{ $room->id }}')">
     @if ($winners)
         <x-lamma.confetti :count="12" />
     @endif

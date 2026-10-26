@@ -12,6 +12,7 @@ use App\Game\QuestionPool;
 use App\Game\RoomManager;
 use App\Game\RoomSettings;
 use App\Models\Category;
+use App\Support\Analytics;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
@@ -88,6 +89,7 @@ class CreateRoom extends Component
             $ids = array_diff($ids, [$id]);
         } else {
             $ids[] = $id;
+            Analytics::dispatch($this, 'subcategory_selected', ['parent_category' => $parent->slug, 'subcategory' => $parent->children->firstWhere('id', $id)?->slug]);
             if (array_diff($siblings, $ids) === []) {
                 $ids = [...array_diff($ids, $siblings), $parent->id];
             }
@@ -164,6 +166,12 @@ class CreateRoom extends Component
 
             return null;
         }
+
+        Analytics::flash('room_created', [
+            'difficulty' => $this->difficulty,
+            'question_count' => $room->settings->questionCount,
+            'categories_count' => count($room->settings->categoryIds),
+        ]);
 
         return $this->redirectRoute('host.lobby', ['room' => $room->code], navigate: false);
     }

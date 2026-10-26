@@ -7,3 +7,5 @@
 import './echo';
 
 import './lamma';
+
+import './analytics';

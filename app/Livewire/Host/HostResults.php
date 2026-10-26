@@ -9,6 +9,7 @@ use App\Game\Podium;
 use App\Game\RoomManager;
 use App\Game\Scoreboard;
 use App\Models\Room;
+use App\Support\Analytics;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -55,6 +56,8 @@ class HostResults extends Component
             return null;
         }
 
+        Analytics::flash('play_again_clicked');
+
         return $this->redirectRoute('host.lobby', ['room' => $new->code], navigate: false);
     }
 
@@ -66,6 +69,12 @@ class HostResults extends Component
         return view('livewire.host.host-results', [
             'both' => $this->room->settings->hostScreenLocale === HostScreenLocale::Both,
             'questionCount' => $this->room->roomQuestions()->count(),
+            // Reported once, by the browser, when the results first appear (what GA hears: App\Support\Analytics).
+            'finished' => Analytics::event('game_finished', [
+                'player_count' => $this->room->players()->count(),
+                'question_count' => $this->room->roomQuestions()->count(),
+                'duration_seconds' => $this->room->started_at && $this->room->finished_at ? (int) round($this->room->started_at->diffInSeconds($this->room->finished_at, true) / 10) * 10 : null,
+            ])['params'] ?? [],
             'winners' => $podium->winners($ranking),
             // On the podium the second step stands left of the first, the third right of it; a step nobody stands on is left out.
             'steps' => collect($steps)->sortBy(fn (array $step) => [2 => 0, 1 => 1, 3 => 2][$step['rank']])->values()->all(),

@@ -368,5 +368,10 @@
     "Subcategories of :category": "الفئات الفرعية في :category",
     ":count of :total": ":count من :total",
     "Pick all of it, or only some": "اختر الفئة كاملة أو بعضها فقط",
-    ":count available": ":count متاح"
+    ":count available": ":count متاح",
+    "Help us improve Lamma": "ساعدنا في تحسين لمّة",
+    "We use Google Analytics to count visits and see which features people use. It never receives names, e-mail addresses or room codes.": "نستخدم Google Analytics لعدّ الزيارات ومعرفة الميزات التي يستخدمها الناس. لا يصله أبداً أي اسم ولا بريد إلكتروني ولا رمز غرفة.",
+    "Accept": "أوافق",
+    "Decline": "أرفض",
+    "Cookie settings": "إعدادات ملفات تعريف الارتباط"
 }

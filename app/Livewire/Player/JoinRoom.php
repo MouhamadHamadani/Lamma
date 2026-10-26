@@ -7,6 +7,7 @@ use App\Game\PlayerIdentity;
 use App\Game\RoomCodeGenerator;
 use App\Game\RoomJoiner;
 use App\Models\Room;
+use App\Support\Analytics;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -66,6 +67,8 @@ class JoinRoom extends Component
 
             return null;
         }
+
+        Analytics::flash('player_joined', ['language' => $this->language]);
 
         return $this->redirectRoute('play', ['room' => $this->code]);
     }
