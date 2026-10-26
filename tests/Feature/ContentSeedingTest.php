@@ -245,3 +245,19 @@ describe('lamma:questions-report', function () {
         expect($rows)->not->toHaveKey('science')->and($rows['football']['total'])->toBe(0)->and($rows['tennis']['total'])->toBe(3);
     });
 });
+
+describe('rolling the subcategories migration back and forward', function () {
+    it('puts the shipped subcategories back under their parents', function () {
+        (new ContentSeeder)->run();
+        Category::whereNotNull('parent_id')->update(['parent_id' => null]);      // what dropping the column leaves behind
+        $admins = Category::factory()->create(['slug' => 'my-own-category']);     // a category of the admin's own is not touched
+
+        (require database_path('migrations/2026_10_26_100000_add_parent_id_to_categories.php'))->restoreParents();
+
+        expect(Category::whereNotNull('parent_id')->count())->toBe(13)
+            ->and(Category::where('slug', 'football')->first()->parent->slug)->toBe('sports')
+            ->and(Category::where('slug', 'human-body')->first()->parent->slug)->toBe('general-knowledge')
+            ->and($admins->fresh()->parent_id)->toBeNull()
+            ->and(Category::where('slug', 'sports')->first()->parent_id)->toBeNull();
+    });
+});
