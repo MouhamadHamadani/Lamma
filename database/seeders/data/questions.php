@@ -27,6 +27,7 @@ return [
         'basketball' => ['ar' => 'كرة السلة', 'en' => 'Basketball', 'icon' => '🏀', 'parent' => 'sports'],
         'rugby' => ['ar' => 'الرغبي', 'en' => 'Rugby', 'icon' => '🏉', 'parent' => 'sports'],
         'tennis' => ['ar' => 'التنس', 'en' => 'Tennis', 'icon' => '🎾', 'parent' => 'sports'],
+        'motorsport' => ['ar' => 'رياضة المحركات', 'en' => 'Motorsport', 'icon' => '🏎️', 'parent' => 'sports'],
     ],
 
     'questions' => [

@@ -89,6 +89,29 @@ describe('the content file', function () {
             ->and($questions->map(fn ($q) => $normalise($q[2]))->duplicates()->all())->toBe([]);
     });
 
+    it('has no garbled text: no word mixing Arabic and Latin letters, no Persian letters, no double spaces, no Arabic in English', function () {
+        foreach (contentData()['questions'] as $slug => $questions) {
+            foreach ($questions as $index => [, $ar, $en, $options]) {
+                $pairs = splitOptions($options);
+                $arabic = [$ar, ...array_column($pairs, 0)];
+                $english = [$en, ...array_column($pairs, 1)];
+
+                foreach ($arabic as $text) {
+                    foreach (preg_split('/[\s().,;:\[\]«»"\-\/–؟،]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) as $word) {
+                        expect(preg_match('/\p{Arabic}/u', $word) === 1 && preg_match('/[A-Za-z]/', $word) === 1)->toBeFalse("{$slug} #{$index}: mixed scripts in \"{$word}\" ({$text})");
+                    }
+                    expect(preg_match('/[\x{06CC}\x{06A9}\x{06C1}\x{06BE}]/u', $text))->toBe(0, "{$slug} #{$index}: a Persian letter in \"{$text}\"");
+                }
+                foreach ([...$arabic, ...$english] as $text) {
+                    expect(str_contains($text, '  '))->toBeFalse("{$slug} #{$index}: double space in \"{$text}\"");
+                }
+                foreach ($english as $text) {
+                    expect(preg_match('/\p{Arabic}/u', $text))->toBe(0, "{$slug} #{$index}: Arabic letters in \"{$text}\"");
+                }
+            }
+        }
+    });
+
     it('uses Western digits only, like the rest of the app', function () {
         $text = json_encode(contentData(), JSON_UNESCAPED_UNICODE);
 
