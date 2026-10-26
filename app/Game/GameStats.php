@@ -9,6 +9,7 @@ use App\Models\Room;
 use App\Models\RoomPlayer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 /** What the admin dashboard and the question list show about play: games per day, popular categories, hard questions, live rooms. */
 class GameStats
@@ -36,19 +37,32 @@ class GameStats
     }
 
     /**
-     * Categories by how many of their questions were asked in rooms, most first. `room_questions_count` is on each.
+     * Categories by how many of their questions were asked in rooms, most first. `room_questions_count` is on each. With $rollUp (the
+     * default) a subcategory's questions count for its parent, so the list is of top-level categories; without it the list is of the
+     * subcategories alone.
      *
      * @return Collection<int, Category>
      */
-    public function mostPlayedCategories(int $limit = 8): Collection
+    public function mostPlayedCategories(int $limit = 8, bool $rollUp = true): Collection
     {
-        return Category::query()
-            ->withCount(['roomQuestions' => fn ($asked) => $asked->whereNotNull('room_questions.started_at')])
-            ->whereHas('roomQuestions', fn ($asked) => $asked->whereNotNull('room_questions.started_at'))
-            ->orderByDesc('room_questions_count')
-            ->orderBy('id')
+        $asked = DB::table('room_questions')
+            ->join('questions', 'questions.id', '=', 'room_questions.question_id')
+            ->join('categories', 'categories.id', '=', 'questions.category_id')
+            ->whereNotNull('room_questions.started_at')
+            ->whereNull('questions.deleted_at')
+            ->when(! $rollUp, fn ($query) => $query->whereNotNull('categories.parent_id'))
+            ->selectRaw(($rollUp ? 'coalesce(categories.parent_id, categories.id)' : 'categories.id').' as category_id, count(*) as asked')
+            ->groupByRaw($rollUp ? 'coalesce(categories.parent_id, categories.id)' : 'categories.id')
+            ->orderByDesc('asked')->orderBy('category_id')
             ->limit($limit)
             ->get();
+
+        $counts = $asked->pluck('asked', 'category_id');
+
+        return Category::query()->with('parent')->whereIn('id', $counts->keys())->get()
+            ->each(fn (Category $category) => $category->setAttribute('room_questions_count', (int) $counts[$category->id]))
+            ->sortBy([['room_questions_count', 'desc'], ['id', 'asc']])
+            ->values();
     }
 
     /**

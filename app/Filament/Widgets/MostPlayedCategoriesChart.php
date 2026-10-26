@@ -5,7 +5,7 @@ namespace App\Filament\Widgets;
 use App\Game\GameStats;
 use Filament\Widgets\ChartWidget;
 
-/** Categories by how many of their questions were asked in rooms. */
+/** Categories by how many of their questions were asked in rooms; a subcategory counts for its parent unless "Subcategories" is chosen. */
 class MostPlayedCategoriesChart extends ChartWidget
 {
     protected static ?int $sort = 11;
@@ -16,6 +16,16 @@ class MostPlayedCategoriesChart extends ChartWidget
 
     protected ?string $maxHeight = '260px';
 
+    public ?string $filter = 'categories';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'categories' => 'Categories (subcategories rolled up)',
+            'subcategories' => 'Subcategories',
+        ];
+    }
+
     protected function getType(): string
     {
         return 'bar';
@@ -23,7 +33,7 @@ class MostPlayedCategoriesChart extends ChartWidget
 
     protected function getData(): array
     {
-        $categories = app(GameStats::class)->mostPlayedCategories(8);
+        $categories = app(GameStats::class)->mostPlayedCategories(8, rollUp: $this->filter !== 'subcategories');
 
         return [
             'datasets' => [[
@@ -33,7 +43,7 @@ class MostPlayedCategoriesChart extends ChartWidget
                 'borderColor' => '#1B1F4B',
                 'borderWidth' => 2,
             ]],
-            'labels' => $categories->map(fn ($category) => $category->getTranslation('name', 'en', false) ?: $category->name)->all(),
+            'labels' => $categories->map(fn ($category) => $category->fullName('en'))->all(),
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Questions\Schemas;
 
 use App\Enums\Difficulty;
+use App\Support\CategoryOptions;
 use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -13,7 +14,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Builder;
 
 class QuestionForm
 {
@@ -27,12 +27,13 @@ class QuestionForm
             ->columns(1)
             ->components([
                 Section::make('Question')->schema([
+                    // Grouped by parent: a subcategory sits under its category, the category's own "(general)" questions first.
                     Select::make('category_id')
                         ->label('Category')
-                        ->relationship('category', 'name', fn (Builder $query) => $query->orderBy('sort_order')->orderBy('id'))
-                        ->preload()
+                        ->options(fn (): array => CategoryOptions::grouped())
                         ->searchable()
-                        ->required(),
+                        ->required()
+                        ->exists('categories', 'id'),
                     Select::make('difficulty')
                         ->options(Difficulty::class)
                         ->required(),

@@ -4,7 +4,9 @@ namespace App\Filament\Resources\Questions\Tables;
 
 use App\Enums\Difficulty;
 use App\Game\GameStats;
+use App\Models\Category;
 use App\Models\Question;
+use App\Support\CategoryOptions;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -27,7 +29,7 @@ class QuestionsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['category', 'options'])->withCount([
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['category.parent', 'options'])->withCount([
                 // Asked in a room (it was shown), and what players answered: for "Times played" and "% correct".
                 'roomQuestions as times_played' => fn (Builder $asked) => $asked->whereNotNull('room_questions.started_at'),
                 'answers as answers_count',
@@ -41,7 +43,8 @@ class QuestionsTable
                     ->wrap()
                     ->searchable(),
                 TextColumn::make('category.name')
-                    ->label('Category'),
+                    ->label('Category')
+                    ->state(fn (Question $record): string => $record->category->fullName()),
                 TextColumn::make('difficulty')
                     ->badge(),
                 TextColumn::make('times_played')
@@ -72,9 +75,18 @@ class QuestionsTable
             ])
             ->defaultSort('id', 'desc')
             ->filters([
+                // A top-level category: its own questions and those of all its subcategories.
                 SelectFilter::make('category')
-                    ->relationship('category', 'name', fn (Builder $query) => $query->orderBy('sort_order')->orderBy('id'))
-                    ->preload(),
+                    ->options(fn (): array => Category::query()->topLevel()->orderBy('sort_order')->orderBy('id')->get()->pluck('name', 'id')->all())
+                    ->searchable()
+                    ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null)
+                        ? $query->whereIn('questions.category_id', Category::query()->where('id', $data['value'])->orWhere('parent_id', $data['value'])->select('id'))
+                        : $query),
+                // One subcategory, listed under its parent.
+                SelectFilter::make('subcategory')
+                    ->options(fn (): array => CategoryOptions::subcategories())
+                    ->searchable()
+                    ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null) ? $query->where('questions.category_id', $data['value']) : $query),
                 SelectFilter::make('difficulty')
                     ->options(Difficulty::class),
                 TernaryFilter::make('is_active')
