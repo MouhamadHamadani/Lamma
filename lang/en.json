@@ -378,5 +378,9 @@
     "That photo is too big. Please take another one.": "That photo is too big. Please take another one.",
     "Photos are turned off in this room.": "Photos are turned off in this room.",
     "We couldn't save your photo. You can skip it and play without.": "We couldn't save your photo. You can skip it and play without.",
-    "Too many photos. Please try again in :seconds seconds.": "Too many photos. Please try again in :seconds seconds."
+    "Too many photos. Please try again in :seconds seconds.": "Too many photos. Please try again in :seconds seconds.",
+    "Player photos": "Player photos",
+    "Players can take a selfie to show next to their name.": "Players can take a selfie to show next to their name.",
+    "On": "On",
+    "Off": "Off"
 }

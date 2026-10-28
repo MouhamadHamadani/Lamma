@@ -96,13 +96,13 @@
                     @endif
                 </div>
 
-                <div class="grid gap-[30px] md:grid-cols-2 md:gap-7 laptop-short:gap-x-7 laptop-short:gap-y-3">
-                    <div class="flex flex-col gap-2.5">
+                <div class="grid gap-[30px] md:grid-cols-2 md:gap-7 xl:grid-cols-6 laptop-short:gap-x-7 laptop-short:gap-y-3">
+                    <div class="flex flex-col gap-2.5 xl:col-span-2">
                         <h2 class="text-base font-bold">{{ __('Number of questions') }}</h2>
                         <x-lamma.segmented wire:model.live="questionCount" :label="__('Number of questions')" :options="array_combine(RoomSettings::QUESTION_COUNTS, RoomSettings::QUESTION_COUNTS)" />
                     </div>
 
-                    <div class="flex flex-col gap-2.5">
+                    <div class="flex flex-col gap-2.5 xl:col-span-2">
                         <h2 class="text-base font-bold">{{ __('Time per question') }}</h2>
                         <x-lamma.segmented
                             wire:model.live="secondsPerQuestion" :label="__('Time per question')"
@@ -110,7 +110,17 @@
                         />
                     </div>
 
-                    <div class="flex flex-col gap-2.5">
+                    {{-- Selfies (App\Game\PlayerPhoto). Off = no photo step, no consent line, no avatar_url anywhere. --}}
+                    <div class="order-last flex flex-col gap-2.5 xl:order-none md:col-span-2 md:flex-row md:items-center md:justify-between md:gap-6 xl:col-span-2 xl:flex-col xl:items-stretch xl:justify-start xl:gap-2.5" data-test="photos-setting">
+                        <div class="flex flex-col gap-0.5 xl:gap-1">
+                            <h2 class="text-base font-bold">{{ __('Player photos') }}</h2>
+                            {{-- On a short laptop screen the line is for screen readers only, like the other hints here: the row must not grow. --}}
+                            <p class="text-[13px] font-medium leading-snug text-ink-subtle laptop-short:sr-only">{{ __('Players can take a selfie to show next to their name.') }}</p>
+                        </div>
+                        <x-lamma.segmented wire:model.live="photos" :label="__('Player photos')" :options="['on' => __('On'), 'off' => __('Off')]" class="md:w-64 md:shrink-0 xl:w-auto" />
+                    </div>
+
+                    <div class="flex flex-col gap-2.5 xl:col-span-3">
                         <h2 class="text-base font-bold">{{ __('Difficulty') }}</h2>
                         <x-lamma.segmented
                             wire:model.live="difficulty" :label="__('Difficulty')"
@@ -118,7 +128,7 @@
                         />
                     </div>
 
-                    <div class="flex flex-col gap-2.5">
+                    <div class="flex flex-col gap-2.5 xl:col-span-3">
                         <h2 class="text-base font-bold">{{ __('Big-screen language') }}</h2>
                         <x-lamma.segmented
                             wire:model.live="hostScreenLocale" :label="__('Big-screen language')"
@@ -137,6 +147,7 @@
                     [__('Questions'), new HtmlString($questionCount.($categoryIds === [] ? '' : ' <span class="text-[13px] font-medium text-ink-subtle" data-test="available">('.__(':count available', ['count' => Isolate::ltr($this->available)]).')</span>'))],
                     [__('Time'), __(':seconds s each', ['seconds' => $secondsPerQuestion])],
                     [__('Difficulty'), Difficulty::tryFrom($difficulty)?->getLabel() ?? __('Mixed')],
+                    [__('Player photos'), $photos === 'off' ? __('Off') : __('On')],
                 ] as [$label, $value])
                     <div class="flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base laptop-short:py-2">
                         <span class="text-ink-muted">{{ $label }}</span>

@@ -378,5 +378,9 @@
     "That photo is too big. Please take another one.": "هذه الصورة كبيرة جدًا. من فضلك التقط صورة أخرى.",
     "Photos are turned off in this room.": "الصور متوقفة في هذه الغرفة.",
     "We couldn't save your photo. You can skip it and play without.": "تعذّر حفظ صورتك. يمكنك التخطي واللعب من دونها.",
-    "Too many photos. Please try again in :seconds seconds.": "صور كثيرة جدًا. حاول مرة أخرى بعد :seconds ثانية."
+    "Too many photos. Please try again in :seconds seconds.": "صور كثيرة جدًا. حاول مرة أخرى بعد :seconds ثانية.",
+    "Player photos": "صور اللاعبين",
+    "Players can take a selfie to show next to their name.": "يمكن للاعبين التقاط صورة شخصية لتظهر بجانب أسمائهم.",
+    "On": "مفعّل",
+    "Off": "متوقف"
 }

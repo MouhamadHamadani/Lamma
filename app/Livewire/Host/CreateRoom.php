@@ -51,6 +51,9 @@ class CreateRoom extends Component
     /** ar | en | both */
     public string $hostScreenLocale = 'both';
 
+    /** on | off: whether players can add a selfie (RoomSettings::showPhotos). */
+    public string $photos = 'on';
+
     /** A top-level category on or off as a whole. From a partial choice the first tap selects all of it. */
     public function toggleCategory(int $id): void
     {
@@ -123,6 +126,7 @@ class CreateRoom extends Component
             secondsPerQuestion: $this->secondsPerQuestion,
             difficulty: Difficulty::tryFrom($this->difficulty),
             hostScreenLocale: HostScreenLocale::tryFrom($this->hostScreenLocale) ?? HostScreenLocale::Both,
+            showPhotos: $this->photos !== 'off',
         );
     }
 
@@ -186,6 +190,7 @@ class CreateRoom extends Component
             'secondsPerQuestion' => [Rule::in(RoomSettings::SECONDS_PER_QUESTION)],
             'difficulty' => [Rule::in([...array_column(Difficulty::cases(), 'value'), 'mixed'])],
             'hostScreenLocale' => [Rule::enum(HostScreenLocale::class)],
+            'photos' => [Rule::in(['on', 'off'])],
         ];
     }
 

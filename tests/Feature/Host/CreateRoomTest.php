@@ -3,6 +3,7 @@
 use App\Enums\Difficulty;
 use App\Enums\HostScreenLocale;
 use App\Enums\RoomStatus;
+use App\Game\RoomManager;
 use App\Livewire\Host\CreateRoom;
 use App\Models\Category;
 use App\Models\Question;
@@ -50,7 +51,8 @@ describe('the page', function () {
             ->assertSet('questionCount', 10)
             ->assertSet('secondsPerQuestion', 20)
             ->assertSet('difficulty', 'mixed')
-            ->assertSet('hostScreenLocale', 'both');
+            ->assertSet('hostScreenLocale', 'both')
+            ->assertSet('photos', 'on');
     });
 
     it('offers 5/10/15/20 questions and 10/20/30 seconds, and four difficulties and three languages', function () {
@@ -219,7 +221,41 @@ describe('creating the room', function () {
         'seconds' => ['secondsPerQuestion', 45],
         'difficulty' => ['difficulty', 'impossible'],
         'screen language' => ['hostScreenLocale', 'fr'],
+        'photos' => ['photos', 'maybe'],
     ]);
+});
+
+describe('player photos', function () {
+    it('has an On / Off switch with its help line, On by default, and the summary card shows it', function () {
+        $page = createRoomPage()->assertSee('Player photos')->assertSee('Players can take a selfie to show next to their name.')->assertSeeHtml('data-test="photos-setting"');
+
+        expect($page->html())->toMatch('/Player photos<\/span>\s*<span class="text-end font-bold">On</');
+
+        $page->set('photos', 'off');
+        expect($page->html())->toMatch('/Player photos<\/span>\s*<span class="text-end font-bold">Off</');
+    });
+
+    it('is translated, right-to-left in Arabic', function () {
+        $this->actingAs($this->host)->withSession(['locale' => 'ar'])->get(route('rooms.create'))
+            ->assertSee('صور اللاعبين')->assertSee('يمكن للاعبين التقاط صورة شخصية لتظهر بجانب أسمائهم.')->assertSee('>مفعّل<', false)->assertSee('>متوقف<', false);
+    });
+
+    it('stores the choice in the room settings, on unless the host turns it off', function (string $photos, bool $expected) {
+        $category = categoryWithQuestions(12);
+
+        createRoomPage()->call('toggleCategory', $category->id)->set('photos', $photos)->call('create')->assertHasNoErrors();
+
+        expect(Room::sole()->settings->showPhotos)->toBe($expected);
+    })->with([['on', true], ['off', false]]);
+
+    it('keeps the choice for the room that "Play again" makes', function () {
+        $category = categoryWithQuestions(12);
+        $old = Room::factory()->finished()->create(['settings' => ['category_ids' => [$category->id], 'show_photos' => false]]);
+
+        $new = app(RoomManager::class)->playAgain($old, $old->host);
+
+        expect($new->settings->showPhotos)->toBeFalse();
+    });
 });
 
 describe('fresh questions for the host\'s usual group', function () {
