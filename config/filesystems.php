@@ -52,7 +52,8 @@ return [
         'player_photos' => [
             'driver' => 'local',
             'root' => storage_path('app/public/player-photos'),
-            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage/player-photos',
+            // Relative on purpose: a phone that opened the site by its LAN address (not APP_URL's) must still load the photos from the same host.
+            'url' => '/storage/player-photos',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

@@ -18,13 +18,14 @@ class PruneCommand extends Command
         $tokens = $housekeeping->clearExpiredGuestTokens();
         $sightings = $housekeeping->forgetGuestSightings();
         $photos = $housekeeping->prunePhotos();
+        $uploads = $housekeeping->pruneTemporaryUploads();
 
         // The scheduler's heartbeat: `lamma:doctor` reads it to know the cron line is alive (see config/lamma.php).
         Cache::forever(config('lamma.heartbeat_key'), now()->timestamp);
 
         $this->info("Closed {$lobbies} abandoned lobbies, cleared {$tokens} expired guest tokens.");
         $this->info("Forgot {$sightings} guest sightings.");
-        $this->info("Deleted {$photos} expired player photos.");
+        $this->info("Deleted {$photos} expired player photos and {$uploads} abandoned uploads.");
 
         return self::SUCCESS;
     }

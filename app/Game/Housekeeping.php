@@ -5,6 +5,7 @@ namespace App\Game;
 use App\Enums\RoomStatus;
 use App\Models\Room;
 use App\Models\RoomPlayer;
+use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 
 /** The daily clean-up behind `lamma:prune`. */
 class Housekeeping
@@ -86,5 +87,27 @@ class Housekeeping
             });
 
         return $photos + $this->photos->sweepOrphans();
+    }
+
+    /**
+     * Raw selfie uploads that were never used (someone took a picture on the join page and left): Livewire keeps every upload in its temporary
+     * folder (the private disk, never served) and would clear it after a day on its own schedule. They go with the same retention time as the photos,
+     * on our hourly one. Admin uploads younger than that (a question image in a form that is still open) are untouched.
+     *
+     * @return int how many files were deleted
+     */
+    public function pruneTemporaryUploads(): int
+    {
+        $storage = FileUploadConfiguration::storage();
+        $cutoff = now()->subHours((int) config('lamma.photo_retention_hours'))->getTimestamp();
+        $deleted = 0;
+
+        foreach ($storage->files(FileUploadConfiguration::directory()) as $file) {
+            if ($storage->lastModified($file) < $cutoff && $storage->delete($file)) {
+                $deleted++;
+            }
+        }
+
+        return $deleted;
     }
 }

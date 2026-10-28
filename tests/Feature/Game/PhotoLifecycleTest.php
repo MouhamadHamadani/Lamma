@@ -18,6 +18,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Livewire;
 
 const LIFE_TOKEN = 'l1f3000000000000000000000000000000000000000000000000000000000000';
@@ -137,7 +138,7 @@ describe('lamma:prune', function () {
         $old = roomWithSelfies(['status' => RoomStatus::Finished, 'finished_at' => now()->subHours(24)->subMinute()]);
         $recent = roomWithSelfies(['status' => RoomStatus::Finished, 'finished_at' => now()->subHours(23)]);
 
-        $this->artisan('lamma:prune')->assertSuccessful()->expectsOutputToContain('Deleted 2 expired player photos.');
+        $this->artisan('lamma:prune')->assertSuccessful()->expectsOutputToContain('Deleted 2 expired player photos');
 
         expect($old->players()->whereNotNull('avatar_path')->count())->toBe(0)->and($recent->players()->whereNotNull('avatar_path')->count())->toBe(2)
             ->and(Storage::disk(PlayerPhoto::DISK)->allFiles("rooms/{$old->id}"))->toBe([])->and(Storage::disk(PlayerPhoto::DISK)->allFiles("rooms/{$recent->id}"))->toHaveCount(2);
@@ -198,7 +199,22 @@ describe('lamma:prune', function () {
     it('does nothing for rooms without photos and says so', function () {
         Room::factory()->finished()->create(['finished_at' => now()->subDays(3)]);
 
-        $this->artisan('lamma:prune')->assertSuccessful()->expectsOutputToContain('Deleted 0 expired player photos.');
+        $this->artisan('lamma:prune')->assertSuccessful()->expectsOutputToContain('Deleted 0 expired player photos and 0 abandoned uploads.');
+    });
+});
+
+describe('abandoned uploads', function () {
+    it('are deleted with the same retention time, and a recent upload is left alone', function () {
+        $storage = FileUploadConfiguration::storage();
+        $storage->put('livewire-tmp/old.jpg', 'x');
+        $storage->put('livewire-tmp/old.jpg.json', '{}');
+        $storage->put('livewire-tmp/recent.jpg', 'x');
+        touch($storage->path('livewire-tmp/old.jpg'), now()->subHours(25)->getTimestamp());
+        touch($storage->path('livewire-tmp/old.jpg.json'), now()->subHours(25)->getTimestamp());
+
+        $this->artisan('lamma:prune')->assertSuccessful()->expectsOutputToContain('and 2 abandoned uploads.');
+
+        expect($storage->exists('livewire-tmp/old.jpg'))->toBeFalse()->and($storage->exists('livewire-tmp/old.jpg.json'))->toBeFalse()->and($storage->exists('livewire-tmp/recent.jpg'))->toBeTrue();
     });
 });
 

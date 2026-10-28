@@ -16,18 +16,27 @@ document.addEventListener('alpine:init', () => {
         previewUrl: null,
         progress: 0,
         status: '',
+        /** The photo URL that failed to load: the initial shows instead, until a different URL arrives. */
+        broken: null,
 
-        /** The Livewire component's state, read through $wire (nothing when the block is shown outside a component, as in the gallery). */
+        /**
+         * The Livewire component's state (`photoUrl`, `photoError`, `nickname`), mirrored into this component's own data: a getter that reads $wire
+         * directly is not re-run by Alpine when the server changes the value, so each one is copied now and again whenever it changes.
+         */
+        url: null,
+        error: '',
+        name: '',
+
         get photoUrl() {
-            try { return this.$wire.photoUrl || null } catch (error) { return null }
+            return this.url
         },
 
         get serverError() {
-            try { return this.$wire.photoError || '' } catch (error) { return '' }
+            return this.error
         },
 
         get nickname() {
-            try { return this.$wire.nickname || '' } catch (error) { return '' }
+            return this.name
         },
 
         remove() {
@@ -42,6 +51,16 @@ document.addEventListener('alpine:init', () => {
         },
 
         init() {
+            try {
+                let wire = this.$wire
+                this.url = wire.photoUrl || null
+                this.error = wire.photoError || ''
+                this.name = wire.nickname || ''
+                wire.$watch('photoUrl', (value) => { this.url = value || null })
+                wire.$watch('photoError', (value) => { this.error = value || '' })
+                wire.$watch('nickname', (value) => { this.name = value || '' })
+            } catch (error) { /* shown outside a Livewire component (the gallery): nothing to mirror */ }
+
             // A hidden page (another app, a locked screen) must not keep the camera on.
             this.onHide = () => { if (document.hidden) this.cancel() }
             this.onPageHide = () => this.stopCamera()
@@ -57,6 +76,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async open() {
+            this.error = ''
             try { if (this.$wire.photoError) this.$wire.photoError = '' } catch (error) { /* no component */ }
 
             if (! window.isSecureContext || ! navigator.mediaDevices || ! navigator.mediaDevices.getUserMedia) {
@@ -159,6 +179,7 @@ document.addEventListener('alpine:init', () => {
 
         skip() {
             this.cancel()
+            this.error = ''
             try { this.$wire.photoError = '' } catch (error) { /* no component */ }
             this.step = 'skipped'
         },

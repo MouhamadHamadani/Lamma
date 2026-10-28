@@ -382,7 +382,8 @@ Phase 9. Besides a nickname a player can take a selfie with the phone's front ca
 - **How long:** `LAMMA_PHOTO_RETENTION_HOURS` in `.env` (24 by default, see `.env.production.example`). `lamma:prune` runs **every hour** and deletes the photos of rooms that
   finished more than that long ago (a room the host closed too, so the results screen still shows them until then), of games nobody ended, and of lobbies nobody started (these at
   once, when they are closed after 6 hours). A player who leaves or is removed, a host who presses "Remove photo", and an account that is deleted take their photos away
-  immediately. Folders of rooms that no longer exist are swept too.
+  immediately. Folders of rooms that no longer exist are swept too. A picture taken on the join page and never used (the player left) sits in Livewire's temporary
+  folder (`storage/app/private/livewire-tmp`, never served); `lamma:prune` deletes those after the same retention time.
 - **Backups:** not included, on purpose (section 12). Keep them out of any file-level backup.
 - **What the server needs:** `php8.3-gd` with JPEG and WebP, and `fileinfo` (section 2). `lamma:doctor` checks them. Uploads are small (the phone sends a JPEG of at most 640x640, a
   few hundred KB); the server refuses anything over 3 MB, anything that is not really a JPEG or WebP, and pictures over 12 megapixels. The nginx and PHP-FPM upload limits (8 MB)

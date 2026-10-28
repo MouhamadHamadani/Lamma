@@ -20,7 +20,7 @@
             style="width: {{ $size }}px; height: {{ $size }}px; font-size: {{ round($size * .42) }}px"
         >
             <span aria-hidden="true" x-text="initial">?</span>
-            <img x-show="photoUrl" x-bind:src="photoUrl" x-bind:alt="nickname" decoding="async" draggable="false" x-on:error="$el.style.display = 'none'" class="absolute inset-0 size-full rounded-full object-cover" x-cloak>
+            <img x-show="photoUrl && photoUrl !== broken" x-bind:src="photoUrl" x-bind:alt="nickname" decoding="async" draggable="false" x-on:error="broken = photoUrl" class="absolute inset-0 size-full rounded-full object-cover" x-cloak>
         </span>
     @endif
 
