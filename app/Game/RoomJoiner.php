@@ -7,17 +7,22 @@ use App\Events\PlayerJoined;
 use App\Models\Room;
 use App\Models\RoomPlayer;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 /** Puts a participant (logged-in user or guest) into a room's lobby, or finds the row they already have. */
 class RoomJoiner
 {
-    public function __construct(private readonly PlayerIdentity $identity) {}
+    public function __construct(private readonly PlayerIdentity $identity, private readonly PlayerPhoto $photos) {}
 
     /**
+     * $photo is the selfie taken on the join page, if the room has photos on. It is an extra: whatever goes wrong with it, the player still joins.
+     *
      * @throws JoinException
      */
-    public function join(string $code, string $nickname, string $locale): RoomPlayer
+    public function join(string $code, string $nickname, string $locale, ?UploadedFile $photo = null): RoomPlayer
     {
         $room = Room::where('code', RoomCodeGenerator::normalize($code))->first() ?? throw JoinException::roomNotFound();
 
@@ -39,7 +44,7 @@ class RoomJoiner
         };
 
         $nickname = Str::squish($nickname);
-        if ($this->nicknameTaken($room, $nickname)) {
+        if ($room->hasNickname($nickname)) {
             throw JoinException::nicknameTaken();
         }
 
@@ -54,6 +59,7 @@ class RoomJoiner
                 // Not connected until their lobby page joins the presence channel; unseen for too long, they are dropped.
                 'left_at' => now(),
             ]);
+            $this->addPhoto($room, $player, $photo);
             PlayerJoined::broadcast($room, $player)->toOthers();
 
             return $player;
@@ -63,8 +69,17 @@ class RoomJoiner
         }
     }
 
-    private function nicknameTaken(Room $room, string $nickname): bool
+    /** A photo that cannot be used is dropped without a word to the game: the log gets the reason (never the picture) and the player is in. */
+    private function addPhoto(Room $room, RoomPlayer $player, ?UploadedFile $photo): void
     {
-        return $room->players()->whereRaw('LOWER(nickname) = ?', [mb_strtolower($nickname)])->exists();
+        if ($photo === null || ! $room->settings->showPhotos) {
+            return;
+        }
+
+        try {
+            $this->photos->set($player, $photo);
+        } catch (Throwable $e) {
+            Log::info('A selfie was left out of a join.', ['room' => $room->id, 'reason' => $e::class]);
+        }
     }
 }

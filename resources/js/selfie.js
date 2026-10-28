@@ -17,6 +17,30 @@ document.addEventListener('alpine:init', () => {
         progress: 0,
         status: '',
 
+        /** The Livewire component's state, read through $wire (nothing when the block is shown outside a component, as in the gallery). */
+        get photoUrl() {
+            try { return this.$wire.photoUrl || null } catch (error) { return null }
+        },
+
+        get serverError() {
+            try { return this.$wire.photoError || '' } catch (error) { return '' }
+        },
+
+        get nickname() {
+            try { return this.$wire.nickname || '' } catch (error) { return '' }
+        },
+
+        remove() {
+            try { this.$wire.removePhoto() } catch (error) { /* no component */ }
+        },
+
+        /** The first letter of the nickname being typed (what the avatar shows until there is a photo). */
+        get initial() {
+            let name = this.nickname.trim()
+
+            return name ? Array.from(name)[0].toUpperCase() : '?'
+        },
+
         init() {
             // A hidden page (another app, a locked screen) must not keep the camera on.
             this.onHide = () => { if (document.hidden) this.cancel() }
@@ -33,6 +57,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         async open() {
+            try { if (this.$wire.photoError) this.$wire.photoError = '' } catch (error) { /* no component */ }
+
             if (! window.isSecureContext || ! navigator.mediaDevices || ! navigator.mediaDevices.getUserMedia) {
                 this.step = 'denied'
 
@@ -93,11 +119,18 @@ document.addEventListener('alpine:init', () => {
                 this.blob = blob
                 this.previewUrl = URL.createObjectURL(blob)
                 this.step = 'review'
+                this.$nextTick(() => this.$refs.use && this.$refs.use.focus())
             }, 'image/jpeg', 0.85)
         },
 
         use() {
             if (! this.blob) return
+
+            try { if (! this.$wire.upload) throw new Error('no upload') } catch (error) {
+                this.step = 'error'
+
+                return
+            }
 
             this.step = 'uploading'
             this.progress = 0
@@ -117,13 +150,16 @@ document.addEventListener('alpine:init', () => {
 
         /** Close whatever is open and go back to the start. */
         cancel() {
+            let wasCamera = this.step === 'camera' || this.step === 'review'
             this.stopCamera()
             this.forget()
             this.step = 'idle'
+            if (wasCamera) this.$nextTick(() => this.$refs.take && this.$refs.take.focus())
         },
 
         skip() {
             this.cancel()
+            try { this.$wire.photoError = '' } catch (error) { /* no component */ }
             this.step = 'skipped'
         },
 
@@ -144,6 +180,27 @@ document.addEventListener('alpine:init', () => {
         say(kind) {
             this.status = ''
             this.$nextTick(() => { this.status = messages[kind] || '' })
+        },
+    }))
+})
+
+/** The last nickname used on this device, kept in the browser as a suggestion for the join form (never the photo). */
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('lammaRememberNickname', () => ({
+        init() {
+            try {
+                let last = localStorage.getItem('lamma_nickname')
+                if (! this.$el.value && last) {
+                    this.$el.value = last
+                    this.$el.dispatchEvent(new Event('input', { bubbles: true }))
+                }
+            } catch (error) { /* storage can be blocked */ }
+        },
+
+        remember() {
+            try {
+                if (this.$el.value.trim()) localStorage.setItem('lamma_nickname', this.$el.value.trim())
+            } catch (error) { /* storage can be blocked */ }
         },
     }))
 })

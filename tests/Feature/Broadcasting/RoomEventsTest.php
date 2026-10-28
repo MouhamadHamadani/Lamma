@@ -6,6 +6,7 @@ use App\Events\PlayerReadyChanged;
 use App\Events\RoomClosed;
 use App\Game\JoinException;
 use App\Game\PlayerIdentity;
+use App\Game\PlayerPhoto;
 use App\Game\RoomJoiner;
 use App\Game\RoomManager;
 use App\Game\RoomRoster;
@@ -21,7 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 
 /** Every key a player payload may have. Anything else (a token, an email, a user id) would be a leak. */
-const PLAYER_KEYS = ['id', 'is_ready', 'locale', 'nickname'];
+const PLAYER_KEYS = ['id', 'is_ready', 'locale', 'nickname', 'avatar_url'];
 
 function joinerAs(?string $token = null, ?User $user = null): RoomJoiner
 {
@@ -30,7 +31,7 @@ function joinerAs(?string $token = null, ?User $user = null): RoomJoiner
         $request->setUserResolver(fn () => $user);
     }
 
-    return new RoomJoiner(new PlayerIdentity($request));
+    return new RoomJoiner(new PlayerIdentity($request), app(PlayerPhoto::class));
 }
 
 describe('every lobby event', function () {
@@ -51,7 +52,7 @@ describe('every lobby event', function () {
         }
     });
 
-    it('carries only id, nickname, locale and is_ready for a player', function () {
+    it('carries only id, nickname, locale, avatar_url and is_ready for a player', function () {
         $room = Room::factory()->create();
         $guest = RoomPlayer::factory()->for($room)->create(['guest_token' => str_repeat('s', 64), 'nickname' => 'Sara', 'locale' => 'ar', 'is_ready' => true]);
         $account = RoomPlayer::factory()->for($room)->forUser(User::factory()->create(['email' => 'secret@example.com']))->create();
@@ -63,7 +64,7 @@ describe('every lobby event', function () {
                 ->and(array_keys($payload['player']))->toEqualCanonicalizing(PLAYER_KEYS)
                 ->and(json_encode($payload))->not->toContain(str_repeat('s', 64))->not->toContain('secret@example.com')->not->toContain('user_id')->not->toContain('guest_token');
         }
-        expect((new PlayerJoined($room, $guest))->broadcastWith()['player'])->toBe(['id' => $guest->id, 'nickname' => 'Sara', 'locale' => 'ar', 'is_ready' => true]);
+        expect((new PlayerJoined($room, $guest))->broadcastWith()['player'])->toBe(['id' => $guest->id, 'nickname' => 'Sara', 'locale' => 'ar', 'avatar_url' => null, 'is_ready' => true]);
     });
 
     it('carries only the code for a closed room', function () {
@@ -106,7 +107,7 @@ describe('every lobby event', function () {
         expect($sent)->toHaveCount(1)
             ->and($sent[0]['channels'])->toBe(['presence-room.K7MP9Z'])
             ->and($sent[0]['event'])->toBe('App\Events\PlayerReadyChanged')
-            ->and($sent[0]['payload']['player'])->toBe(['id' => $player->id, 'nickname' => 'Sara', 'locale' => $player->locale, 'is_ready' => true])
+            ->and($sent[0]['payload']['player'])->toBe(['id' => $player->id, 'nickname' => 'Sara', 'locale' => $player->locale, 'avatar_url' => null, 'is_ready' => true])
             ->and(json_encode($sent[0]['payload']))->not->toContain('guest_token');
     });
 });
@@ -120,7 +121,7 @@ describe('PlayerJoined', function () {
         $player = joinerAs()->join($room->code, 'Sara', 'ar');
 
         Event::assertDispatched(PlayerJoined::class, fn (PlayerJoined $e) => $e->roomCode === $room->code
-            && $e->broadcastWith()['player'] === ['id' => $player->id, 'nickname' => 'Sara', 'locale' => 'ar', 'is_ready' => false]);
+            && $e->broadcastWith()['player'] === ['id' => $player->id, 'nickname' => 'Sara', 'locale' => 'ar', 'avatar_url' => null, 'is_ready' => false]);
         Event::assertDispatchedTimes(PlayerJoined::class, 1);
     });
 

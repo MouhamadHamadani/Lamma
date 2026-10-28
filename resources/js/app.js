@@ -9,3 +9,5 @@ import './echo';
 import './lamma';
 
 import './analytics';
+
+import './selfie';

@@ -76,6 +76,7 @@ class HostLobby extends Component
             "{$channel},PlayerJoined" => 'playerJoined',
             "{$channel},PlayerLeft" => 'playerLeft',
             "{$channel},PlayerReadyChanged" => '$refresh',
+            "{$channel},PlayerUpdated" => '$refresh',
         ];
     }
 

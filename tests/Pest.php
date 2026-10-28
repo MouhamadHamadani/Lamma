@@ -14,6 +14,7 @@ use App\Models\RoomQuestion;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
@@ -34,7 +35,7 @@ pest()->extend(TestCase::class)
     ->in('Feature', 'Browser');
 
 // Selfies never touch the real folder in a test.
-pest()->beforeEach(fn () => Storage::fake(PlayerPhoto::DISK))->in('Feature');
+pest()->beforeEach(fn () => Storage::fake(PlayerPhoto::DISK))->in('Feature', 'Browser');
 
 // Browser tests (tests/Browser, run with `vendor/bin/pest tests/Browser`) load the BUILT assets, never a developer's running Vite dev server.
 pest()->beforeEach(fn () => Vite::useHotFile(storage_path('framework/no-hot-file')))->in('Browser');
@@ -182,4 +183,50 @@ function savedGame(User $user, int $score, array $rivals = ['Rival' => 100], int
     }
 
     return [$room, $mine];
+}
+
+/*
+|--------------------------------------------------------------------------
+| Selfies
+|--------------------------------------------------------------------------
+*/
+
+/** The bytes of a real JPEG: $width x $height, left half red and right half blue. */
+function jpegBytes(int $width = 640, int $height = 640, int $quality = 85): string
+{
+    $image = imagecreatetruecolor($width, $height);
+    imagefilledrectangle($image, 0, 0, intdiv($width, 2) - 1, $height - 1, (int) imagecolorallocate($image, 255, 0, 0));
+    imagefilledrectangle($image, intdiv($width, 2), 0, $width - 1, $height - 1, (int) imagecolorallocate($image, 0, 0, 255));
+
+    ob_start();
+    imagejpeg($image, null, $quality);
+
+    return (string) ob_get_clean();
+}
+
+function webpBytes(int $width = 300, int $height = 300): string
+{
+    $image = imagecreatetruecolor($width, $height);
+    ob_start();
+    imagewebp($image, null, 80);
+
+    return (string) ob_get_clean();
+}
+
+function upload(string $bytes, string $name = 'selfie.jpg'): UploadedFile
+{
+    return UploadedFile::fake()->createWithContent($name, $bytes);
+}
+
+function photos(): PlayerPhoto
+{
+    return app(PlayerPhoto::class);
+}
+
+/** The pixel of a WebP at x, y as [r, g, b]. */
+function pixelOf(string $webp, int $x, int $y): array
+{
+    $rgb = imagecolorat(imagecreatefromstring($webp), $x, $y);
+
+    return [($rgb >> 16) & 255, ($rgb >> 8) & 255, $rgb & 255];
 }

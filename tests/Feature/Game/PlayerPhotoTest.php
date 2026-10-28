@@ -4,48 +4,7 @@ use App\Game\PhotoException;
 use App\Game\PlayerPhoto;
 use App\Models\Room;
 use App\Models\RoomPlayer;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-
-/** The bytes of a real JPEG: $width x $height, left half red and right half blue. */
-function jpegBytes(int $width = 640, int $height = 640, int $quality = 85): string
-{
-    $image = imagecreatetruecolor($width, $height);
-    imagefilledrectangle($image, 0, 0, intdiv($width, 2) - 1, $height - 1, (int) imagecolorallocate($image, 255, 0, 0));
-    imagefilledrectangle($image, intdiv($width, 2), 0, $width - 1, $height - 1, (int) imagecolorallocate($image, 0, 0, 255));
-
-    ob_start();
-    imagejpeg($image, null, $quality);
-
-    return (string) ob_get_clean();
-}
-
-function webpBytes(int $width = 300, int $height = 300): string
-{
-    $image = imagecreatetruecolor($width, $height);
-    ob_start();
-    imagewebp($image, null, 80);
-
-    return (string) ob_get_clean();
-}
-
-function upload(string $bytes, string $name = 'selfie.jpg'): UploadedFile
-{
-    return UploadedFile::fake()->createWithContent($name, $bytes);
-}
-
-function photos(): PlayerPhoto
-{
-    return app(PlayerPhoto::class);
-}
-
-/** The pixel of a WebP at x, y as [r, g, b]. */
-function pixelOf(string $webp, int $x, int $y): array
-{
-    $rgb = imagecolorat(imagecreatefromstring($webp), $x, $y);
-
-    return [($rgb >> 16) & 255, ($rgb >> 8) & 255, $rgb & 255];
-}
 
 describe('process', function () {
     it('outputs a 256x256 WebP', function () {
@@ -210,20 +169,27 @@ describe('set', function () {
         expect(Storage::disk(PlayerPhoto::DISK)->allFiles())->toBe([]);
     });
 
-    it('limits uploads per player and per IP', function () {
+    it('limits uploads per participant and per IP', function () {
         config(['lamma.photo_uploads_per_minute' => 3, 'lamma.photo_uploads_per_ip_per_minute' => 5]);
-        $player = RoomPlayer::factory()->create();
 
         foreach (range(1, 3) as $n) {
-            photos()->set($player->fresh(), upload(jpegBytes(100, 100)));
+            photos()->throttle('guest:a');
         }
-        expect(fn () => photos()->set($player->fresh(), upload(jpegBytes(100, 100))))->toThrow(PhotoException::class, 'Too many photos');
+        expect(fn () => photos()->throttle('guest:a'))->toThrow(PhotoException::class, 'Too many photos');
 
-        // another player on the same IP still has room, until the IP's own limit (5) is used up
-        $other = RoomPlayer::factory()->create();
-        photos()->set($other, upload(jpegBytes(100, 100)));
-        photos()->set($other->fresh(), upload(jpegBytes(100, 100)));
-        expect(fn () => photos()->set($other->fresh(), upload(jpegBytes(100, 100))))->toThrow(PhotoException::class);
+        // another participant on the same IP still has room, until the IP's own limit (5) is used up
+        photos()->throttle('guest:b');
+        photos()->throttle('guest:b');
+        expect(fn () => photos()->throttle('guest:b'))->toThrow(PhotoException::class);
+    });
+
+    it('counts a first visit with no account or device by IP alone', function () {
+        config(['lamma.photo_uploads_per_ip_per_minute' => 2]);
+
+        photos()->throttle(null);
+        photos()->throttle(null);
+
+        expect(fn () => photos()->throttle(null))->toThrow(PhotoException::class);
     });
 });
 

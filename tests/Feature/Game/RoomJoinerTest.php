@@ -2,6 +2,7 @@
 
 use App\Game\JoinException;
 use App\Game\PlayerIdentity;
+use App\Game\PlayerPhoto;
 use App\Game\RoomCodeGenerator;
 use App\Game\RoomJoiner;
 use App\Models\Room;
@@ -17,7 +18,7 @@ function joinerFor(?User $user = null, ?string $token = null): RoomJoiner
         $request->setUserResolver(fn () => $user);
     }
 
-    return new RoomJoiner(new PlayerIdentity($request));
+    return new RoomJoiner(new PlayerIdentity($request), app(PlayerPhoto::class));
 }
 
 function joinError(callable $join): JoinException

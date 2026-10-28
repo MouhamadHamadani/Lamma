@@ -45,8 +45,6 @@ class PlayerPhoto
             throw PhotoException::off();
         }
 
-        $this->throttle($player);
-
         if (! $file->isValid() || ($file->getSize() ?: 0) > self::MAX_BYTES) {
             throw PhotoException::tooLarge();
         }
@@ -73,14 +71,18 @@ class PlayerPhoto
         }
     }
 
-    /** Decode, crop to a square, resize and re-encode: the bytes of a 256x256 WebP, with no metadata. */
-    public function process(string $bytes): string
+    /**
+     * Is this a picture we would accept? Checks the size and what the bytes really are (not the name, not the type the client claims) without
+     * decoding it. Used to answer straight after an upload; process() runs it again.
+     *
+     * @return array{0: int, 1: int} width and height
+     *
+     * @throws PhotoException
+     */
+    public function validate(string $bytes): array
     {
         if (strlen($bytes) > self::MAX_BYTES) {
             throw PhotoException::tooLarge();
-        }
-        if (! function_exists('imagewebp')) {
-            throw PhotoException::unavailable();
         }
 
         $mime = $bytes === '' ? false : (new finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
@@ -93,6 +95,18 @@ class PlayerPhoto
         if ($width < 1 || $height < 1 || $width * $height > self::MAX_PIXELS) {
             throw PhotoException::tooLarge();
         }
+
+        return [$width, $height];
+    }
+
+    /** Decode, crop to a square, resize and re-encode: the bytes of a 256x256 WebP, with no metadata. */
+    public function process(string $bytes): string
+    {
+        if (! function_exists('imagewebp')) {
+            throw PhotoException::unavailable();
+        }
+
+        [$width, $height] = $this->validate($bytes);
 
         $source = @imagecreatefromstring($bytes);
         if ($source === false) {
@@ -172,13 +186,18 @@ class PlayerPhoto
         return Storage::disk(self::DISK);
     }
 
-    /** Per player and per IP (a family on one Wi-Fi shares an address, so that limit is wider). */
-    private function throttle(RoomPlayer $player): void
+    /**
+     * Count one upload against this participant (PlayerIdentity::participantKey(): the account or the device, null before a first visit has
+     * either) and against this IP (a family on one Wi-Fi shares an address, so that limit is wider). Per minute; throws when either is used up.
+     *
+     * @throws PhotoException
+     */
+    public function throttle(?string $participant): void
     {
-        $limits = [
-            'photo:player:'.$player->id => (int) config('lamma.photo_uploads_per_minute'),
-            'photo:ip:'.request()->ip() => (int) config('lamma.photo_uploads_per_ip_per_minute'),
-        ];
+        $limits = ['photo:ip:'.request()->ip() => (int) config('lamma.photo_uploads_per_ip_per_minute')];
+        if ($participant !== null) {
+            $limits['photo:who:'.$participant] = (int) config('lamma.photo_uploads_per_minute');
+        }
 
         foreach ($limits as $key => $max) {
             if (RateLimiter::tooManyAttempts($key, $max)) {

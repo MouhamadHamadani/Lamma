@@ -26,7 +26,7 @@
             <input
                 id="join-code" type="text" dir="ltr" wire:model="code" value="{{ $code }}" maxlength="6" data-test="code-input"
                 autocomplete="off" autocapitalize="characters" spellcheck="false" @if ($code === '') autofocus @endif
-                x-data x-on:input="$el.value = $el.value.toUpperCase().replace(/[^{{ RoomCodeGenerator::ALPHABET }}]/g, '').slice(0, 6)"
+                x-data x-on:input="$el.value = $el.value.toUpperCase().replace(/[^{{ RoomCodeGenerator::ALPHABET }}]/g, '').slice(0, 6); if ($el.value.length === 6) $wire.$set('code', $el.value)"
                 @error('code') aria-invalid="true" aria-describedby="join-code-error" @enderror
                 class="{{ $input }} h-16 text-center font-display text-3xl font-extrabold uppercase tracking-[10px] {{ $errors->has('code') ? 'border-coral-700' : 'border-line' }}"
             >
@@ -40,6 +40,8 @@
             <input
                 id="join-nickname" type="text" dir="ltr" wire:model="nickname" value="{{ $nickname }}" maxlength="20" data-test="nickname-input"
                 autocomplete="nickname" placeholder="{{ __('e.g. Sara') }}" @if ($code !== '') autofocus @endif
+                {{-- The last nickname used on this device is only a suggestion, kept in the browser (never the photo): it fills an empty field, and is remembered when the form is sent. --}}
+                x-data="lammaRememberNickname" x-on:submit.window="remember()"
                 @error('nickname') aria-invalid="true" aria-describedby="join-nickname-error" @enderror
                 class="{{ $input }} h-14 text-lg font-semibold {{ $errors->has('nickname') ? 'border-coral-700' : 'border-line' }}"
             >
@@ -47,6 +49,14 @@
                 <x-lamma.error id="join-nickname-error" data-test="nickname-error">{{ $message }}</x-lamma.error>
             @enderror
         </div>
+
+        {{-- The selfie step, only for a room with photos on. Live camera only: there is no file picker anywhere. --}}
+        @if ($photosOn)
+            <div class="flex flex-col items-center gap-3 rounded-card border-2 border-line bg-white px-4 py-5" data-test="selfie-step">
+                <h2 class="text-[15px] font-bold">{{ __('Your selfie') }} <span class="font-medium text-ink-subtle">({{ __('optional') }})</span></h2>
+                <x-lamma.selfie />
+            </div>
+        @endif
 
         <div class="flex flex-col gap-2" role="group" aria-labelledby="join-language">
             <span id="join-language" class="text-[15px] font-bold">{{ __('Play in') }}</span>

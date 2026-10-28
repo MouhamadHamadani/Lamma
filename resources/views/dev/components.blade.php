@@ -202,6 +202,13 @@
                 </div>
 
                 <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Selfie step · live camera only (no file picker) · outside a room it shows the start state</h3>
+                    <div class="max-w-sm rounded-card border-2 border-line bg-white px-4 py-5">
+                        <x-lamma.selfie />
+                    </div>
+                </div>
+
+                <div class="space-y-4">
                     <h3 class="font-display text-2xl font-bold">Segmented · category toggle</h3>
                     <div class="grid max-w-3xl grid-cols-2 gap-6">
                         <x-lamma.segmented label="Number of questions" :options="[5 => '5', 10 => '10', 15 => '15', 20 => '20']" :selected="10" />

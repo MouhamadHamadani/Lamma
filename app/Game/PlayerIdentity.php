@@ -61,6 +61,18 @@ class PlayerIdentity
         return $token;
     }
 
+    /** A short, stable key for rate limits: the account, or the device (a hash, never the token itself), or null for a first visit with neither. */
+    public function participantKey(): ?string
+    {
+        if ($user = $this->user()) {
+            return "user:{$user->id}";
+        }
+
+        $token = $this->guestToken();
+
+        return $token === null ? null : 'guest:'.substr(hash('sha256', $token), 0, 20);
+    }
+
     /**
      * The room_players columns that identify this participant when a row is created: user_id for a logged-in user,
      * otherwise the guest token (issued if the device has none yet).

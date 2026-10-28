@@ -5,10 +5,15 @@ namespace App\Game;
 use App\Enums\RoomStatus;
 use App\Events\PlayerLeft;
 use App\Events\PlayerReadyChanged;
+use App\Events\PlayerUpdated;
 use App\Models\Room;
 use App\Models\RoomPlayer;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * Who is in a room's lobby and in what state, and the broadcast that goes with each change.
@@ -18,6 +23,98 @@ class RoomRoster
 {
     /** How long a disconnected player stays in the lobby before they are dropped. */
     public const GRACE_SECONDS = 30;
+
+    public function __construct(private readonly PlayerPhoto $photos) {}
+
+    /**
+     * A player changes their nickname in the lobby. The same rules as joining: 2 to 20 characters, unique in the room ignoring case. Returns
+     * whether anything changed; the others are told.
+     *
+     * @throws JoinException when the name is taken
+     */
+    public function rename(RoomPlayer $player, string $nickname): bool
+    {
+        $room = $player->room;
+        $nickname = Str::squish($nickname);
+        if ($room->status !== RoomStatus::Lobby || $nickname === $player->nickname) {
+            return false;
+        }
+        if ($room->hasNickname($nickname, $player->id)) {
+            throw JoinException::nicknameTaken();
+        }
+
+        try {
+            $player->update(['nickname' => $nickname]);
+        } catch (UniqueConstraintViolationException) {
+            throw JoinException::nicknameTaken();
+        }
+        PlayerUpdated::broadcast($room, $player)->toOthers();
+
+        return true;
+    }
+
+    /**
+     * A player's new selfie, until the game starts. The old file is deleted; the others are told.
+     *
+     * @throws PhotoException
+     */
+    public function setPhoto(RoomPlayer $player, UploadedFile $file): void
+    {
+        $room = $player->room;
+        if ($room->status !== RoomStatus::Lobby) {
+            throw PhotoException::unavailable();
+        }
+
+        $this->photos->set($player, $file);
+        PlayerUpdated::broadcast($room, $player)->toOthers();
+    }
+
+    /** A player takes their own photo away (back to the initial). Returns whether they had one. */
+    public function removePhoto(RoomPlayer $player): bool
+    {
+        $room = $player->room;
+        if ($room->status !== RoomStatus::Lobby || ! $this->photos->remove($player)) {
+            return false;
+        }
+
+        PlayerUpdated::broadcast($room, $player)->toOthers();
+
+        return true;
+    }
+
+    /**
+     * The host takes a player's photo down (a picture that should not be on the screen), in any state of the game. The phone shows "The host
+     * removed your photo" the next time it draws (a cache marker, so a phone that missed the broadcast still finds out).
+     *
+     * @throws AuthorizationException
+     */
+    public function removePhotoAsHost(Room $room, User $by, int $playerId): bool
+    {
+        if ($room->host_id !== $by->id) {
+            throw new AuthorizationException('Only the host can remove a photo.');
+        }
+
+        $player = $room->players()->find($playerId);
+        if ($player === null || ! $this->photos->remove($player)) {
+            return false;
+        }
+
+        Cache::put(self::hostRemovedKey($player->id), true, now()->addHour());
+        PlayerUpdated::broadcast($room, $player)->toOthers();
+
+        return true;
+    }
+
+    /** Was this player's photo taken down by the host? Asking forgets it, so the message shows once. */
+    public static function wasRemovedByHost(int $playerId): bool
+    {
+        return Cache::pull(self::hostRemovedKey($playerId)) === true;
+    }
+
+    private static function hostRemovedKey(int $playerId): string
+    {
+        return "player:{$playerId}:photo-removed-by-host";
+    }
 
     /** Tap Ready on or off. Returns whether anything changed. */
     public function setReady(RoomPlayer $player, bool $ready): bool

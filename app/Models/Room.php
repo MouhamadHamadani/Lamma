@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -82,6 +83,21 @@ class Room extends Model
         return $this->status === RoomStatus::Finished
             && $this->roomQuestions()->exists()
             && ! $this->roomQuestions()->whereNull('revealed_at')->exists();
+    }
+
+    /** Nicknames are unique in a room, ignoring case (a unique index backs this up). $exceptPlayerId lets a player keep their own name. */
+    public function hasNickname(string $nickname, ?int $exceptPlayerId = null): bool
+    {
+        return $this->players()
+            ->whereRaw('LOWER(nickname) = ?', [mb_strtolower($nickname)])
+            ->when($exceptPlayerId, fn ($query) => $query->whereKeyNot($exceptPlayerId))
+            ->exists();
+    }
+
+    /** @return HasOne<Room, $this> the finished room this one replaced after "Play again" (so this lobby is a rematch), if any */
+    public function previous(): HasOne
+    {
+        return $this->hasOne(self::class, 'next_room_id');
     }
 
     /** @return BelongsTo<Room, $this> */
