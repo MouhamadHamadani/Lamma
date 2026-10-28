@@ -69,7 +69,8 @@ it('shows the photos in the lobby, with no scroll', function (int $width, int $h
 
     $page = visit("/host/{$room->code}")->resize($width, $height)->wait(1);
 
-    $page->assertSeeIn('[data-test=ready-count]', 'of 10 ready')->assertScript(photosLoaded(10));
+    $page->assertSeeIn('[data-test=ready-count]', 'of 10 ready')->assertScript(photosLoaded(10))
+        ->assertScript("document.querySelectorAll('[data-test=remove-photo]').length === 10 && document.querySelectorAll('[data-test=remove-player]').length === 10");
     photoNoScroll($page);
     $page->assertNoSmoke()->assertNoAccessibilityIssues();
 })->with('host screens');

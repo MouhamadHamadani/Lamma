@@ -95,12 +95,27 @@ class RoomRoster
         }
 
         $player = $room->players()->find($playerId);
-        if ($player === null || ! $this->photos->remove($player)) {
+
+        return $player !== null && $this->takeDown($player);
+    }
+
+    /**
+     * The admin panel takes a photo down (moderation, in any room). Same effect as the host's, and the phone says so the same way. The panel's
+     * own login is the authorization.
+     */
+    public function removePhotoAsAdmin(RoomPlayer $player): bool
+    {
+        return $this->takeDown($player);
+    }
+
+    private function takeDown(RoomPlayer $player): bool
+    {
+        if (! $this->photos->remove($player)) {
             return false;
         }
 
         Cache::put(self::hostRemovedKey($player->id), true, now()->addHour());
-        PlayerUpdated::broadcast($room, $player)->toOthers();
+        PlayerUpdated::broadcast($player->room, $player)->toOthers();
 
         return true;
     }

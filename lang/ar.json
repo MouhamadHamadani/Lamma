@@ -410,5 +410,7 @@
     "Keep your name for this round, or pick a new one.": "أبقِ اسمك لهذه الجولة، أو اختر اسمًا جديدًا.",
     "Keep": "إبقاء",
     "Change": "تغيير",
-    "Done": "تم"
+    "Done": "تم",
+    "Remove photo": "إزالة الصورة",
+    "Remove :name's photo": "إزالة صورة :name"
 }

@@ -410,5 +410,7 @@
     "Keep your name for this round, or pick a new one.": "Keep your name for this round, or pick a new one.",
     "Keep": "Keep",
     "Change": "Change",
-    "Done": "Done"
+    "Done": "Done",
+    "Remove photo": "Remove photo",
+    "Remove :name's photo": "Remove :name's photo"
 }

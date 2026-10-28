@@ -151,6 +151,14 @@ class HostLobby extends Component
         $roster->remove($this->room, $identity->user() ?? abort(403), $playerId);
     }
 
+    /** Take down a photo that should not be on the screen. The player is back to their initial, and told. */
+    public function removePhoto(RoomRoster $roster, PlayerIdentity $identity, int $playerId): void
+    {
+        $this->authorize('host', $this->room);
+
+        $roster->removePhotoAsHost($this->room, $identity->user() ?? abort(403), $playerId);
+    }
+
     public function start(GameEngine $engine, PlayerIdentity $identity): void
     {
         $this->authorize('host', $this->room);

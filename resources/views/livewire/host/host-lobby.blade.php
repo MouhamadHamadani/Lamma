@@ -67,6 +67,14 @@
                     @foreach ($players as $index => $player)
                         <x-lamma.player-row :player="$player" :index="$index" wire:key="player-{{ $player->id }}">
                             <x-slot:actions>
+                                @if ($player->avatar_path)
+                                    {{-- For a picture that should not be on the screen: the player is back to their initial and is told. --}}
+                                    <button
+                                        type="button" wire:click="removePhoto({{ $player->id }})" data-test="remove-photo" title="{{ __('Remove photo') }}"
+                                        aria-label="{{ __("Remove :name's photo", ['name' => $player->nickname]) }}"
+                                        class="flex size-9 shrink-0 items-center justify-center rounded-full text-ink-subtle hover:bg-tint-coral hover:text-coral-700"
+                                    ><x-lamma.icon name="camera-off" :size="18" :stroke="2.2" /></button>
+                                @endif
                                 <button
                                     type="button" wire:click="removePlayer({{ $player->id }})" data-test="remove-player"
                                     aria-label="{{ __('Remove :name', ['name' => $player->nickname]) }}"

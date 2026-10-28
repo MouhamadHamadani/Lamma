@@ -36,6 +36,10 @@ class RoomInfolist
                     ->placeholder('Any'),
                 TextEntry::make('host_screen_locale')
                     ->state(fn (Room $record) => $record->settings->hostScreenLocale),
+                TextEntry::make('show_photos')
+                    ->label('Player photos')
+                    ->state(fn (Room $record): string => $record->settings->showPhotos ? 'On' : 'Off')
+                    ->badge(),
             ])
             ->columns(3);
     }

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Rooms;
 
 use App\Filament\Resources\Rooms\Pages\ListRooms;
 use App\Filament\Resources\Rooms\Pages\ViewRoom;
+use App\Filament\Resources\Rooms\RelationManagers\PlayersRelationManager;
 use App\Filament\Resources\Rooms\Schemas\RoomInfolist;
 use App\Filament\Resources\Rooms\Tables\RoomsTable;
 use App\Models\Room;
@@ -38,6 +39,13 @@ class RoomResource extends Resource
     public static function table(Table $table): Table
     {
         return RoomsTable::configure($table);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            PlayersRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
