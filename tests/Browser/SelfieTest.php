@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Room;
+use App\Models\RoomPlayer;
+use App\Models\User;
 use Tests\Browser\Support\FakeCamera;
 
 /*
@@ -85,12 +87,14 @@ it('takes a live selfie and sends it for upload, at 390x844, in both languages',
         ->assertScript("document.querySelector('[data-test=selfie] video').classList.contains('-scale-x-100')")
         ->assertScript("JSON.parse(window.__constraints).audio === false && JSON.parse(window.__constraints).video.facingMode === 'user'")
         ->assertScript('document.documentElement.scrollWidth <= window.innerWidth + 1')
+        ->assertScript("[...document.querySelectorAll('[data-test=selfie] button')].filter((b) => b.offsetParent !== null).every((b) => b.offsetHeight >= 44 && b.offsetWidth >= 44)")
         ->assertNoAccessibilityIssues();
 
     $page->click('[data-test=selfie-shutter]')->wait(1)
         ->assertScript("document.querySelector('[data-test=selfie]').dataset.step === 'review'")
         ->assertScript(ALL_CAMERA_TRACKS_ENDED)                                  // the camera light is off after the shot
         ->assertScript("document.querySelector('[data-test=selfie] video').srcObject === null")
+        ->assertScript("[...document.querySelectorAll('[data-test=selfie] button')].filter((b) => b.offsetParent !== null).every((b) => b.offsetHeight >= 44)")
         ->assertNoAccessibilityIssues();
 
     // Drawn straight from the video onto the canvas, centre-cropped to a square, with an untouched (not mirrored) transform.
@@ -103,6 +107,11 @@ it('takes a live selfie and sends it for upload, at 390x844, in both languages',
         ->assertScript("window.__uploads.length === 1 && window.__uploads[0].url.includes('upload-file') && window.__uploads[0].type === 'image/jpeg' && window.__uploads[0].name === 'selfie.jpg'")
         ->assertScript('window.__uploads[0].width === window.__uploads[0].height && window.__uploads[0].width <= 640 && window.__uploads[0].size < 3 * 1024 * 1024')
         ->assertScript(ALL_CAMERA_TRACKS_ENDED);
+
+    // The outcome is read out: the live region says it in the player's language.
+    $added = $locale === 'ar' ? 'تمت إضافة الصورة' : 'Photo added';
+    $page->script("window.dispatchEvent(new CustomEvent('photo-status', { detail: { kind: 'added' } })); true");
+    $page->wait(1)->assertSeeIn('[data-test=selfie-status]', $added);
 
     // Whatever happens to the photo, the player can skip it and join.
     $page->assertNoSmoke();
@@ -178,3 +187,23 @@ it('shows nothing about photos when the host turned them off', function () {
         ->assertDontSee('selfie')->assertDontSee('Your photo is shown')
         ->assertNoSmoke()->assertNoAccessibilityIssues();
 });
+
+it('opens the profile panel from the avatar in the phone lobby, in both languages, with no scroll sideways or accessibility problem', function (string $locale, string $dir) {
+    $user = User::factory()->create(['preferred_locale' => $locale]);
+    $room = Room::factory()->create();
+    RoomPlayer::factory()->for($room)->forUser($user)->create(['nickname' => 'Layla', 'locale' => $locale, 'left_at' => null]);
+    $this->actingAs($user);
+
+    $page = visit("/play/{$room->code}")->resize(390, 844)->wait(2);
+
+    $page->assertScript("document.documentElement.dir === '{$dir}'")
+        ->assertScript("document.querySelector('[data-test=avatar-button]').getAttribute('aria-expanded') === 'false'")
+        ->assertScript("document.querySelector('[data-test=avatar-button]').offsetHeight >= 44")
+        ->click('[data-test=avatar-button]')->wait(1)
+        ->assertScript("document.querySelector('[data-test=avatar-button]').getAttribute('aria-expanded') === 'true'")
+        ->assertVisible('[data-test=profile-panel]')->assertVisible('[data-test=selfie-take]')
+        ->assertScript("document.querySelector('[data-test=profile-nickname]').getAttribute('dir') === 'ltr'")
+        ->assertScript('document.documentElement.scrollWidth <= window.innerWidth + 1')
+        ->assertScript('document.querySelectorAll("input[type=file]").length === 0')
+        ->assertNoSmoke()->assertNoAccessibilityIssues();
+})->with('locales');
