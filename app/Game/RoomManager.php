@@ -19,6 +19,7 @@ class RoomManager
     public function __construct(
         private readonly RoomCodeGenerator $codes,
         private readonly QuestionPool $questions,
+        private readonly PlayerPhoto $photos,
     ) {}
 
     /**
@@ -80,9 +81,10 @@ class RoomManager
 
             $new = $this->create($by, $locked->settings);
 
-            // A new row starts disconnected: its phone has not joined the new room's channel yet (see RoomRoster).
+            // A new row starts disconnected: its phone has not joined the new room's channel yet (see RoomRoster). Each player's name and photo come
+            // with them as a suggestion (they can change both before pressing Ready); the photo is a COPY, so deleting one room never breaks the other.
             foreach ($locked->players()->connected()->orderBy('joined_at')->orderBy('id')->get() as $player) {
-                RoomPlayer::create([
+                $copy = RoomPlayer::create([
                     'room_id' => $new->id,
                     'user_id' => $player->user_id,
                     'guest_token' => $player->guest_token,
@@ -93,6 +95,10 @@ class RoomManager
                     'joined_at' => now(),
                     'left_at' => now(),
                 ]);
+
+                if ($new->settings->showPhotos) {
+                    $this->photos->copy($player, $copy);
+                }
             }
 
             $locked->update(['next_room_id' => $new->id]);

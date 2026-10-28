@@ -12,7 +12,11 @@ class Housekeeping
     /** A lobby nobody started within this many hours was abandoned. */
     public const LOBBY_HOURS = 6;
 
-    public function __construct(private readonly RoomManager $rooms, private readonly SeenQuestions $seen) {}
+    public function __construct(
+        private readonly RoomManager $rooms,
+        private readonly SeenQuestions $seen,
+        private readonly PlayerPhoto $photos,
+    ) {}
 
     /**
      * Finish lobbies older than LOBBY_HOURS (a host who opened a room and left). It goes through RoomManager::close, so any phone still
@@ -27,6 +31,8 @@ class Housekeeping
         Room::query()->where('status', RoomStatus::Lobby)->where('created_at', '<', now()->subHours(self::LOBBY_HOURS))
             ->each(function (Room $room) use (&$closed) {
                 $this->rooms->close($room);
+                // Nobody will see this room's results, so its photos go at once instead of waiting out the retention time.
+                $this->photos->purge($room);
                 $closed++;
             });
 
@@ -56,5 +62,29 @@ class Housekeeping
     public function forgetGuestSightings(): int
     {
         return $this->seen->pruneGuests();
+    }
+
+    /**
+     * Delete the selfies of every room that is over: finished more than lamma.photo_retention_hours ago (a room closed with "Close room" keeps
+     * its photos that long, so the results screen still has them), or never finished and older than that (a game nobody ended). The room's
+     * photo folder goes with them, and so does any folder whose room no longer exists.
+     *
+     * @return int how many photos were deleted
+     */
+    public function prunePhotos(): int
+    {
+        $cutoff = now()->subHours((int) config('lamma.photo_retention_hours'));
+        $photos = 0;
+
+        Room::query()
+            ->whereHas('players', fn ($players) => $players->whereNotNull('avatar_path'))
+            ->where(fn ($rooms) => $rooms
+                ->where(fn ($finished) => $finished->where('status', RoomStatus::Finished)->where('finished_at', '<', $cutoff))
+                ->orWhere(fn ($open) => $open->where('status', '!=', RoomStatus::Finished)->where('created_at', '<', $cutoff)))
+            ->each(function (Room $room) use (&$photos) {
+                $photos += $this->photos->purge($room);
+            });
+
+        return $photos + $this->photos->sweepOrphans();
     }
 }

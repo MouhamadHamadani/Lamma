@@ -106,10 +106,10 @@ describe('guest tokens', function () {
     });
 });
 
-it('is scheduled daily', function () {
+it('is scheduled hourly, so a photo outlives its retention time by under an hour', function () {
     $events = collect(app(Schedule::class)->events())->filter(fn ($event) => str_contains($event->command, 'lamma:prune'));
 
-    expect($events)->toHaveCount(1)->and($events->first()->expression)->toBe('0 0 * * *');
+    expect($events)->toHaveCount(1)->and($events->first()->expression)->toBe('0 * * * *');
 });
 
 it('can be run from the Housekeeping service too', function () {

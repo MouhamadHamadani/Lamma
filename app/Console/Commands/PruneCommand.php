@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
 #[Signature('lamma:prune')]
-#[Description('Close abandoned lobbies and forget the guest tokens and sightings that can no longer be claimed')]
+#[Description('Close abandoned lobbies, delete expired player photos and forget the guest tokens and sightings that can no longer be claimed')]
 class PruneCommand extends Command
 {
     public function handle(Housekeeping $housekeeping): int
@@ -17,12 +17,14 @@ class PruneCommand extends Command
         $lobbies = $housekeeping->closeAbandonedLobbies();
         $tokens = $housekeeping->clearExpiredGuestTokens();
         $sightings = $housekeeping->forgetGuestSightings();
+        $photos = $housekeeping->prunePhotos();
 
         // The scheduler's heartbeat: `lamma:doctor` reads it to know the cron line is alive (see config/lamma.php).
         Cache::forever(config('lamma.heartbeat_key'), now()->timestamp);
 
         $this->info("Closed {$lobbies} abandoned lobbies, cleared {$tokens} expired guest tokens.");
         $this->info("Forgot {$sightings} guest sightings.");
+        $this->info("Deleted {$photos} expired player photos.");
 
         return self::SUCCESS;
     }

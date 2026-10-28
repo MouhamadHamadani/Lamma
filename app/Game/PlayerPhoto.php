@@ -170,6 +170,24 @@ class PlayerPhoto
             ->update(['avatar_path' => null, 'avatar_updated_at' => null]);
     }
 
+    /**
+     * Folders of rooms that no longer exist (a database that was reset, a rollback) hold photos nobody can reach: delete them. Returns how many files.
+     */
+    public function sweepOrphans(): int
+    {
+        $disk = $this->disk();
+        $files = 0;
+
+        foreach ($disk->directories('rooms') as $directory) {
+            if (! Room::query()->whereKey((int) basename($directory))->exists()) {
+                $files += count($disk->allFiles($directory));
+                $disk->deleteDirectory($directory);
+            }
+        }
+
+        return $files;
+    }
+
     /** Just a deleted room's folder (its rows are gone with it). */
     public function purgeFolder(int $roomId): void
     {
