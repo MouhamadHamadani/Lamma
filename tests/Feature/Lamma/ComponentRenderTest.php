@@ -211,6 +211,30 @@ describe('avatar', function () {
         expect(lamma('<x-lamma.avatar name="A" color="bg-navy" />'))->toContain('bg-navy');
     });
 
+    it('shows a selfie in the same ring: a round image, alt = the nickname, lazy, with the initial underneath and a fallback when it fails', function () {
+        $html = lamma('<x-lamma.avatar name="Sara" :size="72" photo="/storage/player-photos/rooms/1/a.webp" />');
+
+        expect($html)->toContain('<img')->toContain('src="/storage/player-photos/rooms/1/a.webp"')->toContain('alt="Sara"')->toContain('loading="lazy"')
+            ->toContain('object-cover')->toContain('rounded-full')->toContain('border-3 border-navy')->toContain('width: 72px')
+            ->toContain('onerror="this.remove()"')->toContain('>S<');
+    });
+
+    it('loads the photo eagerly where it is the first thing on screen', function () {
+        expect(lamma('<x-lamma.avatar name="Sara" photo="/a.webp" :lazy="false" />'))->toContain('loading="eager"')->not->toContain('loading="lazy"');
+    });
+
+    it('has no image without a photo, and keeps the decorative initial hidden from screen readers', function (?string $photo) {
+        $html = lamma('<x-lamma.avatar name="Sara" :photo="$photo" />', ['photo' => $photo]);
+
+        expect($html)->not->toContain('<img')->toContain('<span aria-hidden="true">S</span>');
+    })->with([[null], ['']]);
+
+    it('escapes a nickname that tries to break out of the alt text', function () {
+        $html = lamma('<x-lamma.avatar :name="$name" photo="/a.webp" />', ['name' => '"><script>alert(1)</script>']);
+
+        expect($html)->not->toContain('<script>alert')->toContain('&quot;&gt;&lt;script&gt;');
+    });
+
     it('adds the teal answered badge only when checked', function () {
         expect(lamma('<x-lamma.avatar name="A" checked />'))->toContain('bg-teal')->toContain('M5 12.5l4.5 4.5L19 7.5');
         expect(lamma('<x-lamma.avatar name="A" />'))->not->toContain('M5 12.5l4.5 4.5L19 7.5');

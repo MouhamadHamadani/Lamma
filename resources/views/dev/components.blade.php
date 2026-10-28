@@ -5,7 +5,7 @@
         $planets = [['Venus', 'الزهرة'], ['Mars', 'المريخ'], ['Jupiter', 'المشتري'], ['Saturn', 'زحل']];
         $endsAt = now()->addSeconds(12);
         $endsSoon = now()->addSeconds(4);
-        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'leaf', 'compass', 'sparkles', 'home', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key'];
+        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'leaf', 'compass', 'sparkles', 'home', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key', 'camera'];
     @endphp
 
     <main class="mx-auto max-w-[1600px] space-y-20 p-8">
@@ -15,8 +15,9 @@
             @php
                 app()->setLocale($loc);
                 $ar = $loc === 'ar';
+                $samplePhoto = 'data:image/svg+xml;utf8,'.rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="gold"/><circle cx="32" cy="26" r="11" fill="midnightblue"/><path d="M10 64c2-16 12-22 22-22s20 6 22 22z" fill="tomato"/></svg>');
                 $players = [
-                    ['nickname' => $ar ? 'سارة' : 'Sara', 'locale' => $loc, 'is_ready' => true],
+                    ['nickname' => $ar ? 'سارة' : 'Sara', 'locale' => $loc, 'is_ready' => true, 'avatar_url' => $samplePhoto],
                     ['nickname' => $ar ? 'علي' : 'Ali', 'locale' => 'ar', 'is_ready' => true],
                     ['nickname' => $ar ? 'مايا' : 'Maya', 'locale' => 'en', 'is_ready' => false],
                 ];
@@ -177,6 +178,12 @@
                         @endforeach
                         <x-lamma.avatar name="Sara" :color="0" checked />
                         <x-lamma.avatar name="Maya" :color="2" class="opacity-40" />
+                        {{-- A selfie (any size, same navy ring), and the fallbacks: a photo that fails to load shows the initial. --}}
+                        @foreach ([36, 72, 120] as $size)
+                            <x-lamma.avatar :name="$players[0]['nickname']" :size="$size" :photo="$samplePhoto" data-test="avatar-photo" />
+                        @endforeach
+                        <x-lamma.avatar :name="$players[2]['nickname']" :color="1" :size="72" photo="/not-a-photo.webp" data-test="avatar-broken-photo" />
+                        <x-lamma.avatar :name="$players[0]['nickname']" :size="48" :photo="$samplePhoto" checked />
                         <x-lamma.status-pill ready />
                         <x-lamma.status-pill />
                     </div>
