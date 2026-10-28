@@ -64,7 +64,7 @@
                     @endif
                     <div class="flex -space-x-3 motion-safe:animate-fade-in rtl:space-x-reverse" style="animation-delay: {{ $barDelay[$rank] + 300 }}ms">
                         @foreach ($players->take(3) as $player)
-                            <x-lamma.avatar :name="$player['nickname']" :color="$colors[$player['id']] ?? 0" :size="$size" />
+                            <x-lamma.avatar :name="$player['nickname']" :color="$colors[$player['id']] ?? 0" :size="$size" :photo="$player['avatar_url'] ?? null" />
                         @endforeach
                         @if ($players->count() > 3)
                             <span dir="ltr" class="flex shrink-0 items-center justify-center rounded-full border-3 border-navy bg-white font-display font-extrabold text-navy" style="width: {{ $size }}px; height: {{ $size }}px">+{{ $players->count() - 3 }}</span>

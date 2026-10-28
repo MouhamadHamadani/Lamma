@@ -23,7 +23,7 @@
                 ])
             >
                 <span dir="ltr" @class(['w-6 text-center font-display text-xl font-extrabold', 'text-sun' => $row['rank'] === 1, 'text-ink-on-dark' => $row['rank'] !== 1])>{{ $row['rank'] }}</span>
-                <x-lamma.avatar :name="$row['player']['nickname']" :color="$colors[$id] ?? $index" :size="36" />
+                <x-lamma.avatar :name="$row['player']['nickname']" :color="$colors[$id] ?? $index" :size="36" :photo="$row['player']['avatar_url'] ?? null" />
                 <span class="grow truncate text-[17px] font-bold"><bdi dir="ltr">{{ $row['player']['nickname'] }}</bdi></span>
                 <span dir="ltr" class="text-end">
                     <span class="block font-display text-xl font-extrabold leading-none" data-test="total">{{ $row['total'] }}</span>

@@ -8,14 +8,18 @@ use App\Models\RoomPlayer;
 /** Someone locked in an answer. Says who and how many have answered, never what they chose. */
 class PlayerAnswered extends RoomEvent
 {
-    /** @var array{id: int, nickname: string} */
+    /** @var array{id: int, nickname: string, avatar_url?: string|null} */
     public readonly array $player;
 
     public function __construct(Room $room, RoomPlayer $player, public readonly int $position, public readonly int $answered, public readonly int $expected)
     {
         parent::__construct($room->code);
 
-        $this->player = ['id' => $player->id, 'nickname' => $player->nickname];
+        $this->player = [
+            'id' => $player->id,
+            'nickname' => $player->nickname,
+            ...($room->settings->showPhotos ? ['avatar_url' => $player->avatarUrl()] : []),
+        ];
     }
 
     protected function payload(): array

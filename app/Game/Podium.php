@@ -11,8 +11,8 @@ namespace App\Game;
 class Podium
 {
     /**
-     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string}, total: int, gained: int}>  $ranking
-     * @return list<array{rank: int, players: list<array{id: int, nickname: string, locale: string, total: int}>}> ordered by rank
+     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}>  $ranking
+     * @return list<array{rank: int, players: list<array{id: int, nickname: string, locale: string, avatar_url?: string|null, total: int}>}> ordered by rank
      */
     public function steps(array $ranking): array
     {
@@ -35,8 +35,8 @@ class Podium
     /**
      * Whoever shares the top score, as long as it is more than nothing.
      *
-     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string}, total: int, gained: int}>  $ranking
-     * @return list<array{id: int, nickname: string, locale: string, total: int}>
+     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}>  $ranking
+     * @return list<array{id: int, nickname: string, locale: string, avatar_url?: string|null, total: int}>
      */
     public function winners(array $ranking): array
     {

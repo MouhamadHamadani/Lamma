@@ -88,7 +88,7 @@
                     <div class="flex gap-2" data-test="answered-avatars">
                         @foreach ($state->players->take(14) as $player)
                             @php $done = $state->answerOf($player) !== null; @endphp
-                            <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="44" :checked="$done" class="{{ $done ? '' : 'opacity-40' }}" wire:key="who-{{ $player->id }}" />
+                            <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="44" :photo="$player->avatarUrl()" :checked="$done" class="{{ $done ? '' : 'opacity-40' }}" wire:key="who-{{ $player->id }}" />
                         @endforeach
                     </div>
                     <span class="font-display text-2xl font-bold" aria-live="polite" data-test="answered-count">{{ __(':answered of :total answered', ['answered' => $state->answered, 'total' => $state->expected]) }}</span>
@@ -128,7 +128,7 @@
                                 <x-slot:pickers>
                                     {{-- A crowd overlaps; past four it becomes a count, so the tile never runs out of room. --}}
                                     @foreach ($picked->take(4) as $player)
-                                        <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="36" />
+                                        <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="36" :photo="$player->avatarUrl()" />
                                     @endforeach
                                     @if ($picked->count() > 4)
                                         <span dir="ltr" class="flex size-9 shrink-0 items-center justify-center rounded-full border-3 border-navy bg-white text-[13px] font-extrabold text-navy">+{{ $picked->count() - 4 }}</span>

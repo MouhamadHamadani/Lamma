@@ -15,7 +15,7 @@
     'h-14 gap-3 border-b border-dashed border-line last:border-b-0' => ! $host,
 ]) }} @if ($disconnected) data-disconnected @endif>
     <span @class(['flex min-w-0 grow items-center', 'gap-3.5' => $host, 'gap-3' => ! $host, 'opacity-45' => $disconnected])>
-        <x-lamma.avatar :name="$name" :color="$index" :size="$host ? 48 : 36" :photo="$photo" />
+        <x-lamma.avatar :name="$name" :color="$index" :size="$host ? 48 : 36" :photo="$photo" :lazy="false" />
 
         <span @class(['grow truncate', 'font-display text-2xl font-bold' => $host, 'text-base font-bold' => ! $host])>
             <bdi dir="ltr">{{ $name }}</bdi>

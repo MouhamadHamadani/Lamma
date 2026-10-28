@@ -99,7 +99,7 @@ describe('accepting an answer', function () {
             $payload = $event->broadcastWith();
 
             return $event->roomCode === $room->code
-                && $payload['player'] === ['id' => $players[0]->id, 'nickname' => $players[0]->nickname]
+                && $payload['player'] === ['id' => $players[0]->id, 'nickname' => $players[0]->nickname, 'avatar_url' => null]
                 && $payload['answered'] === 1 && $payload['expected'] === 3 && $payload['position'] === 1
                 && ! str_contains(json_encode($payload), 'option');
         });

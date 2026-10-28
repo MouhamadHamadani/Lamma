@@ -17,7 +17,7 @@ final class GameState
      * @param  Collection<int, QuestionOption>  $options  in display order (A, B, C, D)
      * @param  Collection<int, RoomPlayer>  $players  in join order
      * @param  Collection<int, PlayerAnswer>  $answers  by player id
-     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string}, total: int, gained: int}>  $ranking  empty until revealed
+     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}>  $ranking  empty until revealed
      * @param  array<int, int>  $previousPositions  player id => 0-based position before this round's points
      */
     public function __construct(
@@ -85,7 +85,7 @@ final class GameState
         return $this->answers->where('is_correct', true)->count();
     }
 
-    /** @return array{rank: int, player: array{id: int, nickname: string, locale: string}, total: int, gained: int}|null */
+    /** @return array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}|null */
     public function rankingRow(RoomPlayer $player): ?array
     {
         return collect($this->ranking)->firstWhere('player.id', $player->id);

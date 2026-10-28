@@ -47,7 +47,7 @@
                     @if ($you) data-you aria-current="true" @endif data-rank="{{ $entry['rank'] }}"
                 >
                     <span class="w-5 text-center font-display text-xl font-extrabold" dir="ltr">{{ $entry['rank'] }}</span>
-                    <x-lamma.avatar :name="$entry['player']['nickname']" :color="$colors[$entry['player']['id']] ?? $index" :size="36" />
+                    <x-lamma.avatar :name="$entry['player']['nickname']" :color="$colors[$entry['player']['id']] ?? $index" :size="36" :photo="$entry['player']['avatar_url'] ?? null" />
                     <span class="grow truncate text-[17px] font-bold"><bdi dir="ltr">{{ $entry['player']['nickname'] }}</bdi>@if ($you) <span class="font-semibold text-ink-muted">{{ __('(you)') }}</span>@endif</span>
                     <span class="font-display text-xl font-extrabold" dir="ltr">{{ $entry['total'] }}</span>
                 </li>

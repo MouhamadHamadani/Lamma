@@ -9,11 +9,12 @@ use App\Models\RoomQuestion;
 class Scoreboard
 {
     /**
-     * @return list<array{rank: int, player: array{id: int, nickname: string, locale: string}, total: int, gained: int}>
+     * @return list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}>
      */
     public function ranking(Room $room, ?RoomQuestion $question = null): array
     {
         $gained = $question ? $question->answers()->pluck('points', 'room_player_id') : collect();
+        $photos = $room->settings->showPhotos;
         $rows = [];
         $rank = 0;
         $previous = null;
@@ -26,7 +27,7 @@ class Scoreboard
 
             $rows[] = [
                 'rank' => $rank,
-                'player' => ['id' => $player->id, 'nickname' => $player->nickname, 'locale' => $player->locale],
+                'player' => $player->toRanked($photos),
                 'total' => $player->score,
                 'gained' => (int) ($gained[$player->id] ?? 0),
             ];
@@ -38,7 +39,7 @@ class Scoreboard
     /**
      * Where each player stood before the question's points were added, by player id (for animating rows to their new place).
      *
-     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string}, total: int, gained: int}>  $ranking
+     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}>  $ranking
      * @return array<int, int> player id => 0-based position before
      */
     public function previousPositions(array $ranking): array

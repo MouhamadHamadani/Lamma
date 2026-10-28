@@ -108,7 +108,7 @@ describe('PlayerAnswered', function () {
 
         $payload = lastPayload(PlayerAnswered::class);
         expect(array_keys($payload))->toBe(['code', 'server_time', 'position', 'player', 'answered', 'expected'])
-            ->and($payload['player'])->toBe(['id' => $players[1]->id, 'nickname' => $players[1]->nickname]);
+            ->and($payload['player'])->toBe(['id' => $players[1]->id, 'nickname' => $players[1]->nickname, 'avatar_url' => null]);
     });
 });
 
@@ -158,7 +158,7 @@ describe('ScoreboardUpdated', function () {
             ->and(array_column($ranking, 'total'))->toBe([100, 100, 0])
             ->and(array_column($ranking, 'gained'))->toBe([100, 100, 0])
             ->and(array_column(array_column($ranking, 'player'), 'id'))->toBe([$players[0]->id, $players[1]->id, $players[2]->id])
-            ->and(array_keys($ranking[0]['player']))->toBe(['id', 'nickname', 'locale']);
+            ->and(array_keys($ranking[0]['player']))->toBe(['id', 'nickname', 'locale', 'avatar_url']);
     });
 
     it('adds this round to the totals of earlier rounds', function () {

@@ -26,7 +26,11 @@ class QuestionRevealed extends RoomEvent
             'picks' => $options->map(fn ($option) => [
                 'option_id' => $option->id,
                 'players' => $answers->where('question_option_id', $option->id)
-                    ->map(fn ($answer) => ['id' => $answer->roomPlayer->id, 'nickname' => $answer->roomPlayer->nickname])->values()->all(),
+                    ->map(fn ($answer) => [
+                        'id' => $answer->roomPlayer->id,
+                        'nickname' => $answer->roomPlayer->nickname,
+                        ...($room->settings->showPhotos ? ['avatar_url' => $answer->roomPlayer->avatarUrl()] : []),
+                    ])->values()->all(),
             ])->values()->all(),
             'points' => $room->players()->orderBy('id')->pluck('id')->map(fn (int $id) => ['player_id' => $id, 'points' => (int) ($gained[$id] ?? 0)])->all(),
             'revealed_at' => self::iso($roomQuestion->revealed_at),
