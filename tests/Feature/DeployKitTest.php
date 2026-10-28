@@ -50,6 +50,16 @@ describe('the nginx site', function () {
             ->toContain('gzip on;')->toContain('client_max_body_size 8M;');
     });
 
+    it('serves the player photos privately: no listing, no search engines, no shared caches', function () {
+        $conf = deployFile('deploy/nginx/lamma.conf');
+        $block = substr($conf, positionOf($conf, 'location ^~ /storage/player-photos/ {'));
+        $block = substr($block, 0, strpos($block, '
+    }') + 6);
+
+        expect($block)->toContain('autoindex off;')->toContain('Cache-Control "private"')->toContain('noindex, noimageindex')->toContain('try_files $uri =404;');
+        expect($conf)->not->toContain('Permissions-Policy');   // a policy that forbids camera=() would stop the selfie step
+    });
+
     it('proxies the Reverb WebSocket on /app and /apps with the upgrade headers and long timeouts', function () {
         $conf = deployFile('deploy/nginx/lamma.conf');
 
@@ -340,7 +350,7 @@ describe('docs/manual-test-plan.md', function () {
     it('covers the account area, the error pages and the live domain', function () {
         $plan = deployFile('docs/manual-test-plan.md');
 
-        foreach (['13. The account area', '14. Error pages, emails and maintenance', '15. Subcategories and repeated questions', '16. Google Analytics and the cookie notice', '17. On the live domain', 'Delete account', 'errors::503', 'lamma:doctor'] as $needle) {
+        foreach (['13. The account area', '14. Error pages, emails and maintenance', '15. Subcategories and repeated questions', '16. Google Analytics and the cookie notice', '17. On the live domain', '18. Player selfies', 'Delete account', 'errors::503', 'lamma:doctor'] as $needle) {
             expect($plan)->toContain($needle);
         }
     });

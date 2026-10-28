@@ -2,8 +2,8 @@
 
 A full run of Lamma by hand, start to finish. It takes about 60 minutes. Tick each box as you go and write down anything that
 differs from "Expect". For how to start the servers and put phones on the laptop's network, see
-[realtime-testing.md](realtime-testing.md); this file assumes that works. The last part (section 17) is the same game on the **live domain**,
-after a deploy ([deployment.md](deployment.md)).
+[realtime-testing.md](realtime-testing.md); this file assumes that works. Section 17 is the same game on the **live domain**,
+after a deploy ([deployment.md](deployment.md)), and section 18 is the **selfie** step on real phones (the one thing the automated tests cannot do: a real front camera).
 
 ## What the automated tests already prove
 
@@ -254,6 +254,39 @@ Follow [deployment.md](deployment.md) section 15 with real phones on **mobile da
 | ☐ | A push to `main` with green tests deploys by itself (Actions: `tests`, then `deploy`); the site shows the 503 page for a short moment, then the new version. | DeployKitTest (the workflow and the script) |
 | ☐ | The nightly backup file exists (`ls /var/backups/lamma`) and a restore into an empty database works. | |
 | ☐ | The placeholder logo, icons and sounds are replaced by the official files (the doctor stops warning). | DoctorTest |
+| ☐ | `lamma:doctor` has a **PASS** on *Player photos* (GD with WebP and JPEG, fileinfo, a writable `storage/app/public/player-photos`), and section 18 below works on the live domain. | DoctorTest |
+
+## 18. Player selfies (real phones, over https)
+
+Needs **https**: the live domain, or a tunnel, see [realtime-testing.md](realtime-testing.md#testing-the-selfie-camera). Over plain `http://192.168...` the camera is not offered
+(that is itself one check, below). Test on at least **iPhone Safari** and **Android Chrome**. Create the room with **Player photos: On** (the default).
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **Create room**: a *Player photos* On / Off switch with "Players can take a selfie to show next to their name.", On by default; the summary card says *On*. | CreateRoomTest |
+| ☐ | **Join page on the phone** (code entered): under the nickname a card "Your selfie (optional)" with a big circle (your initial), **Take a selfie**, **Skip** and "Your photo is shown on the host screen and deleted after the game." In Arabic everything mirrors, the nickname field stays left-to-right. | SelfieTest (browser), SelfieTest |
+| ☐ | **iPhone Safari:** tap **Take a selfie**: the browser asks for the camera once, then a round **live preview** of the FRONT camera appears, **mirrored like a mirror** (raise your right hand: the preview raises its right hand). Big round shutter, **Cancel**. | SelfieTest (fake camera) *phone* |
+| ☐ | **Android Chrome:** the same. | *phone* |
+| ☐ | Tap the shutter: the camera light (green dot on iPhone, the camera indicator on Android) **turns off at once**, you see the photo with **Use this photo** and **Retake**. | SelfieTest (tracks stopped) *phone* |
+| ☐ | **The saved photo is NOT mirrored:** hold up a book or write a word on paper and take the picture: on the phone the word reads **correctly** in the review, and on the host screen too (the live preview was mirrored, the picture is not). | SelfieTest (canvas drawn straight) *phone* |
+| ☐ | **Use this photo**: a short progress bar, then your circle shows the photo with **Retake** and **Remove**. A screen reader says "Photo added". **Join game.** | SelfieTest *phone* |
+| ☐ | **Cancel** in the camera panel: the camera light turns off too. Switching to another app or locking the phone while the camera is open does the same. | SelfieTest (cancel) *phone* |
+| ☐ | Hold the phone in **portrait and in landscape** while taking the picture: the picture is upright and square both times, never sideways or stretched. | *phone* |
+| ☐ | **There is no way to pick an existing photo:** no "Choose file", no "Photo library", no "Browse" anywhere on the join page or in the lobby panel (look at every button; long-press the circle). | SelfieTest (no file input) *phone* |
+| ☐ | **Deny the camera** (tap Don't Allow, or block it in the site settings): "We couldn't open the camera. You can allow it in your browser settings, or skip." with **Try again** and **Skip**, and no file upload. **Skip** leaves you with your initial; **Join game** still works. | SelfieTest (denied) *phone* |
+| ☐ | **An in-app browser** (open the join link from Instagram or WhatsApp): the camera is usually not available there: the same message, Skip works and you join. (Open in Safari/Chrome to use the camera.) | SelfieTest (no camera) |
+| ☐ | **Plain http over the Wi-Fi** (`http://192.168...`): the same message, never a crash. | SelfieTest (no camera) |
+| ☐ | **Host screen:** the photo appears in the lobby row **without a reload**, in a navy-ringed circle. Rows without a photo show the initial. | PhotoScreensTest |
+| ☐ | **Lobby on the phone:** tap your avatar (it has a small camera badge): a panel opens with your nickname and the photo buttons; change the **nickname** (a taken one is refused) and **Retake**: the host row changes at once. **Done** closes it. | SelfieTest, PhotoModerationTest *phone* |
+| ☐ | **Remove photo** on the host row (small camera-off button next to the x): the photo disappears there, and on the phone you see "The host removed your photo" and your initial; you can take another. | PhotoModerationTest *phone* |
+| ☐ | **Play** a question: photos show on the "N of M answered" row, on the reveal tiles, in the scoreboard and on the **podium** (the winner's is the biggest); the phone shows them in the leaderboard. Nothing scrolls on the host at 1280x720 or full screen. | PhotoScreensTest, HostScreensTest |
+| ☐ | **Play again:** the new lobby has everyone's name and photo already, and on each phone a card "Keep your name and photo for this round, or pick new ones." with **Keep** and **Change**. Change the photo on one phone and keep it on another, then Ready: the right photos show. | PhotoLifecycleTest, SelfieTest *phone* |
+| ☐ | **New game** (host, from scratch): joiners start with **no photo**, and the nickname field suggests the last nickname used on that phone (never the photo). | SelfieTest |
+| ☐ | **Photos Off** (create a room with it Off): the join page, the lobby and every screen show **nothing** about photos: no selfie card, no consent line, no camera badge, no Remove photo. | SelfieTest, PhotoScreensTest |
+| ☐ | **Leave room** in the lobby, or the host's **x**: that player's photo is gone from the host screen at once, and the file is deleted (`ls storage/app/public/player-photos/rooms/*`). | PhotoLifecycleTest |
+| ☐ | **Retention:** finish a game, then `php artisan tinker --execute='App\Models\Room::query()->update(["finished_at" => now()->subDay()->subMinute()]);'` and `php artisan lamma:prune`: "Deleted N expired player photos." and the folder is empty. A game finished a minute ago keeps its photos. | PhotoLifecycleTest |
+| ☐ | **Admin:** `/admin` > Rooms > a room > the **Players** tab shows each thumbnail and a **Remove photo** action. | PhotoModerationTest |
+| ☐ | **Nothing leaks:** after the game, My games shows no photos; the browser console and `storage/logs` have no photo data; `ls storage/app/public/player-photos` shows only random file names. | PhotoLifecycleTest |
 
 ## Sign-off
 
@@ -276,5 +309,6 @@ Follow [deployment.md](deployment.md) section 15 with real phones on **mobile da
 | 15 Subcategories and repeats | | |
 | 16 Google Analytics | | |
 | 17 Live domain | | |
+| 18 Player selfies | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

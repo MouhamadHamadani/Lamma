@@ -62,6 +62,11 @@ php -v && composer --version && node -v    # PHP 8.3.x, Composer 2.x, v22.x
 
 The PHP extensions are the ones `composer.json`'s dependencies ask for (`intl` for the admin panel, `zip`/`xml` for exports, `mbstring`, `curl`, `openssl`) plus `mysql` and `redis`.
 
+**Player selfies need two more, both already in the line above:** `php8.3-gd` built with **JPEG and WebP** support (Ubuntu's package is; every photo is decoded and
+re-encoded as a 256x256 WebP, which also strips all of its metadata) and `fileinfo` (part of `php8.3-common`, used to see what a file really is). No ImageMagick and no
+Intervention Image: GD is all that is used. `php artisan lamma:doctor` has a **Player photos** row that fails, naming what is missing, if GD or its WebP/JPEG support or
+fileinfo is absent, or the photo folder cannot be written. Check by hand with `php -r 'var_dump(gd_info()["WebP Support"], extension_loaded("fileinfo"));'` (both `bool(true)`).
+
 ## 3. The database
 
 ```bash
@@ -157,7 +162,7 @@ cp deploy/cron/lamma /etc/cron.d/lamma && chmod 644 /etc/cron.d/lamma
 mkdir -p /var/backups/lamma && chown lamma:lamma /var/backups/lamma
 ```
 
-The cron file has two lines: the Laravel scheduler every minute (`php artisan schedule:run`, which runs `lamma:prune` daily and records the heartbeat that
+The cron file has two lines: the Laravel scheduler every minute (`php artisan schedule:run`, which runs `lamma:prune` hourly and records the heartbeat that
 `lamma:doctor` checks) and the nightly backup (section 12).
 
 ## 8. The first deploy
@@ -257,6 +262,11 @@ tail /var/log/lamma-backup.log
 gunzip -c /var/backups/lamma/lamma-2026-01-31-0230.sql.gz | mysql -u lamma -p lamma
 ```
 
+**Player photos are not backed up, on purpose.** `backup.sh` dumps MySQL only. If you add any file-level backup or snapshot of the server's disk, **exclude
+`/var/www/lamma/storage/app/public/player-photos`** (for example `rsync -a --exclude 'storage/app/public/player-photos' ...`): the photos can be pictures of children, they are
+deleted 24 hours after their game (section 18), and a backup would keep them for as long as the backup lives. A restore brings back players without photos, which is fine: they
+show their initial. (Hetzner's server-level Backups copy the whole disk: that is a reason to keep the retention short.)
+
 The dumps live on the same server, so they do not survive losing it. Also keep **Hetzner Backups** on, and copy the folder somewhere else from time to time
 (`rsync -a /var/backups/lamma/ you@elsewhere:lamma-backups/`). Test a restore once.
 
@@ -295,6 +305,8 @@ Do this once everything is up and `lamma:doctor` has no fails. You need a laptop
 7. Forgot password with a real address: the email arrives (Arabic for an Arabic account), the link works.
 8. `https://lamma.example/does-not-exist` shows the Lamma 404 page; `/admin` asks for the admin login.
 9. Take the server down for a moment: `php artisan down --render="errors::503"` then `php artisan up`: the maintenance page shows in both languages.
+10. **Selfies:** with photos on (the default), join from a phone: the page has a "Take a selfie" step. It opens the front camera (the browser asks once), and the photo appears on
+    the host screen. The camera only works over **https**, which the live domain has. See section 18 and the player-photo part of `docs/manual-test-plan.md`.
 
 The full hand test is in `docs/manual-test-plan.md`.
 
@@ -309,7 +321,10 @@ The full hand test is in `docs/manual-test-plan.md`.
 | 419 "Page expired" for everyone | `SESSION_SECURE_COOKIE=true` needs https; check `APP_URL`; Redis running |
 | 502 Bad Gateway | `systemctl status php8.3-fpm`; the socket name in nginx matches `listen =` in the pool file |
 | A deploy hangs on maintenance mode | `php artisan up` |
-| Disk full | `df -h`; old logs in `storage/logs`; old dumps in `/var/backups/lamma` |
+| Disk full | `df -h`; old logs in `storage/logs`; old dumps in `/var/backups/lamma`; `storage/app/public/player-photos` (is `lamma:prune` running every hour? `lamma:doctor` Scheduler row) |
+| "We couldn't open the camera" on every phone | The site must be `https://` (a camera is not offered to http pages, except `localhost`); the phone's browser permission for the site; an in-app browser (Instagram, WhatsApp) often has no camera: open it in Safari or Chrome; no `Permissions-Policy` header may forbid `camera` |
+| Photos are not shown, only initials | `php artisan storage:link` (the `public/storage` link must exist: `lamma:doctor` Storage link row); `ls storage/app/public/player-photos/rooms`; the nginx `/storage/player-photos/` block |
+| `lamma:doctor` says **Player photos: FAIL** | `php8.3-gd` (with WebP) or `fileinfo` missing, or the folder is not writable by the `lamma` user: `apt install php8.3-gd php8.3-common`, `systemctl restart php8.3-fpm` |
 
 After changing `.env`, run `php artisan optimize` (config is cached) and `php artisan queue:restart && php artisan reverb:restart`.
 
@@ -355,3 +370,26 @@ If you ever add a Content-Security-Policy header, allow `https://www.googletagma
 `deploy/deploy.sh` needs no change: `migrate --force` adds `question_seen` (what each player has already seen), a unique (room, question) index on `room_questions`, `categories.parent_id` and
 `questions.seed_key` (filled for the existing questions), and `ContentSeeder` then adds the 13 subcategories and the new questions without touching what exists. Games already in the database are
 safe: nothing is deleted or rewritten, the unique index refuses to be added (with a clear message, changing nothing) only if a room somehow has the same question twice, which the game never produces.
+
+## 18. Player photos (selfies)
+
+Phase 9. Besides a nickname a player can take a selfie with the phone's front camera. The host decides per room (On or Off when creating it, on by default). Photos belong to
+**one game**: they are never saved to a profile, never shown in My games, and every new game (also "Play again") asks again.
+
+- **Where they live:** the `player_photos` disk, `storage/app/public/player-photos/rooms/{room id}/{random id}.webp`, 256x256 WebP, about 5-15 KB each. They are served through the
+  existing `public/storage` link at `https://<domain>/storage/player-photos/...` (nginx block with no listing, `noindex`, `Cache-Control: private`). File names are random and never
+  contain a nickname; there is no page that lists them. `deploy.sh` already runs `storage:link`.
+- **How long:** `LAMMA_PHOTO_RETENTION_HOURS` in `.env` (24 by default, see `.env.production.example`). `lamma:prune` runs **every hour** and deletes the photos of rooms that
+  finished more than that long ago (a room the host closed too, so the results screen still shows them until then), of games nobody ended, and of lobbies nobody started (these at
+  once, when they are closed after 6 hours). A player who leaves or is removed, a host who presses "Remove photo", and an account that is deleted take their photos away
+  immediately. Folders of rooms that no longer exist are swept too.
+- **Backups:** not included, on purpose (section 12). Keep them out of any file-level backup.
+- **What the server needs:** `php8.3-gd` with JPEG and WebP, and `fileinfo` (section 2). `lamma:doctor` checks them. Uploads are small (the phone sends a JPEG of at most 640x640, a
+  few hundred KB); the server refuses anything over 3 MB, anything that is not really a JPEG or WebP, and pictures over 12 megapixels. The nginx and PHP-FPM upload limits (8 MB)
+  are already enough.
+- **HTTPS is required for the camera.** Browsers only offer `getUserMedia` to https pages (and `localhost`). The live site is https. If you ever add a `Permissions-Policy`
+  header, it must contain `camera=(self)`; `camera=()` would switch the selfie step off.
+- **Privacy:** the join page tells the player "Your photo is shown on the host screen and deleted after the game". Photos are never written to the logs and never go to Google
+  Analytics. The admin panel's room page has a **Players** tab with every player's thumbnail and a **Remove photo** action, for moderation only.
+- **Upgrade from before Phase 9:** `deploy.sh` needs no change. `migrate --force` adds `avatar_path` and `avatar_updated_at` to `room_players`; rooms created earlier have photos on
+  by default (nobody has a photo in them). `crontab`/`/etc/cron.d/lamma` needs no change either (the scheduler already runs every minute; `lamma:prune` became hourly in code).

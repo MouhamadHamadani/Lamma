@@ -10,7 +10,7 @@ The lobby and the game are live over Laravel Reverb (websockets). Three things h
 | Reverb | `php artisan reverb:start` (0.0.0.0:8080) | the live lobby |
 | Vite | `npm run dev` | CSS/JS on your laptop (not on phones, see below) |
 | Queue worker | `php artisan queue:listen --tries=1 --timeout=0 --sleep=1` | the question timers (reveal, next question) |
-| Scheduler | `php artisan schedule:work` | the daily `lamma:prune` (abandoned lobbies, expired guest tokens); not needed to play |
+| Scheduler | `php artisan schedule:work` | the hourly `lamma:prune` (abandoned lobbies, expired guest tokens, expired player photos); not needed to play |
 
 `composer dev` starts all four in one terminal (its queue worker already checks every second). The game events are `ShouldBroadcastNow`: they are sent from the web request that caused them. What the queue does is the *timing*: when a question starts, a delayed `RevealQuestion` job is queued for its deadline, and after the reveal an `AdvanceQuestion` job for 5 seconds later.
 
@@ -103,3 +103,21 @@ Two origins give two cookie jars (see "One laptop, two browsers"). With the host
 - Arabic phone (use the language toggle on `/join` before joining): question, tiles, result and "You're 1st" are in Arabic and right-to-left; the nickname, score and timer stay left-to-right.
 - Resize the host window from 1280×720 to 1920×1080: nothing scrolls. On a short window the scoreboard shows 5 players; taller windows show up to 10.
 - Stop the queue worker (or never start it) with the host screen open: the game still advances, a fraction of a second later than with a worker.
+
+## Testing the selfie camera
+
+The selfie step opens the phone's camera with `getUserMedia`, and browsers only offer a camera to **secure contexts**: `https://...` or `http://localhost`. A phone that opens
+`http://192.168.x.x:8000` over the Wi-Fi is **not** one, so there the step shows "We couldn't open the camera. You can allow it in your browser settings, or skip." (with Try again and
+Skip) and the game plays on without a photo. That is correct, not a bug. To try the real camera:
+
+- **On the laptop itself** nothing is needed: `http://localhost:8000` and `http://127.0.0.1:8000` are secure contexts, a webcam works (and the host's own browser is a fine "phone").
+- **A real phone, the quickest way: a tunnel** that gives the laptop an https address, e.g. `cloudflared tunnel --url http://localhost:8000` (no account) or `ngrok http 8000`. Open
+  the https address it prints on the laptop **and** on the phone (the join address and the QR code are built from the address the host screen was opened on). Reverb is not tunnelled,
+  so the screens show "Reconnecting..." and follow by polling (the game still plays, see "Playing a whole game"); that is fine for checking the camera.
+- **Android Chrome on the Wi-Fi:** open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, add `http://192.168.x.x:8000`, enable it and relaunch. iPhone Safari has no such switch:
+  use the tunnel.
+- **Local https with a certificate:** `mkcert -install && mkcert 192.168.x.x`, then `npx local-ssl-proxy --source 8443 --target 8000 --cert 192.168.x.x.pem --key 192.168.x.x-key.pem`
+  and open `https://192.168.x.x:8443`; the phone has to trust mkcert's root certificate (on iPhone: install the profile, then switch it on under Settings > General > About >
+  Certificate Trust Settings).
+
+The browser tests use Chromium's fake camera (`tests/Browser/SelfieTest.php`, `tests/Browser/Support/FakeCamera.php`), so they need no webcam and no https.
