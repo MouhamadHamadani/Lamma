@@ -89,7 +89,7 @@ describe('lamma:doctor', function () {
 
         expect($code)->toBe(0);
         foreach (['Environment', 'APP_KEY', 'Debug off', 'APP_URL is https', 'Database', 'Redis', 'Queue is not sync', 'Reverb config', 'Reverb is listening', 'Scheduler', 'Mail',
-            'Session cookie', 'Storage link', 'Storage is writable', 'Front-end build', 'Questions', 'Google Analytics', 'Active admin', 'No test players', 'Official brand and sound files'] as $label) {
+            'Session cookie', 'Storage link', 'Storage is writable', 'Player photos', 'Front-end build', 'Questions', 'Google Analytics', 'Active admin', 'No test players', 'Official brand and sound files'] as $label) {
             expect($rows[$label][0] ?? null)->toBe('PASS', "{$label}: ".($rows[$label][1] ?? 'missing'));
         }
         expect(collect($rows)->pluck(0)->contains('FAIL'))->toBeFalse();

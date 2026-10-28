@@ -3,6 +3,7 @@
 use App\Enums\Difficulty;
 use App\Enums\RoomStatus;
 use App\Game\GameEngine;
+use App\Game\PlayerPhoto;
 use App\Game\RoomSettings;
 use App\Models\Category;
 use App\Models\PlayerAnswer;
@@ -13,6 +14,7 @@ use App\Models\RoomQuestion;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
@@ -30,6 +32,9 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature', 'Browser');
+
+// Selfies never touch the real folder in a test.
+pest()->beforeEach(fn () => Storage::fake(PlayerPhoto::DISK))->in('Feature');
 
 // Browser tests (tests/Browser, run with `vendor/bin/pest tests/Browser`) load the BUILT assets, never a developer's running Vite dev server.
 pest()->beforeEach(fn () => Vite::useHotFile(storage_path('framework/no-hot-file')))->in('Browser');

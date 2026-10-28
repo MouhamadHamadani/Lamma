@@ -373,5 +373,10 @@
     "We use Google Analytics to count visits and see which features people use. It never receives names, e-mail addresses or room codes.": "We use Google Analytics to count visits and see which features people use. It never receives names, e-mail addresses or room codes.",
     "Accept": "Accept",
     "Decline": "Decline",
-    "Cookie settings": "Cookie settings"
+    "Cookie settings": "Cookie settings",
+    "That photo didn't work. Please take another one.": "That photo didn't work. Please take another one.",
+    "That photo is too big. Please take another one.": "That photo is too big. Please take another one.",
+    "Photos are turned off in this room.": "Photos are turned off in this room.",
+    "We couldn't save your photo. You can skip it and play without.": "We couldn't save your photo. You can skip it and play without.",
+    "Too many photos. Please try again in :seconds seconds.": "Too many photos. Please try again in :seconds seconds."
 }

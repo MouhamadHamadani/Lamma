@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Game\PlayerPhoto;
 use Database\Factories\RoomPlayerFactory;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -26,6 +27,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $guest_token
  * @property string $nickname
  * @property string $locale
+ * @property string|null $avatar_path The selfie's file on the player_photos disk (App\Game\PlayerPhoto); per game, never a profile
+ * @property Carbon|null $avatar_updated_at
  * @property int $score
  * @property bool $is_ready
  * @property Carbon $joined_at
@@ -39,6 +42,12 @@ class RoomPlayer extends Model implements AuthenticatableContract
 {
     /** @use HasFactory<RoomPlayerFactory> */
     use Authenticatable, HasFactory;
+
+    protected static function booted(): void
+    {
+        // A player who leaves or is removed takes their selfie with them. (A deleted room's rows go by the database, see Room::booted.)
+        static::deleting(fn (RoomPlayer $player) => app(PlayerPhoto::class)->forget($player));
+    }
 
     /**
      * The id a presence channel knows this participant by. Prefixed so it can never equal a User id (the host and
@@ -56,6 +65,7 @@ class RoomPlayer extends Model implements AuthenticatableContract
             'is_ready' => 'boolean',
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
+            'avatar_updated_at' => 'datetime',
         ];
     }
 
@@ -70,17 +80,36 @@ class RoomPlayer extends Model implements AuthenticatableContract
         $query->whereNull('left_at');
     }
 
+    /** The URL of the selfie, or null without one. The path is random and unguessable; there is no listing route. */
+    public function avatarUrl(): ?string
+    {
+        return $this->avatar_path === null ? null : app(PlayerPhoto::class)->url($this->avatar_path);
+    }
+
     /**
-     * What the screens may know about a player: never the guest token, never the account.
+     * What a game screen may know about a player: id, nickname, locale and, only when the room shows photos, the selfie's URL (null without one).
      *
-     * @return array{id: int, nickname: string, locale: string, is_ready: bool}
+     * @return array{id: int, nickname: string, locale: string, avatar_url?: string|null}
      */
-    public function toBroadcast(): array
+    public function toRanked(bool $photos): array
     {
         return [
             'id' => $this->id,
             'nickname' => $this->nickname,
             'locale' => $this->locale,
+            ...($photos ? ['avatar_url' => $this->avatarUrl()] : []),
+        ];
+    }
+
+    /**
+     * What the screens may know about a player: never the guest token, never the account.
+     *
+     * @return array{id: int, nickname: string, locale: string, is_ready: bool, avatar_url?: string|null}
+     */
+    public function toBroadcast(): array
+    {
+        return [
+            ...$this->toRanked($this->room->settings->showPhotos),
             'is_ready' => (bool) $this->is_ready,
         ];
     }

@@ -11,6 +11,7 @@ use App\Models\RoomQuestion;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 it('gives a new room lobby status and default settings', function () {
     $room = Room::factory()->create();
@@ -34,6 +35,7 @@ it('round-trips room settings through JSON', function () {
             'seconds_per_question' => 30,
             'difficulty' => 'hard',
             'host_screen_locale' => 'ar',
+            'show_photos' => true,
         ]);
 });
 
@@ -42,7 +44,25 @@ it('fills missing or invalid settings keys with defaults', function () {
 
     expect($settings->questionCount)->toBe(7)
         ->and($settings->secondsPerQuestion)->toBe(20)
-        ->and($settings->difficulty)->toBeNull();
+        ->and($settings->difficulty)->toBeNull()
+        ->and($settings->showPhotos)->toBeTrue();
+});
+
+it('reads the photos setting like the others: a real boolean, anything else falls back to on', function (mixed $stored, bool $expected) {
+    expect(RoomSettings::fromArray(['show_photos' => $stored])->showPhotos)->toBe($expected);
+})->with([[false, false], [true, true], ['0', false], ['1', true], ['banana', true], [null, true]]);
+
+it('keeps photos on for a room saved before the setting existed', function () {
+    $room = Room::factory()->create();
+    DB::table('rooms')->where('id', $room->id)->update(['settings' => json_encode(['question_count' => 5])]);
+
+    expect($room->fresh()->settings->showPhotos)->toBeTrue();
+});
+
+it('has a selfie path and a timestamp on room_players, empty by default', function () {
+    $player = RoomPlayer::factory()->create();
+
+    expect($player->fresh()->avatar_path)->toBeNull()->and($player->fresh()->avatar_updated_at)->toBeNull()->and($player->fresh()->avatarUrl())->toBeNull();
 });
 
 it('stores answer and question timestamps with millisecond precision', function () {

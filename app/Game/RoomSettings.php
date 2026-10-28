@@ -31,6 +31,7 @@ final class RoomSettings implements Arrayable, Castable
         public int $secondsPerQuestion = 20,
         public ?Difficulty $difficulty = null,
         public HostScreenLocale $hostScreenLocale = HostScreenLocale::Both,
+        public bool $showPhotos = true,
     ) {}
 
     /**
@@ -48,6 +49,7 @@ final class RoomSettings implements Arrayable, Castable
             secondsPerQuestion: (int) ($data['seconds_per_question'] ?? $defaults->secondsPerQuestion),
             difficulty: Difficulty::tryFrom((string) ($data['difficulty'] ?? '')),
             hostScreenLocale: HostScreenLocale::tryFrom((string) ($data['host_screen_locale'] ?? '')) ?? $defaults->hostScreenLocale,
+            showPhotos: isset($data['show_photos']) ? (filter_var($data['show_photos'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? $defaults->showPhotos) : $defaults->showPhotos,
         );
     }
 
@@ -62,6 +64,7 @@ final class RoomSettings implements Arrayable, Castable
             'seconds_per_question' => $this->secondsPerQuestion,
             'difficulty' => $this->difficulty?->value,
             'host_screen_locale' => $this->hostScreenLocale->value,
+            'show_photos' => $this->showPhotos,
         ];
     }
 

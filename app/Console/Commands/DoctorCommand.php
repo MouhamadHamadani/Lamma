@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Game\PlayerPhoto;
 use App\Game\QuestionReport;
 use App\Models\Admin;
 use App\Models\User;
@@ -76,6 +77,7 @@ class DoctorCommand extends Command
             'Session cookie' => fn () => config('session.secure') ? [self::PASS, 'secure'] : [self::WARN, 'SESSION_SECURE_COOKIE is not true'],
             'Storage link' => fn () => file_exists(public_path('storage')) ? [self::PASS, 'public/storage exists'] : [self::FAIL, 'missing: run php artisan storage:link'],
             'Storage is writable' => $this->writable(...),
+            'Player photos' => $this->photos(...),
             'Front-end build' => fn () => is_file(public_path('build/manifest.json')) ? [self::PASS, 'public/build/manifest.json exists'] : [self::FAIL, 'missing: run npm run build'],
             'Optimized' => fn () => app()->configurationIsCached() && app()->routesAreCached()
                 ? [self::PASS, 'config and routes are cached']
@@ -214,6 +216,32 @@ class DoctorCommand extends Command
         $blocked = array_filter([storage_path('logs'), storage_path('framework'), base_path('bootstrap/cache')], fn (string $path) => ! is_writable($path));
 
         return $blocked === [] ? [self::PASS, 'storage/ and bootstrap/cache are writable'] : [self::FAIL, 'not writable: '.implode(', ', $blocked)];
+    }
+
+    /**
+     * Selfies are re-encoded by GD (JPEG in, WebP out), their real type is read by fileinfo, and they are written to a folder under storage/app/public.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function photos(): array
+    {
+        $gd = extension_loaded('gd') ? gd_info() : [];
+        $missing = array_filter([
+            ! extension_loaded('gd') ? 'the gd extension (php8.3-gd)' : null,
+            extension_loaded('gd') && empty($gd['JPEG Support']) ? 'JPEG support in gd' : null,
+            extension_loaded('gd') && (empty($gd['WebP Support']) || ! function_exists('imagewebp')) ? 'WebP support in gd (libwebp)' : null,
+            ! extension_loaded('fileinfo') ? 'the fileinfo extension' : null,
+        ]);
+        if ($missing !== []) {
+            return [self::FAIL, 'missing: '.implode(', ', $missing).'. Players could not add a photo'];
+        }
+
+        $root = (string) config('filesystems.disks.'.PlayerPhoto::DISK.'.root');
+        if (! is_writable(is_dir($root) ? $root : dirname($root))) {
+            return [self::FAIL, "not writable: {$root}"];
+        }
+
+        return [self::PASS, 'gd with JPEG and WebP, fileinfo, and a writable photo folder'];
     }
 
     /**

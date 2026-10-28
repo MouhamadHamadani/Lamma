@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        // Players' selfies (App\Game\PlayerPhoto): rooms/{room_id}/{ulid}.webp, served through the same public/storage link as the public disk.
+        // Kept in its own folder so file backups can leave it out and `lamma:prune` can sweep it. There is no listing route; the names are random.
+        'player_photos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/player-photos'),
+            'url' => rtrim((string) env('APP_URL', 'http://localhost'), '/').'/storage/player-photos',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

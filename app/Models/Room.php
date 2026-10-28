@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RoomStatus;
+use App\Game\PlayerPhoto;
 use App\Game\RoomSettings;
 use Database\Factories\RoomFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -39,6 +40,9 @@ class Room extends Model
                 $room->settings = new RoomSettings;
             }
         });
+
+        // The players' rows go with the room (a database cascade, no model events), so their selfies are swept here.
+        static::deleting(fn (Room $room) => app(PlayerPhoto::class)->purgeFolder($room->id));
     }
 
     protected function casts(): array

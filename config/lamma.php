@@ -13,6 +13,12 @@ return [
     // Join attempts per IP per minute (stops room-code guessing).
     'join_attempts_per_minute' => 10,
 
+    // Player selfies (App\Game\PlayerPhoto) are kept this many hours after their room finished, then `lamma:prune` deletes the files. Uploads allowed
+    // per player and per IP per minute (a family on one Wi-Fi shares an address, so that limit is wider).
+    'photo_retention_hours' => (int) env('LAMMA_PHOTO_RETENTION_HOURS', 24),
+    'photo_uploads_per_minute' => 6,
+    'photo_uploads_per_ip_per_minute' => 30,
+
     // `php artisan lamma:prune` (scheduled daily) leaves a timestamp here every time it runs, and `lamma:doctor` fails when it is older than
     // scheduler_max_hours: the sign that the `schedule:run` cron line is missing.
     'heartbeat_key' => 'lamma.scheduler.last_run',
