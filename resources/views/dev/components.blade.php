@@ -145,7 +145,7 @@
                         class="h-[420px] w-[420px]"
                         :previous="[2 => 1, 1 => 0, 3 => 2]"
                         :ranking="[
-                            ['rank' => 1, 'player' => ['id' => 2, 'nickname' => $ar ? 'علي' : 'Ali', 'locale' => 'ar'], 'total' => 300, 'gained' => 100],
+                            ['rank' => 1, 'player' => ['id' => 2, 'nickname' => $ar ? 'علي' : 'Ali', 'locale' => 'ar'], 'total' => 300, 'gained' => 100, 'rank_change' => 1],
                             ['rank' => 2, 'player' => ['id' => 1, 'nickname' => $ar ? 'سارة' : 'Sara', 'locale' => $loc], 'total' => 200, 'gained' => 100],
                             ['rank' => 3, 'player' => ['id' => 3, 'nickname' => $ar ? 'مايا' : 'Maya', 'locale' => 'en'], 'total' => 100, 'gained' => 0],
                         ]"
@@ -163,10 +163,26 @@
                 </div>
 
                 <div class="space-y-4">
-                    <h3 class="font-display text-2xl font-bold">Sound toggle · off by default, light and on navy</h3>
-                    <div class="flex items-center gap-6">
+                    <h3 class="font-display text-2xl font-bold">Sound toggle · on by default for the host, off for a phone · vibration toggle (phones that can vibrate) · light and on navy</h3>
+                    <div class="flex flex-wrap items-center gap-6">
                         <x-lamma.sound-toggle />
-                        <div class="rounded-card bg-navy p-4"><x-lamma.sound-toggle :on-dark="true" /></div>
+                        <x-lamma.sound-toggle :phone="true" />
+                        <x-lamma.haptics-toggle />
+                        <div class="flex items-center gap-3 rounded-card bg-navy p-4"><x-lamma.sound-toggle :on-dark="true" /><x-lamma.haptics-toggle :on-dark="true" /></div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Countdown · 3 · 2 · 1 · Go! (full screen in the game; boxed here, reload to run it again) · streak chip · confetti burst</h3>
+                    <div class="flex flex-wrap items-start gap-6">
+                        <div class="relative h-80 w-80 overflow-hidden rounded-card border-2 border-line">
+                            <x-lamma.countdown :ends-at="now()->addSeconds(3)" class="absolute! z-0!" />
+                        </div>
+                        <div class="flex flex-col items-start gap-4">
+                            <x-lamma.streak-chip :count="3" />
+                            <x-lamma.streak-chip :count="7" />
+                            <x-lamma.button size="md" x-on:click="lammaConfetti.burst($el, 28)">Confetti burst</x-lamma.button>
+                        </div>
                     </div>
                 </div>
 

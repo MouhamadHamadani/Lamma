@@ -39,17 +39,22 @@
                 </x-lamma.chip>
                 <x-lamma.progress-dots :total="$state->total" :current="$position" />
             </div>
+        @endif
 
-            <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3">
+            @if ($state)
                 <x-lamma.chip :tone="$tone" size="lg" :icon="$icon" class="hidden md:inline-flex" data-test="category">{{ $state->category->fullName($main) }}</x-lamma.chip>
                 <x-lamma.room-code :code="$room->code" size="chip" data-test="room-code">{{ __('Room') }}</x-lamma.room-code>
-                <x-lamma.sound-toggle />
+            @endif
+            {{-- Above the 3 · 2 · 1 overlay (z-40), so it can be muted from the first second. --}}
+            <x-lamma.sound-toggle class="relative z-50" />
+            @if ($state)
                 <button
                     type="button" wire:click="closeRoom" wire:confirm="{{ __('Close this room? Everyone in it will be disconnected.') }}"
                     class="min-h-11 px-2 text-[15px] font-semibold text-coral-700 hover:underline" data-test="close-room"
                 >{{ __('Close room') }}</button>
-            </div>
-        @endif
+            @endif
+        </div>
     </header>
 
     @if ($state === null)

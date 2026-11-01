@@ -8,6 +8,12 @@ import './echo';
 
 import './lamma';
 
+import './sound';
+
+import './fx';
+
+import './confetti';
+
 import './analytics';
 
 import './selfie';

@@ -17,8 +17,12 @@
     @endif
 
     <header class="relative flex h-16 shrink-0 items-center justify-between">
-        <x-lamma.logo size="sm" />
-        <x-lamma.room-code :code="$room->code" size="chip" data-test="room-code" />
+        <x-lamma.logo size="sm" class="max-[379px]:[&>span]:hidden" />
+        <div class="flex items-center gap-2">
+            <x-lamma.sound-toggle :phone="true" />
+            <x-lamma.haptics-toggle />
+            <x-lamma.room-code :code="$room->code" size="chip" data-test="room-code" />
+        </div>
     </header>
 
     <main class="relative flex grow flex-col items-center gap-[18px] pb-2 pt-4 text-center">

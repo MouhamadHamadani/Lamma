@@ -37,6 +37,20 @@
     --animate-flip: flip 400ms ease-in-out backwards;
     --animate-chip-pop: chip-pop 350ms cubic-bezier(.34, 1.56, .64, 1) backwards;
     --animate-bar-grow: bar-grow 600ms ease-out backwards;
+    --animate-spring-in: spring-in 450ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    --animate-tile-bounce: tile-bounce 700ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    --animate-ring-pulse: ring-pulse 800ms ease-out backwards;
+    --animate-ring-shake: ring-shake 500ms ease-in-out infinite;
+    --animate-bar-pulse: bar-pulse 1s ease-in-out infinite;
+    --animate-slide-in: slide-in 300ms ease-out backwards;
+    --animate-settle: settle 450ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    --animate-wipe-in: wipe-in 380ms cubic-bezier(.2, .8, .2, 1) backwards;
+    --animate-draw: draw 450ms ease-out 250ms backwards;
+    --animate-shake: shake 500ms ease-in-out;
+    --animate-tile-drop: tile-drop 650ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    --animate-own-pulse: own-pulse 700ms ease-in-out 900ms;
+    --animate-name-in: name-in 600ms cubic-bezier(.34, 1.56, .64, 1) backwards;
+    --animate-arrow-bob: arrow-bob 700ms ease-in-out 2;
 
     @keyframes fade-in { from { opacity: 0; } }
     @keyframes pop-in { from { opacity: 0; scale: .9; } }
@@ -53,6 +67,43 @@
     @keyframes chip-pop { from { scale: 0; } }
     /* A podium bar grows up from the floor (use origin-bottom); the screen staggers 3rd, 2nd, 1st with animation-delay. */
     @keyframes bar-grow { from { scale: 1 0; } }
+    /* Game feel (sound-and-motion): transform and opacity only, so the host stays smooth on a laptop connected to a TV. All behind motion-safe:. */
+    /* A new row, an avatar: pops up with overshoot (the easing carries the spring). */
+    @keyframes spring-in { from { opacity: 0; scale: .6; } }
+    /* The room-code tiles drop in one after the other (animation-delay) when the lobby opens. */
+    @keyframes tile-bounce { from { opacity: 0; translate: 0 -40px; } }
+    /* A ring that grows out of the correct tile and fades. */
+    @keyframes ring-pulse { from { opacity: .9; scale: 1; } to { opacity: 0; scale: 1.14; } }
+    /* The host's timer ring trembles in the last three seconds. */
+    @keyframes ring-shake { 25% { translate: -2px 0; } 75% { translate: 2px 0; } }
+    /* The phone's timer bar breathes under five seconds. */
+    @keyframes bar-pulse { 50% { opacity: .6; } }
+    /* Phone answer tiles slide in from the side where reading starts (--slide-dir flips it in right-to-left pages). */
+    @keyframes slide-in { from { opacity: 0; translate: calc(var(--slide-dir, 1) * -28px) 0; } }
+    /* The tile you picked grows and settles into the "locked" tilt. */
+    @keyframes settle { from { opacity: .6; scale: .7; rotate: 0deg; } }
+    /* The teal "correct" screen wipes up from the bottom. */
+    @keyframes wipe-in { from { scale: 1 0; } }
+    /* A check mark drawn stroke by stroke (the path has pathLength="1"). */
+    @keyframes draw { from { stroke-dashoffset: 1; } }
+    /* A soft, one-time shake (the cross on a wrong answer). */
+    @keyframes shake { 20% { translate: -6px 0; } 40% { translate: 5px 0; } 60% { translate: -3px 0; } 80% { translate: 2px 0; } }
+    /* The phone's rank tile drops in and lands tilted. */
+    @keyframes tile-drop { from { opacity: 0; translate: 0 -90px; rotate: 8deg; } }
+    /* Your own row on the leaderboard swells once. */
+    @keyframes own-pulse { 50% { scale: 1.04; } }
+    /* The winner's name scales in. */
+    @keyframes name-in { from { opacity: 0; scale: .7; } }
+    /* The small arrow next to a row that moved up. */
+    @keyframes arrow-bob { 50% { translate: 0 -3px; } }
+}
+
+:root {
+    --slide-dir: 1;
+}
+
+:root[dir='rtl'] {
+    --slide-dir: -1;
 }
 
 /* Focus ring (HANDOFF §8): 3px sun outline, 2px offset. Sun on cream is only ~1.5:1, so the offset gap is filled with a 2px navy

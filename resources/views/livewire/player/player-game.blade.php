@@ -31,8 +31,15 @@
     @endif
 
     <div class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
-        <header class="flex h-16 shrink-0 items-center justify-between">
-            <x-lamma.logo size="sm" />
+        {{-- z-50: above the 3 · 2 · 1 overlay. In a game the sound and vibration switches take the logo's place: the question number and the score need the room. --}}
+        <header class="relative z-50 flex h-16 shrink-0 items-center justify-between">
+            <div class="flex items-center gap-2">
+                @unless ($state)
+                    <x-lamma.logo size="sm" class="me-1 max-[379px]:[&>span]:hidden" />
+                @endunless
+                <x-lamma.sound-toggle :phone="true" />
+                <x-lamma.haptics-toggle />
+            </div>
             @if ($state && ! $state->finished)
                 <div class="flex items-center gap-2">
                     <x-lamma.chip size="sm" class="border-2 border-line bg-white"><bdi dir="ltr" data-test="question-number">{{ __('Q :n / :total', ['n' => $position, 'total' => $state->total]) }}</bdi></x-lamma.chip>

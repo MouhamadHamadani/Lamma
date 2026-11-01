@@ -18,6 +18,7 @@
             <x-lamma.chip size="lg" class="hidden lg:inline-flex">
                 {{ __(':count questions', ['count' => $room->settings->questionCount]) }} · {{ __(':seconds s', ['seconds' => $room->settings->secondsPerQuestion]) }}
             </x-lamma.chip>
+            <x-lamma.sound-toggle />
             <button
                 type="button" wire:click="closeRoom" wire:confirm="{{ __('Close this room? Everyone in it will be disconnected.') }}"
                 class="min-h-11 px-2 text-[15px] font-semibold text-coral-700 hover:underline" data-test="close-room"
