@@ -83,7 +83,7 @@
 
         <div class="grow"></div>
 
-        <x-lamma.button type="submit" size="lg" icon="play" class="w-full" wire:loading.attr="disabled" wire:target="join" data-test="join-button">{{ __('Join game') }}</x-lamma.button>
+        <x-lamma.button type="submit" size="lg" icon="play" class="w-full" x-on:click="$store.sound.buzz('tap')" wire:loading.attr="disabled" wire:target="join" data-test="join-button">{{ __('Join game') }}</x-lamma.button>
 
         @guest
             <p class="text-center text-sm text-ink-subtle">

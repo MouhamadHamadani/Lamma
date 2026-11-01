@@ -37,13 +37,13 @@
                         type="button" wire:click="toggleProfile" aria-controls="profile-panel" aria-expanded="{{ $editing || $choosing ? 'true' : 'false' }}"
                         aria-label="{{ $photosOn ? __('Change your name or photo') : __('Change your name') }}" class="relative min-h-11 min-w-11 rounded-full" data-test="avatar-button"
                     >
-                        <x-lamma.avatar :name="$me->nickname" :color="$myIndex" :size="120" :photo="$photosOn ? $me->avatarUrl() : null" :lazy="false" class="rounded-full shadow-sticker" />
+                        <x-lamma.avatar :name="$me->nickname" :color="$myIndex" :size="120" :photo="$photosOn ? $me->avatarUrl() : null" :lazy="false" class="rounded-full shadow-sticker motion-safe:animate-spring-in motion-reduce:animate-fade-in" />
                         <span aria-hidden="true" class="absolute -bottom-1 -end-1 flex size-9 items-center justify-center rounded-full border-3 border-navy bg-white text-navy">
                             <x-lamma.icon :name="$photosOn ? 'camera' : 'user'" :size="18" />
                         </span>
                     </button>
                 @else
-                    <x-lamma.avatar :name="$me->nickname" :color="$myIndex" :size="120" :photo="$photosOn ? $me->avatarUrl() : null" :lazy="false" class="rounded-full shadow-sticker" />
+                    <x-lamma.avatar :name="$me->nickname" :color="$myIndex" :size="120" :photo="$photosOn ? $me->avatarUrl() : null" :lazy="false" class="rounded-full shadow-sticker motion-safe:animate-spring-in motion-reduce:animate-fade-in" />
                 @endif
                 <h1 class="font-display text-[34px] font-extrabold leading-tight" data-test="welcome">
                     {{-- The translation is trusted; the nickname is escaped and kept left-to-right inside it. --}}
@@ -108,6 +108,7 @@
             <x-lamma.button
                 :variant="$me->is_ready ? 'teal' : 'primary'" size="lg" :icon="$me->is_ready ? 'check' : null"
                 class="min-h-[72px] w-full font-display text-2xl" wire:click="toggleReady"
+                x-on:click="const on = $el.getAttribute('aria-pressed') !== 'true'; $store.sound.play(on ? 'ready-on' : 'ready-off'); $store.sound.buzz('tap'); lammaFx.squish($el); if (on) lammaConfetti.burst($el, 16, { tone: 'teal' })"
                 aria-pressed="{{ $me->is_ready ? 'true' : 'false' }}" data-test="ready-button"
             >{{ $me->is_ready ? __("I'm ready!") : __("I'm ready") }}</x-lamma.button>
 

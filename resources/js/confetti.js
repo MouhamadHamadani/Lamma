@@ -1,7 +1,7 @@
 // Small canvas confetti in the Lamma shapes: `lammaConfetti.burst(origin, count)` pops pieces from an element (or a point), `lammaConfetti.rain(ms)` lets
 // a gentle shower fall from the top. One shared canvas (fixed, pointer-events none, aria-hidden) is made when needed and removed after the last piece
 // has landed. At most 120 pieces at once, nothing while the tab is hidden, and nothing at all under reduced motion.
-// `origin` is an Element, or {x, y} as fractions of the screen (mirrored in right-to-left pages), or 'start' / 'end' (the side where reading starts / ends).
+// `tone` colours every piece with one brand colour (the teal burst of the Ready button). `origin` is an Element, or {x, y} as fractions of the screen (mirrored in right-to-left pages), or 'start' / 'end' (the side where reading starts / ends).
 const CAP = 120;
 const SHAPES = ['triangle', 'circle', 'square', 'diamond'];
 const TOKENS = ['coral', 'teal', 'sun', 'navy'];
@@ -27,7 +27,7 @@ const stop = () => {
     canvas = ctx = null;
 };
 
-const resolve = (origin) => {
+const resolve = (origin = { x: 0.5, y: 0.5 }) => {
     const dir = rtl() ? -1 : 1;
     if (origin instanceof Element) {
         const box = origin.getBoundingClientRect();
@@ -40,11 +40,11 @@ const resolve = (origin) => {
     return { x: (dir === 1 ? origin.x : 1 - origin.x) * innerWidth, y: origin.y * innerHeight, dir };
 };
 
-const spawn = (x, y, vx, vy, size, light) => {
+const spawn = (x, y, vx, vy, size, light, tone) => {
     const shape = Math.floor(Math.random() * 4);
     pieces.push({
         x, y, vx, vy, size, shape,
-        fill: color(light && shape === 3 ? 'cream' : TOKENS[shape]),
+        fill: color(tone ?? (light && shape === 3 ? 'cream' : TOKENS[shape])),
         angle: Math.random() * Math.PI * 2,
         spin: (Math.random() - 0.5) * 8,
         sway: Math.random() * Math.PI * 2,
@@ -135,13 +135,13 @@ const start = (onDark) => {
 };
 
 window.lammaConfetti = {
-    burst(origin, count = 24, { onDark = false } = {}) {
+    burst(origin, count = 24, { onDark = false, tone } = {}) {
         if (!start(onDark)) return;
         const { x, y, dir } = resolve(origin);
         for (let i = 0; i < Math.min(count, CAP - pieces.length); i++) {
             const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1;
             const speed = 180 + Math.random() * 280;
-            spawn(x, y, Math.cos(angle) * speed + dir * 25, Math.sin(angle) * speed, 7 + Math.random() * 6, onDark);
+            spawn(x, y, Math.cos(angle) * speed + dir * 25, Math.sin(angle) * speed, 7 + Math.random() * 6, onDark, tone);
         }
     },
 

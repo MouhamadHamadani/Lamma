@@ -14,19 +14,21 @@
     $announce = match ($phase) {
         'question' => __('Question :n of :total', ['n' => $position, 'total' => $state?->total]),
         'answered' => __('Answer locked in'),
-        'correct' => __('Correct, plus :points points', ['points' => $gained]),
+        'correct' => $streak >= 3 ? __('Correct, plus :points points, :count in a row', ['points' => $gained, 'count' => $streak]) : __('Correct, plus :points points', ['points' => $gained]),
         'wrong' => __('Not quite, the answer was :answer', ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
         'timeout' => __("Time's up, the answer was :answer", ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
         default => '',
     };
     $seconds = $room->settings->secondsPerQuestion;
 @endphp
-<div @class(['relative min-h-dvh', 'bg-teal' => $phase === 'correct']) @if ($phase !== 'over') wire:poll.4s @endif data-test="player-game" data-phase="{{ $phase }}">
+<div class="relative min-h-dvh" @if ($phase !== 'over') wire:poll.4s @endif data-test="player-game" data-phase="{{ $phase }}">
 @if ($phase === 'over')
     {{-- The game is over: the results screen (rank, leaderboard, save your score, follow Play again) takes over. --}}
     <livewire:player.player-results :room="$room" :key="'results-'.$room->id" />
 @else
     @if ($phase === 'correct')
+        {{-- The teal screen wipes up from the bottom (a fade under reduced motion). --}}
+        <div aria-hidden="true" class="pointer-events-none absolute inset-0 origin-bottom bg-teal motion-safe:animate-wipe-in motion-reduce:animate-fade-in"></div>
         <x-lamma.confetti :count="5" />
     @endif
 
@@ -57,6 +59,9 @@
             <main class="flex grow flex-col items-center justify-center gap-6 text-center" data-test="get-ready" aria-live="polite">
                 <x-lamma.dots class="[&>span]:size-4" />
                 <h1 class="font-display text-[44px] font-extrabold leading-none">{{ __('Get ready…') }}</h1>
+                @if ($countdownEndsAt)
+                    <x-lamma.countdown :ends-at="$countdownEndsAt" />
+                @endif
             </main>
 
         @elseif ($phase === 'question')
@@ -74,7 +79,8 @@
                         <x-lamma.answer
                             size="phone" :index="$index" :lang="$lang" :text="$tr($option, 'text')"
                             wire:click="answer({{ $option->id }})" wire:loading.attr="disabled" wire:target="answer"
-                            class="motion-safe:animate-pop-in" style="animation-delay: {{ $index * 60 }}ms" data-option="{{ $option->id }}"
+                            x-on:click="$store.sound.play('lock-in'); $store.sound.buzz('tap')"
+                            class="motion-safe:animate-slide-in motion-reduce:animate-fade-in" style="animation-delay: {{ $index * 60 }}ms" data-option="{{ $option->id }}"
                         />
                     @endforeach
                 </div>
@@ -90,7 +96,7 @@
 
                 <div class="flex grow flex-col items-center justify-center gap-[22px] text-center">
                     <span class="text-sm font-bold text-coral-700">{{ __('Answer locked in') }}</span>
-                    <x-lamma.answer size="phone" state="locked" :index="(int) $state->indexOf($answer->question_option_id)" :lang="$lang" :text="$chosen ? $tr($chosen, 'text') : ''" class="motion-safe:animate-pop-in" data-test="locked-answer" />
+                    <x-lamma.answer size="phone" state="locked" :index="(int) $state->indexOf($answer->question_option_id)" :lang="$lang" :text="$chosen ? $tr($chosen, 'text') : ''" class="motion-safe:animate-settle motion-reduce:animate-fade-in" data-test="locked-answer" />
                     <span aria-hidden="true" class="flex gap-2">
                         @foreach (['bg-coral', 'bg-sun', 'bg-teal'] as $n => $color)
                             <span class="size-3 rounded-full {{ $color }} motion-safe:animate-dots" style="animation-delay: {{ $n * 150 }}ms"></span>
@@ -107,28 +113,48 @@
 
         @elseif (in_array($phase, ['correct', 'wrong', 'timeout'], true))
             {{-- player-5: teal when right; cream for "not quite" and "time's up" --}}
-            <main wire:key="p-{{ $position }}-reveal" class="relative flex grow flex-col items-center gap-[18px] pb-7 pt-5 text-center" data-test="reveal-{{ $phase }}">
+            {{-- One sound, one vibration and (when right) one burst of confetti per answer, even if a refresh runs this x-init again. A right answer is a long buzz,
+                 a wrong one a short soft one (never harsh); the streak chime follows the "correct" one. --}}
+            <main
+                wire:key="p-{{ $position }}-reveal" class="relative flex grow flex-col items-center gap-[18px] pb-7 pt-5 text-center" data-test="reveal-{{ $phase }}"
+                x-init="$store.sound.once('p{{ $position }}-result', () => { $store.sound.play('{{ $phase === 'correct' ? 'correct' : 'wrong' }}'); $store.sound.buzz('{{ $phase === 'correct' ? 'correct' : 'wrong' }}'); @if ($phase === 'correct') setTimeout(() => lammaConfetti.burst($el.querySelector('[data-test=points-gained]'), 22), 350); @if ($streak >= 3) setTimeout(() => $store.sound.play('streak'), 750); @endif @endif })"
+            >
                 <span @class([
-                    'flex size-32 items-center justify-center rounded-full border-3 border-navy shadow-sticker-lg motion-safe:animate-reveal',
+                    'flex size-32 items-center justify-center rounded-full border-3 border-navy shadow-sticker-lg',
+                    'motion-safe:animate-reveal' => $phase === 'correct',
+                    'motion-safe:animate-shake' => $phase !== 'correct',
                     'bg-cream' => $phase === 'correct',
                     'bg-tint-coral' => $phase === 'wrong',
                     'bg-tint-sun' => $phase === 'timeout',
                 ])>
-                    <x-lamma.icon :name="['correct' => 'check', 'wrong' => 'x', 'timeout' => 'clock'][$phase]" :size="64" :stroke="3" />
+                    @if ($phase === 'correct')
+                        {{-- The check draws itself, stroke by stroke (pathLength 1 lets one dash cover the whole stroke). --}}
+                        <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-test="check-draw">
+                            <path pathLength="1" stroke-dasharray="1" d="M5 12.5l4.5 4.5L19 7.5" class="motion-safe:animate-draw" />
+                        </svg>
+                    @else
+                        <x-lamma.icon :name="['wrong' => 'x', 'timeout' => 'clock'][$phase]" :size="64" :stroke="3" />
+                    @endif
                 </span>
 
                 <h1 class="font-display text-[56px] font-extrabold leading-none motion-safe:animate-fade-up" data-test="result-title">
                     {{ ['correct' => __('Correct!'), 'wrong' => __('Not quite!'), 'timeout' => __("Time's up!")][$phase] }}
                 </h1>
 
-                <span
-                    dir="ltr" x-data="lammaCountUp({{ $gained }})" data-test="points-gained"
-                    @class([
-                        'inline-flex h-16 -rotate-3 items-center rounded-[18px] border-3 border-navy px-7 font-display text-[40px] font-extrabold shadow-sticker motion-safe:animate-chip-pop',
-                        'bg-sun' => $phase === 'correct',
-                        'bg-white' => $phase !== 'correct',
-                    ])
-                >+<span x-text="n">{{ $gained }}</span></span>
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                    <span
+                        dir="ltr" x-data="lammaCountUp({{ $gained }}, 400, {{ $gained > 0 ? 'true' : 'false' }})" data-test="points-gained"
+                        @class([
+                            'inline-flex h-16 -rotate-3 items-center rounded-[18px] border-3 border-navy px-7 font-display text-[40px] font-extrabold shadow-sticker motion-safe:animate-chip-pop',
+                            'bg-sun' => $phase === 'correct',
+                            'bg-white' => $phase !== 'correct',
+                        ])
+                    >+<span x-text="n">{{ $gained }}</span></span>
+                    @if ($phase === 'correct' && $streak >= 3)
+                        {{-- Three or more right in a row. Display only: the score is still a flat +100 each. --}}
+                        <x-lamma.streak-chip :count="$streak" class="motion-safe:animate-chip-pop" style="animation-delay: 300ms" />
+                    @endif
+                </div>
 
                 @if ($row)
                     <p class="font-display text-[22px] font-bold" data-test="rank-line">{!! __("You're :rank · :points pts", ['rank' => $rankHtml, 'points' => $pointsHtml]) !!}</p>

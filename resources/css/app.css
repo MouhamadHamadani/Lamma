@@ -48,7 +48,7 @@
     --animate-draw: draw 450ms ease-out 250ms backwards;
     --animate-shake: shake 500ms ease-in-out;
     --animate-tile-drop: tile-drop 650ms cubic-bezier(.34, 1.56, .64, 1) backwards;
-    --animate-own-pulse: own-pulse 700ms ease-in-out 900ms;
+    --animate-own-row: own-row 1300ms ease-out backwards;
     --animate-name-in: name-in 600ms cubic-bezier(.34, 1.56, .64, 1) backwards;
     --animate-arrow-bob: arrow-bob 700ms ease-in-out 2;
 
@@ -90,8 +90,14 @@
     @keyframes shake { 20% { translate: -6px 0; } 40% { translate: 5px 0; } 60% { translate: -3px 0; } 80% { translate: 2px 0; } }
     /* The phone's rank tile drops in and lands tilted. */
     @keyframes tile-drop { from { opacity: 0; translate: 0 -90px; rotate: 8deg; } }
-    /* Your own row on the leaderboard swells once. */
-    @keyframes own-pulse { 50% { scale: 1.04; } }
+    /* Your own row on the leaderboard slides in with the others (first 300ms), then swells once (the stagger delay sets when it starts). */
+    @keyframes own-row {
+        from { opacity: 0; translate: calc(var(--slide-dir, 1) * -28px) 0; }
+        23% { opacity: 1; translate: 0 0; scale: 1; }
+        62% { scale: 1; }
+        77% { scale: 1.04; }
+        to { scale: 1; }
+    }
     /* The winner's name scales in. */
     @keyframes name-in { from { opacity: 0; scale: .7; } }
     /* The small arrow next to a row that moved up. */

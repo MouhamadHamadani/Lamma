@@ -201,10 +201,10 @@ describe('the reveal screens (player-5)', function () {
 
         $page = phone($room);
 
-        $page->assertSee('Correct!')->assertSeeHtml('data-test="reveal-correct"')->assertSeeHtml('lammaCountUp(100)')
+        $page->assertSee('Correct!')->assertSeeHtml('data-test="reveal-correct"')->assertSeeHtml('lammaCountUp(100, 400, true)')
             ->assertSee('Correct answer')->assertSee(option($question, array_search(optionOf($question), $question->option_order))->getTranslation('text', 'en'))
             ->assertSee('Next question coming up…');
-        expect($page->html())->toContain('class="relative min-h-dvh bg-teal"')->and($page->html())->toContain("You're")->and($page->html())->toContain('1st');
+        expect($page->html())->toContain('bg-teal motion-safe:animate-wipe-in')->and($page->html())->toContain("You're")->and($page->html())->toContain('1st');
         $page->assertSeeHtml('Correct, plus 100 points');
     });
 
@@ -216,9 +216,9 @@ describe('the reveal screens (player-5)', function () {
 
         $page = phone($room);
 
-        $page->assertSee('Not quite!')->assertSeeHtml('data-test="reveal-wrong"')->assertSeeHtml('lammaCountUp(0)')->assertSee('Correct answer')
+        $page->assertSee('Not quite!')->assertSeeHtml('data-test="reveal-wrong"')->assertSeeHtml('lammaCountUp(0, 400, false)')->assertSee('Correct answer')
             ->assertSee(option($question, array_search(optionOf($question), $question->option_order))->getTranslation('text', 'en'));
-        expect($page->html())->not->toContain('relative min-h-dvh bg-teal')->and($page->html())->toContain('2nd');
+        expect($page->html())->not->toContain('animate-wipe-in')->and($page->html())->toContain('2nd');
     });
 
     it('shows Time\'s up when nothing was answered, with the correct answer', function () {
@@ -251,7 +251,7 @@ describe('the reveal screens (player-5)', function () {
 
         $page = phone($room);
 
-        $page->assertSeeHtml('dir="ltr" x-data="lammaCountUp(100)"');
+        $page->assertSeeHtml('dir="ltr" x-data="lammaCountUp(100, 400, true)"');
         expect($page->html())->toContain('<bdi dir="ltr">100</bdi>');
     });
 

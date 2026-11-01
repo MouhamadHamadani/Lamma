@@ -11,7 +11,10 @@
     };
     $tile = $rank === 1 ? 'bg-sun' : ($rank === 2 ? 'bg-teal' : 'bg-coral');
 @endphp
-<div class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]" wire:poll.5s="follow" data-test="player-results" data-rank="{{ $rank }}">
+<div
+    class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]" wire:poll.5s="follow" data-test="player-results" data-rank="{{ $rank }}"
+    @if ($rank === 1 && $total > 0) x-init="$store.sound.once('results', () => { $store.sound.play('win'); $store.sound.buzz('correct'); setTimeout(() => lammaConfetti.burst($el.querySelector('[data-test=rank-tile]'), 36), 550) })" @endif
+>
     @if ($rank <= 3)
         <x-lamma.confetti :count="3" />
     @endif
@@ -29,7 +32,7 @@
         <span class="text-sm font-bold text-coral-700">{{ __('Game over') }}</span>
 
         <div
-            class="{{ $tile }} flex size-[150px] -rotate-4 flex-col items-center justify-center rounded-[32px] border-3 border-navy text-navy shadow-sticker-lg motion-safe:animate-reveal"
+            class="{{ $tile }} flex size-[150px] -rotate-4 flex-col items-center justify-center rounded-[32px] border-3 border-navy text-navy shadow-sticker-lg motion-safe:animate-tile-drop motion-reduce:animate-fade-in"
             data-test="rank-tile" role="img" aria-label="{{ __('Your place: :rank', ['rank' => Scoreboard::ordinal($rank)]) }}"
         >
             <span class="font-display text-[72px] font-extrabold leading-none" dir="ltr">{{ $rank }}@if (Scoreboard::suffix($rank))<span class="text-[32px]">{{ Scoreboard::suffix($rank) }}</span>@endif</span>
@@ -47,7 +50,8 @@
             @foreach ($ranking as $index => $entry)
                 @php $you = $entry['player']['id'] === $me->id; @endphp
                 <li
-                    @class(['flex h-[60px] items-center gap-3 rounded-2xl bg-white px-3.5 text-start', 'border-3 border-navy' => $you, 'border-2 border-line' => ! $you])
+                    @class(['flex h-[60px] items-center gap-3 rounded-2xl bg-white px-3.5 text-start motion-reduce:animate-fade-in', 'border-3 border-navy motion-safe:animate-own-row' => $you, 'border-2 border-line motion-safe:animate-slide-in' => ! $you])
+                    style="animation-delay: {{ $index * 60 }}ms"
                     @if ($you) data-you aria-current="true" @endif data-rank="{{ $entry['rank'] }}"
                 >
                     <span class="w-5 text-center font-display text-xl font-extrabold" dir="ltr">{{ $entry['rank'] }}</span>

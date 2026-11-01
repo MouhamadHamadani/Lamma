@@ -16,7 +16,7 @@
             class="h-full {{ $secs <= 5 ? 'bg-coral' : 'bg-sun' }}"
             style="width: {{ round(min(1, $left / ($seconds * 1000)) * 100, 1) }}%"
             x-bind:style="{ width: `${frac * 100}%` }"
-            x-bind:class="{ 'bg-coral': secs <= 5, 'bg-sun': secs > 5 }"
+            x-bind:class="{ 'bg-coral': secs <= 5, 'bg-sun': secs > 5, 'motion-safe:animate-bar-pulse': secs <= 5 && secs > 0 }"
         ></div>
     </div>
     <span
