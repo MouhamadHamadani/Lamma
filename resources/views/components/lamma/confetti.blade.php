@@ -1,4 +1,6 @@
-{{-- Decorative scatter (aria-hidden). Fill a `relative` parent; positions use inset-inline-start, so RTL mirrors them and the tilts. --}}
+{{-- Decorative scatter (aria-hidden), still. Fill a `relative` parent; positions use inset-inline-start, so RTL mirrors them and the tilts.
+     For confetti that moves (a burst from an element, a rain from the top) use `lammaConfetti.burst(origin, count)` / `lammaConfetti.rain(ms)` (resources/js/confetti.js):
+     a canvas that ignores the pointer, is aria-hidden, removes itself, is off under reduced motion and mirrors its origins in right-to-left pages. --}}
 @props(['count' => 12])
 @php
     // [shape, colour, px, top %, inline-start %, tilt deg]

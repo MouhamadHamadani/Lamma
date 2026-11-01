@@ -9,6 +9,7 @@ use App\Events\QuestionStarted;
 use App\Events\RoomClosed;
 use App\Events\ScoreboardUpdated;
 use App\Game\GameEngine;
+use App\Game\GameView;
 use App\Game\Scoreboard;
 use App\Models\Room;
 use App\Models\RoomPlayer;
@@ -266,5 +267,94 @@ describe('every event', function () {
         $this->travel(2)->seconds();
 
         expect($event->broadcastWith()['server_time'])->toBe($first + 2000);
+    });
+});
+
+describe('display data: rank_change and streak (never a score, never before the reveal)', function () {
+    /** Play one question: the listed players (index => right?) answer, everyone else does not; then show the answer. */
+    function playRound(Room $room, array $answers, int $position): void
+    {
+        $question = $room->fresh()->currentQuestion();
+        $players = $room->players()->orderBy('id')->get();
+        foreach ($answers as $index => $right) {
+            answer($players[$index], $question, $right);
+        }
+        app(GameEngine::class)->reveal($room, $position, force: true);
+    }
+
+    it('says how many places each player climbed this round: the rank before minus the rank now', function () {
+        $room = gameRoom(players: 3, questions: 3);
+        $players = $room->players()->orderBy('id')->get();
+        startGame($room);
+
+        playRound($room, [0 => true, 1 => false, 2 => false], 1);
+        $first = collect(lastPayload(ScoreboardUpdated::class)['ranking'])->pluck('rank_change', 'player.id');
+        // Everyone was level first; the leader stays first, the other two share second.
+        expect($first->all())->toBe([$players[0]->id => 0, $players[1]->id => -1, $players[2]->id => -1]);
+
+        app(GameEngine::class)->advance($room, 1, force: true);
+        playRound($room, [0 => false, 1 => false, 2 => true], 2);
+        $second = collect(lastPayload(ScoreboardUpdated::class)['ranking'])->pluck('rank_change', 'player.id');
+        // Player 3 was level second and now shares first (+1); player 2 fell from second to third (-1).
+        expect($second->all())->toBe([$players[0]->id => 0, $players[2]->id => 1, $players[1]->id => -1]);
+    });
+
+    it('is 0 for everyone in the final standings, which have no round to compare with', function () {
+        $room = gameRoom(players: 2, questions: 3);
+        startGame($room);
+        playRound($room, [0 => true], 1);
+
+        $ranking = app(Scoreboard::class)->ranking($room->fresh());
+
+        expect(array_column($ranking, 'rank_change'))->toBe([0, 0]);
+    });
+
+    it('counts right answers in a row for each player in the QuestionRevealed payload, and a wrong or missing answer starts it over', function () {
+        $room = gameRoom(players: 2, questions: 5);
+        $players = $room->players()->orderBy('id')->get();
+        startGame($room);
+        $streaks = [];
+
+        // player 1: right, right, wrong, (no answer), right. player 2: right every time.
+        $plan = [[0 => true, 1 => true], [0 => true, 1 => true], [0 => false, 1 => true], [1 => true], [0 => true, 1 => true]];
+        foreach ($plan as $i => $answers) {
+            playRound($room, $answers, $i + 1);
+            $streaks[] = collect(lastPayload(QuestionRevealed::class)['points'])->pluck('streak', 'player_id')->all();
+            if ($i < 4) {
+                app(GameEngine::class)->advance($room, $i + 1, force: true);
+            }
+        }
+
+        expect(array_column($streaks, $players[0]->id))->toBe([1, 2, 0, 0, 1])->and(array_column($streaks, $players[1]->id))->toBe([1, 2, 3, 4, 5]);
+    });
+
+    it('gives each phone its own streak from the stored answers, nothing before the reveal', function () {
+        $room = gameRoom(players: 2, questions: 3);
+        $me = $room->players()->orderBy('id')->first();
+        startGame($room);
+        playRound($room, [0 => true], 1);
+        app(GameEngine::class)->advance($room, 1, force: true);
+        $question = $room->fresh()->currentQuestion();
+        answer($me, $question, true);
+
+        $open = app(GameView::class)->forRoom($room->fresh());
+        expect($open->streakOf($me))->toBe(0);
+
+        app(GameEngine::class)->reveal($room, 2, force: true);
+        expect(app(GameView::class)->forRoom($room->fresh())->streakOf($me))->toBe(2);
+    });
+
+    it('is not in any payload before the reveal, and still never says which option is correct', function () {
+        $room = gameRoom(players: 2, questions: 3);
+        $question = startGame($room);
+        answer($room->players()->orderBy('id')->first(), $question, true);
+
+        foreach ([QuestionStarted::class, PlayerAnswered::class, GameStarted::class] as $class) {
+            foreach (Event::dispatched($class) as [$event]) {
+                $json = json_encode($event->broadcastWith());
+
+                expect($json)->not->toContain('streak')->not->toContain('rank_change')->not->toContain('is_correct')->not->toContain('correct');
+            }
+        }
     });
 });
