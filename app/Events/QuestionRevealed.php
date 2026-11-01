@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Game\Scoreboard;
 use App\Models\Room;
 use App\Models\RoomQuestion;
 
@@ -19,6 +20,7 @@ class QuestionRevealed extends RoomEvent
         $answers = $roomQuestion->answers()->with('roomPlayer')->get();
         $options = collect($roomQuestion->option_order)->map(fn (int $id) => $question->options->firstWhere('id', $id))->filter();
         $gained = $answers->pluck('points', 'room_player_id');
+        $streaks = app(Scoreboard::class)->streaks($room, $roomQuestion);
 
         $this->reveal = [
             'position' => $roomQuestion->position,
@@ -32,7 +34,8 @@ class QuestionRevealed extends RoomEvent
                         ...($room->settings->showPhotos ? ['avatar_url' => $answer->roomPlayer->avatarUrl()] : []),
                     ])->values()->all(),
             ])->values()->all(),
-            'points' => $room->players()->orderBy('id')->pluck('id')->map(fn (int $id) => ['player_id' => $id, 'points' => (int) ($gained[$id] ?? 0)])->all(),
+            // streak: right answers in a row so far (display only: a flat +100 is all that is scored)
+            'points' => $room->players()->orderBy('id')->pluck('id')->map(fn (int $id) => ['player_id' => $id, 'points' => (int) ($gained[$id] ?? 0), 'streak' => $streaks[$id] ?? 0])->all(),
             'revealed_at' => self::iso($roomQuestion->revealed_at),
         ];
     }

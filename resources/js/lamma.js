@@ -16,7 +16,7 @@ document.addEventListener('alpine:init', () => {
                 if (this.left === 0) {
                     clearInterval(this.interval);
                     // A question's timer (ticks = true) that ran down on this screen ends with a gentle "time's up" (not when the page opened after the deadline).
-                    if (ticks && running) window.Alpine.store('sound').play('time-up');
+                    if (ticks && running) window.Alpine.store('sound').once(`time-up-${endsAt}`, () => window.Alpine.store('sound').play('time-up'));
                     // Lets a screen react when time is up (the host nudges the game engine). Fires once per timer.
                     this.$dispatch('lamma-timer-ended');
                 }
@@ -27,7 +27,7 @@ document.addEventListener('alpine:init', () => {
             this.$watch('secs', (s) => {
                 if (s === 10 || s === 5) this.say = announcement.replace(':seconds', s);
                 // A question's timer (ticks = true) ticks for each of the last five seconds (resources/js/sound.js).
-                if (ticks && s <= 5 && s > 0) window.Alpine.store('sound').play('timer-tick');
+                if (ticks && s <= 5 && s > 0) window.Alpine.store('sound').once(`tick-${endsAt}-${s}`, () => window.Alpine.store('sound').play('timer-tick'));
             });
         },
 
@@ -113,8 +113,10 @@ document.addEventListener('alpine:init', () => {
                 this.n = n;
                 this.label = n > 0 ? String(n) : goLabel;
                 const sound = window.Alpine.store('sound');
-                sound.play(n > 0 ? 'countdown-tick' : 'countdown-go');
-                sound.buzz('tap');
+                sound.once(`countdown-${n}`, () => {
+                    sound.play(n > 0 ? 'countdown-tick' : 'countdown-go');
+                    sound.buzz('tap');
+                });
                 window.lammaFx.pop(this.$refs.tile, n > 0);
                 if (n === 0) clearInterval(this.interval);
             };

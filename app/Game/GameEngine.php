@@ -11,6 +11,7 @@ use App\Events\QuestionStarted;
 use App\Events\ScoreboardUpdated;
 use App\Jobs\AdvanceQuestion;
 use App\Jobs\RevealQuestion;
+use App\Jobs\StartQuestion;
 use App\Models\PlayerAnswer;
 use App\Models\QuestionOption;
 use App\Models\Room;
@@ -41,6 +42,9 @@ class GameEngine
     /** How long the answer stays on screen before the next question. */
     public const REVEAL_SECONDS = 5;
 
+    /** The 3 - 2 - 1 - Go! between "Start game" and question 1. */
+    public const COUNTDOWN_SECONDS = 3;
+
     public function __construct(
         private readonly QuestionPicker $picker,
         private readonly ScoringService $scoring,
@@ -49,8 +53,9 @@ class GameEngine
 
     /**
      * Start the game. Rules: only the host, only from the lobby, at least one connected player, every connected player ready.
-     * Picks the questions, fixes their option order and opens question 1. A lock plus a row lock make a double click (or two
-     * hosts' tabs) start it exactly once.
+     * Picks the questions, fixes their option order and starts the countdown: question 1 opens when it ends (startQuestion, called
+     * by the StartQuestion job and by the host screen's tick). A lock plus a row lock make a double click (or two hosts' tabs)
+     * start it exactly once.
      *
      * @throws GameStartException
      */
@@ -62,7 +67,7 @@ class GameEngine
         }
 
         try {
-            [$started, $first] = DB::transaction(function () use ($room, $by) {
+            $started = DB::transaction(function () use ($room, $by) {
                 $locked = Room::query()->whereKey($room->id)->lockForUpdate()->firstOrFail();
 
                 if ($locked->host_id !== $by->id) {
@@ -94,18 +99,58 @@ class GameEngine
                     ]);
                 }
 
-                $locked->update(['status' => RoomStatus::Playing, 'started_at' => now()]);
+                $now = now();
+                $locked->update([
+                    'status' => RoomStatus::Playing,
+                    'started_at' => $now,
+                    'countdown_ends_at' => $now->addSeconds(self::COUNTDOWN_SECONDS),
+                ]);
 
-                return [$locked, $this->begin($locked, 1)];
+                return $locked;
             });
         } finally {
             $lock->release();
         }
 
         GameStarted::broadcast($started)->toOthers();
-        $this->announce($started, $first);
+        StartQuestion::dispatch($started->id)->delay($started->countdown_ends_at);
 
         return $started;
+    }
+
+    /**
+     * Open question 1 once the countdown is over. Both the StartQuestion job and the host screen's tick ask for it, so whichever comes first
+     * does it and the other finds it Already done; asking before the countdown ends is TooEarly. Later questions open through advance().
+     * $force skips the wait (tests).
+     */
+    public function startQuestion(Room $room, bool $force = false): Transition
+    {
+        [$transition, $first, $fresh] = $this->locked($room, function (Room $fresh) use ($force) {
+            $question = $fresh->status === RoomStatus::Playing ? $fresh->roomQuestions()->where('position', 1)->first() : null;
+            if ($question === null) {
+                return [Transition::Stale, null, $fresh];
+            }
+            if ($question->started_at !== null) {
+                return [Transition::Already, null, $fresh];
+            }
+            if (! $force && now() < $this->countdownEndsAt($fresh)) {
+                return [Transition::TooEarly, null, $fresh];
+            }
+
+            return [Transition::Done, $this->begin($fresh, 1), $fresh];
+        });
+
+        if ($transition === Transition::Done) {
+            $this->announce($fresh, $first);
+        }
+
+        return $transition;
+    }
+
+    /** When the countdown ends and question 1 may open. A game started before countdowns existed has none: its first question is already open. */
+    public function countdownEndsAt(Room $room): CarbonImmutable
+    {
+        return $room->countdown_ends_at ?? CarbonImmutable::instance($room->started_at ?? now());
     }
 
     /**
@@ -232,8 +277,9 @@ class GameEngine
     }
 
     /**
-     * Do whatever is due: reveal an open question whose time is up, advance a revealed one whose pause is over. The host screen
-     * calls this when its countdowns end, so the game keeps moving even if the queue worker is slow or not running.
+     * Do whatever is due: open question 1 when the countdown is over, reveal an open question whose time is up, advance a revealed one
+     * whose pause is over. The host screen calls this when its countdowns end, so the game keeps moving even if the queue worker is
+     * slow or not running.
      */
     public function tick(Room $room): Transition
     {
@@ -241,7 +287,7 @@ class GameEngine
         $question = $room->status === RoomStatus::Playing ? $room->currentQuestion() : null;
 
         return match (true) {
-            $question === null => Transition::Stale,
+            $question === null => $room->status === RoomStatus::Playing ? $this->startQuestion($room) : Transition::Stale,
             $question->revealed_at === null => $this->reveal($room, $question->position),
             default => $this->advance($room, $question->position),
         };

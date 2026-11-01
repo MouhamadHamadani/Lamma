@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\HostScreenLocale;
-use App\Game\GameEngine;
 use App\Models\Category;
 use App\Models\User;
 use Database\Seeders\ContentSeeder;
@@ -55,7 +54,7 @@ it('starts a game from a subcategory and shows "Sports · Football" in the chip,
     (new ContentSeeder)->run();
     $football = Category::where('slug', 'football')->firstOrFail();
     $room = gameRoom(players: 3, questions: 3, settings: ['hostScreenLocale' => $screen, 'secondsPerQuestion' => 30], category: $football);
-    app(GameEngine::class)->start($room, $room->host);
+    startGame($room);
     $this->actingAs($room->host);
 
     $page = visit("/host/{$room->code}")->resize(1280, 720)->wait(1);

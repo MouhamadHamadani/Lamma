@@ -10,7 +10,7 @@
     $photo = $player instanceof \App\Models\RoomPlayer ? $player->avatarUrl() : data_get($player, 'avatar_url');
 @endphp
 <li {{ $attributes->class([
-    'flex items-center motion-safe:animate-row-in motion-reduce:animate-fade-in',
+    'flex items-center motion-safe:animate-spring-in motion-reduce:animate-fade-in',
     'h-19 gap-3.5 rounded-[20px] border-2 border-line bg-white px-[18px]' => $host,
     'h-14 gap-3 border-b border-dashed border-line last:border-b-0' => ! $host,
 ]) }} @if ($disconnected) data-disconnected @endif>

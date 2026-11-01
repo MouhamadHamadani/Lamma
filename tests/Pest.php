@@ -111,10 +111,12 @@ function gameRoom(int $players = 2, int $questions = 3, array $settings = [], ?U
     return $room;
 }
 
-/** Start the room's game as its host and return question 1 (open). */
+/** Start the room's game as its host and return question 1 (open). The 3 · 2 · 1 · Go! countdown is skipped: question 1 opens right now. */
 function startGame(Room $room): RoomQuestion
 {
-    app(GameEngine::class)->start($room, $room->host);
+    $engine = app(GameEngine::class);
+    $engine->start($room, $room->host);
+    $engine->startQuestion($room->fresh(), force: true);
 
     return $room->fresh()->currentQuestion();
 }

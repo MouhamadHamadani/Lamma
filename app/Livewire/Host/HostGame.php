@@ -3,6 +3,7 @@
 namespace App\Livewire\Host;
 
 use App\Enums\HostScreenLocale;
+use App\Enums\RoomStatus;
 use App\Game\GameEngine;
 use App\Game\GameState;
 use App\Game\GameView;
@@ -46,9 +47,22 @@ class HostGame extends Component
     {
         $channel = 'echo-presence:'.RoomPresence::channel($this->room->code);
 
-        return collect(['QuestionStarted', 'PlayerAnswered', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'joining', 'leaving'])
+        return collect(['QuestionStarted', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'joining', 'leaving'])
             ->mapWithKeys(fn (string $event) => ["{$channel},{$event}" => '$refresh'])
+            ->put("{$channel},PlayerAnswered", 'playerAnswered')
             ->all();
+    }
+
+    /**
+     * Someone locked in an answer: the screen refreshes (their avatar gets the check) and a soft tick plays, a little higher with each answer.
+     *
+     * @param  array<string, mixed>  $payload  the PlayerAnswered event
+     */
+    public function playerAnswered(array $payload = []): void
+    {
+        $answered = is_numeric($payload['answered'] ?? null) ? (int) $payload['answered'] : 1;
+
+        $this->dispatch('lamma-sound', name: 'tap', rate: round(1 + min(0.6, max(0, $answered - 1) * 0.06), 2));
     }
 
     /** Do whatever is due (reveal a question whose time is up, move on after the pause). Does nothing if it is not due yet. */
@@ -95,15 +109,19 @@ class HostGame extends Component
             $this->redirectRoute('rooms.create');
         }
 
+        // Between "Start game" and question 1 there is no question yet: the 3 - 2 - 1 - Go! countdown shows (it ends at countdown_ends_at).
+        $countdownEndsAt = $state === null && $room->status === RoomStatus::Playing ? $room->countdown_ends_at : null;
+
         return view('livewire.host.host-game', [
             'state' => $state,
+            'countdownEndsAt' => $countdownEndsAt,
             'both' => $mode === HostScreenLocale::Both,
             // The language of the main line; Both is English with Arabic lines under it.
             'main' => $mode === HostScreenLocale::Ar ? 'ar' : 'en',
             'tone' => $state ? CategoryStyle::tintName($state->category->tintSlug()) : null,
             'icon' => $state ? CategoryStyle::icon($state->category->slug) : null,
             // Milliseconds until the next thing is due, relative, so the browser's clock does not matter.
-            'dueInMs' => $state ? $this->dueInMs($state, $engine) : null,
+            'dueInMs' => $state ? $this->dueInMs($state, $engine) : ($countdownEndsAt ? max(0, (int) now()->diffInMilliseconds($countdownEndsAt, false)) : null),
         ]);
     }
 

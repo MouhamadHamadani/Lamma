@@ -5,6 +5,8 @@
 @props(['ranking', 'previous' => [], 'colors' => [], 'gained' => true])
 @php
     // index => the screen height (px) from which that row fits; the first five always show
+    // the first row that gained points counts up with the ticking sound; one number ticking is enough
+    $ticker = collect($ranking)->search(fn (array $row) => $row['gained'] > 0);
     $fromHeight = [5 => '[@media(min-height:800px)]:flex', 6 => '[@media(min-height:880px)]:flex', 7 => '[@media(min-height:940px)]:flex', 8 => '[@media(min-height:1000px)]:flex', 9 => '[@media(min-height:1060px)]:flex'];
 @endphp
 <aside {{ $attributes->class('flex min-h-0 flex-col gap-3.5 rounded-card border-3 border-navy bg-navy p-6 text-cream shadow-sticker-dark-lg') }} aria-labelledby="scoreboard-title">
@@ -25,10 +27,17 @@
                 <span dir="ltr" @class(['w-6 text-center font-display text-xl font-extrabold', 'text-sun' => $row['rank'] === 1, 'text-ink-on-dark' => $row['rank'] !== 1])>{{ $row['rank'] }}</span>
                 <x-lamma.avatar :name="$row['player']['nickname']" :color="$colors[$id] ?? $index" :size="36" :photo="$row['player']['avatar_url'] ?? null" />
                 <span class="grow truncate text-[17px] font-bold"><bdi dir="ltr">{{ $row['player']['nickname'] }}</bdi></span>
+                @if (($row['rank_change'] ?? 0) > 0)
+                    {{-- Climbed this round (rank_change = the rank before minus the rank now). --}}
+                    <span class="flex shrink-0 items-center text-teal motion-safe:animate-arrow-bob" data-test="rank-up">
+                        <x-lamma.icon name="arrow-up" :size="18" :stroke="3" />
+                        <span class="sr-only">{{ __('Moved up') }}</span>
+                    </span>
+                @endif
                 <span dir="ltr" class="text-end">
                     <span class="block font-display text-xl font-extrabold leading-none" data-test="total">{{ $row['total'] }}</span>
                     @if ($gained)
-                        <span @class(['block text-xs font-bold', 'text-teal' => $row['gained'] > 0, 'text-ink-on-dark/70' => $row['gained'] === 0]) data-test="gained" x-data="lammaCountUp({{ $row['gained'] }})">+<span x-text="n">{{ $row['gained'] }}</span></span>
+                        <span @class(['block text-xs font-bold', 'text-teal' => $row['gained'] > 0, 'text-ink-on-dark/70' => $row['gained'] === 0]) data-test="gained" x-data="lammaCountUp({{ $row['gained'] }}, 400, {{ $ticker === $index ? 'true' : 'false' }})">+<span x-text="n">{{ $row['gained'] }}</span></span>
                     @endif
                 </span>
             </li>

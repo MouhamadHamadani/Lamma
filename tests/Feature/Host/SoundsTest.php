@@ -25,18 +25,18 @@ beforeEach(function () {
     Queue::fake();
 });
 
-/** The sound names the screens and scripts ask for: every quoted name on a line that calls play(...). */
+/** The sound names the screens and scripts ask for: the quoted name (or the two of a ternary) right after each .play( . */
 function soundNamesAskedFor(): array
 {
     $files = collect(glob(resource_path('js/*.js')))
         ->merge(collect(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views'), FilesystemIterator::SKIP_DOTS)))->map(fn ($file) => $file->getPathname())->filter(fn ($path) => str_ends_with($path, '.blade.php')));
 
     return $files->flatMap(function (string $path) {
-        $lines = preg_grep('/\.play\(/', explode("\n", file_get_contents($path)));
-        preg_match_all("/'([a-z]+(?:-[a-z]+)*)'/", implode("\n", $lines), $found);
+        // .play('name'), .play(cond ? 'a' : 'b'): the quoted name(s) right after the opening bracket
+        preg_match_all("/\.play\((?:[^'\")]*\?\s*)?'([a-z]+(?:-[a-z]+)*)'(?:\s*:\s*'([a-z]+(?:-[a-z]+)*)')?/", file_get_contents($path), $found);
 
-        return $found[1];
-    })->reject(fn (string $name) => in_array($name, ['sound', 'lamma-sound'], true))->unique()->sort()->values()->all();
+        return array_merge($found[1], array_filter($found[2]));
+    })->unique()->sort()->values()->all();
 }
 
 describe('the sound files', function () {
@@ -108,6 +108,22 @@ describe('the sound manager (resources/js/sound.js)', function () {
     it('vibrates only where the browser can, after the person has touched the page', function () {
         expect($this->js)->toContain("'vibrate' in navigator")->toContain('navigator.userActivation?.hasBeenActive === false')
             ->toContain('tap: 10, correct: 30, wrong: [20, 40, 20]');
+    });
+
+    it('plays a cue once per moment, because Livewire runs an x-init again whenever the markup around it changes', function () {
+        $lamma = file_get_contents(resource_path('js/lamma.js'));
+        $host = file_get_contents(resource_path('views/livewire/host/host-game.blade.php'));
+
+        expect($this->js)->toContain('once(key, run)')->toContain('audio.fired.has(key)')
+            ->and($host)->toContain("\$store.sound.once('q{{ \$position }}-start'")->toContain("\$store.sound.once('q{{ \$position }}-reveal'")
+            ->and($lamma)->toContain('sound.once(`countdown-${n}`')->toContain('once(`tick-${endsAt}-${s}`')->toContain('once(`time-up-${endsAt}`');
+    });
+
+    it('keeps the timers and the countdown out of Livewire refreshes, so each runs once on its own clock', function () {
+        foreach (['components/lamma/timer-ring', 'components/lamma/timer-bar', 'components/lamma/countdown'] as $view) {
+            expect(file_get_contents(resource_path("views/{$view}.blade.php")))->toContain('wire:ignore x-data="lamma');
+        }
+        expect(file_get_contents(resource_path('views/livewire/host/host-game.blade.php')))->toContain('wire:ignore x-data="lammaTimer(');
     });
 
     it('adds under 15 KB gzipped of script and no raw colours', function () {

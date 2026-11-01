@@ -14,6 +14,7 @@
 <{{ $tag }}
     @if ($tag === 'button') type="button" @disabled(in_array($state, ['correct', 'faded'], true)) aria-pressed="{{ $state === 'selected' ? 'true' : 'false' }}" @else role="group" @endif
     aria-label="{{ __('Answer :letter: :text', ['letter' => chr(65 + $i), 'text' => $text]) }}"
+    @if ($state === 'correct' && ! $phone) x-init="$nextTick(() => $el._burst ||= (lammaConfetti.burst($el, 18), true))" @endif
     @if ($state === 'default' && ! $phone) style="animation-delay: {{ $i * 60 }}ms" @endif
     {{ $attributes->class([
         'relative flex border-3 border-navy',
@@ -38,6 +39,8 @@
     ]) }}
 >
     @if ($state === 'correct' && ! $phone)
+        {{-- A ring grows out of the tile and fades. --}}
+        <span aria-hidden="true" class="pointer-events-none absolute -inset-1.5 rounded-[28px] border-3 border-navy motion-safe:animate-ring-pulse"></span>
         <span class="absolute -top-[18px] end-5 flex h-9 items-center gap-1.5 rounded-chip border-3 border-navy bg-white px-3.5 text-[15px] font-extrabold text-navy shadow-sticker-sm motion-safe:animate-drop-in">
             <x-lamma.icon name="check" :size="18" :stroke="3" />
             {{ __('Correct') }}

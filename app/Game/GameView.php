@@ -43,6 +43,7 @@ class GameView
             ranking: $ranking,
             previousPositions: $revealed ? $this->scoreboard->previousPositions($ranking) : [],
             finished: $room->status === RoomStatus::Finished,
+            streaks: $revealed ? $this->scoreboard->streaks($room, $roomQuestion) : [],
         );
     }
 }

@@ -17,8 +17,9 @@ final class GameState
      * @param  Collection<int, QuestionOption>  $options  in display order (A, B, C, D)
      * @param  Collection<int, RoomPlayer>  $players  in join order
      * @param  Collection<int, PlayerAnswer>  $answers  by player id
-     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}>  $ranking  empty until revealed
+     * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int, rank_change: int}>  $ranking  empty until revealed
      * @param  array<int, int>  $previousPositions  player id => 0-based position before this round's points
+     * @param  array<int, int>  $streaks  player id => right answers in a row up to this question; empty until revealed
      */
     public function __construct(
         public readonly RoomQuestion $roomQuestion,
@@ -34,6 +35,7 @@ final class GameState
         public readonly array $ranking,
         public readonly array $previousPositions,
         public readonly bool $finished,
+        public readonly array $streaks = [],
     ) {}
 
     public function position(): int
@@ -80,12 +82,18 @@ final class GameState
         return $this->players->filter(fn (RoomPlayer $player) => $this->answers->get($player->id)?->question_option_id === $optionId)->values();
     }
 
+    /** Right answers in a row for this player, counting this question (0 until the reveal). */
+    public function streakOf(RoomPlayer $player): int
+    {
+        return $this->streaks[$player->id] ?? 0;
+    }
+
     public function correctCount(): int
     {
         return $this->answers->where('is_correct', true)->count();
     }
 
-    /** @return array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int}|null */
+    /** @return array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int, rank_change: int}|null */
     public function rankingRow(RoomPlayer $player): ?array
     {
         return collect($this->ranking)->firstWhere('player.id', $player->id);

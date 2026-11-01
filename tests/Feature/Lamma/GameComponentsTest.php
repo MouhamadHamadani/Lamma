@@ -34,7 +34,7 @@ describe('scoreboard', function () {
     it('lists the players best first with their totals and the points gained, names left to right', function () {
         $html = Blade::render('<x-lamma.scoreboard :ranking="$ranking" />', ['ranking' => ranking(3)]);
 
-        expect($html)->toContain('Scoreboard')->toContain('<bdi dir="ltr">Player1</bdi>')->toContain('lammaCountUp(100)')->toContain('lammaCountUp(0)');
+        expect($html)->toContain('Scoreboard')->toContain('<bdi dir="ltr">Player1</bdi>')->toContain('lammaCountUp(100, 400, true)')->toContain('lammaCountUp(0, 400, false)');
         expect(substr_count($html, 'data-test="total"'))->toBe(3)->and($html)->toMatch('/Player1.*Player2.*Player3/s');
     });
 

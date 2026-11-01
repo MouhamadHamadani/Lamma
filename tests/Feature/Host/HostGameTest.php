@@ -150,7 +150,7 @@ describe('the reveal screen (host-5)', function () {
         $page = hostGame($room)->assertSee('Scoreboard')->assertSeeHtml('data-test="scoreboard"');
 
         $page->assertSeeInOrder([$players[1]->nickname, '100']);
-        expect(substr_count($page->html(), 'data-test="gained"'))->toBe(3)->and($page->html())->toContain('lammaCountUp(100)')->and(substr_count($page->html(), 'lammaCountUp(0)'))->toBe(2);
+        expect(substr_count($page->html(), 'data-test="gained"'))->toBe(3)->and($page->html())->toContain('lammaCountUp(100, 400, true)')->and(substr_count($page->html(), 'lammaCountUp(0, 400, false)'))->toBe(2);
     });
 
     it('counts down to the next question and offers Next question', function () {
@@ -222,9 +222,11 @@ describe('keeping the game moving (tick)', function () {
 
         $listeners = hostGame($room)->instance()->getListeners();
 
-        foreach (['QuestionStarted', 'PlayerAnswered', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'joining', 'leaving'] as $event) {
+        foreach (['QuestionStarted', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'joining', 'leaving'] as $event) {
             expect($listeners)->toHaveKey("echo-presence:room.{$room->code},{$event}", '$refresh');
         }
+        // An answer refreshes too (the method re-renders), and ticks.
+        expect($listeners)->toHaveKey("echo-presence:room.{$room->code},PlayerAnswered", 'playerAnswered');
     });
 });
 

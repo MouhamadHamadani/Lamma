@@ -271,7 +271,7 @@ describe('status pill and player row', function () {
         $player = (object) ['nickname' => 'Maya', 'locale' => 'en', 'is_ready' => false];
 
         expect(lamma('<x-lamma.player-row :player="$player" />', compact('player')))
-            ->toContain('Maya')->toContain('motion-safe:animate-row-in')->toContain('motion-reduce:animate-fade-in');
+            ->toContain('Maya')->toContain('motion-safe:animate-spring-in')->toContain('motion-reduce:animate-fade-in');
     });
 });
 

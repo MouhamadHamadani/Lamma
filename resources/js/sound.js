@@ -156,7 +156,7 @@ const SYNTH = {
 
 document.addEventListener('alpine:init', () => {
     // The audio graph lives outside the store: Alpine would wrap every object in it in a reactive proxy.
-    const audio = { ctx: null, master: null, buffers: {}, voices: 0, loading: new Set() };
+    const audio = { ctx: null, master: null, buffers: {}, voices: 0, loading: new Set(), fired: new Set() };
 
     const store = () => window.Alpine.store('sound');
 
@@ -269,6 +269,14 @@ document.addEventListener('alpine:init', () => {
                 audio.voices--;
                 out.disconnect();
             }, length * 1000 + 50);
+        },
+
+        // Runs `run` (a sound, a buzz, a burst of confetti) once per key. Livewire runs an x-init again on every refresh when the markup around it
+        // changed (a countdown in it, a timestamp), so a cue that belongs to one moment ("question 3 opened") names that moment and fires once.
+        once(key, run) {
+            if (audio.fired.has(key)) return;
+            audio.fired.add(key);
+            run();
         },
 
         // A short vibration for a tap, a right answer or a wrong one. Phones that support it, and only after the person has touched the page.

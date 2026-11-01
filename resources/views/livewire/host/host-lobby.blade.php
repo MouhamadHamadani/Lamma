@@ -96,6 +96,7 @@
 
                 <x-lamma.button
                     size="lg" icon="play" :disabled="! $canStart" class="w-full"
+                    x-on:lamma-wobble.window="lammaFx.wobble($el)"
                     wire:click="start" wire:loading.attr="disabled" wire:target="start" data-test="start-button"
                 >{{ __('Start game') }}</x-lamma.button>
                 @if ($startError)

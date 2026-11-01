@@ -1,5 +1,6 @@
 {{-- Reference: docs/design/screens/host-6-podium.html. Navy, confetti, the winner(s) on the left, the podium (2 · 1 · 3) on the right. Ties share a step;
-     a step nobody stands on is left out; if nobody scored there is no winner. Bars grow 3rd, 2nd, 1st (600ms, 150ms apart), then the crown drops. --}}
+     a step nobody stands on is left out; if nobody scored there is no winner. Bars grow 3rd, 2nd, 1st (600ms, 150ms apart) with a thud as each lands, then the
+     crown drops, then the winner's name scales in as the fanfare plays and confetti rains for six seconds. --}}
 @use('App\Support\Isolate')
 @php
     $names = collect($winners)->map(fn (array $winner) => '<bdi dir="ltr">'.e($winner['nickname']).'</bdi>')->join(' &amp; ');
@@ -13,8 +14,17 @@
     $barHeight = [1 => 'h-[clamp(130px,30dvh,270px)]', 2 => 'h-[clamp(100px,21dvh,190px)]', 3 => 'h-[clamp(80px,15.5dvh,140px)]'];
     $barColor = [1 => 'bg-sun', 2 => 'bg-teal', 3 => 'bg-coral'];
     $barDelay = [3 => 0, 2 => 750, 1 => 1500]; // 600ms each, 150ms apart: third, second, first
+    // The sounds, in ms from the page opening: a thud as each bar lands (lower for the higher step), then the fanfare with the confetti rain as the name appears.
+    $cues = [];
+    foreach ($winners ? $steps : [] as $step) {
+        $cues[] = [$barDelay[$step['rank']] + 520, "\$store.sound.play('podium-bar', { rate: ".[3 => 1.25, 2 => 1, 1 => 0.8][$step['rank']].' })'];
+    }
+    $nameAt = 2800;
+    if ($winners) {
+        $cues[] = [$nameAt, "\$store.sound.play('win'); lammaConfetti.rain(6000)"];
+    }
 @endphp
-<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results" x-init="$store.sound.play('win'); window.lammaTrack('game_finished', {{ Js::from($finished) }}, 'finished-{{ $room->id }}')">
+<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results" x-init="window.lammaTrack('game_finished', {{ Js::from($finished) }}, 'finished-{{ $room->id }}'); @foreach ($cues as [$ms, $js]) setTimeout(() => { {!! $js !!} }, {{ $ms }}); @endforeach">
     @if ($winners)
         <x-lamma.confetti :count="12" />
     @endif
@@ -32,9 +42,9 @@
     <main class="relative flex min-h-0 grow items-end justify-between gap-10 pb-[clamp(24px,6dvh,64px)] {{ $gutter }}">
         <section class="flex w-[clamp(320px,36vw,520px)] shrink-0 flex-col gap-[clamp(12px,2.4dvh,22px)] self-center">
             <span class="text-base font-bold text-sun">{{ __('Game over · :count questions', ['count' => $questionCount]) }}</span>
-            <h1 class="text-balance font-display text-[clamp(44px,6.4vw,92px)] font-extrabold leading-[1.05] motion-safe:animate-fade-up" data-test="headline">{!! $headline !!}</h1>
+            <h1 @class(['text-balance font-display text-[clamp(44px,6.4vw,92px)] font-extrabold leading-[1.05] motion-safe:animate-name-in motion-reduce:animate-fade-in', 'motion-safe:[animation-delay:2800ms]' => $winners]) data-test="headline">{!! $headline !!}</h1>
             @if ($both)
-                <p lang="ar" dir="rtl" class="text-balance text-end font-display text-[clamp(26px,2.5vw,36px)] font-bold leading-tight text-coral" data-test="headline-ar">{!! $headlineAr !!}</p>
+                <p lang="ar" dir="rtl" @class(['text-balance text-end font-display text-[clamp(26px,2.5vw,36px)] font-bold leading-tight text-coral motion-safe:animate-name-in motion-reduce:animate-fade-in', 'motion-safe:[animation-delay:2800ms]' => $winners]) data-test="headline-ar">{!! $headlineAr !!}</p>
             @endif
             @if (count($winners) > 2)
                 <p class="text-xl font-semibold" data-test="tied-names">{!! $names !!}</p>

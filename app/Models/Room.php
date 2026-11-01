@@ -5,9 +5,12 @@ namespace App\Models;
 use App\Enums\RoomStatus;
 use App\Game\PlayerPhoto;
 use App\Game\RoomSettings;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Database\Factories\RoomFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,11 +26,12 @@ use Illuminate\Support\Carbon;
  * @property RoomSettings $settings
  * @property int|null $next_room_id The room that replaced this one after "Play again"
  * @property Carbon|null $started_at
+ * @property CarbonImmutable|null $countdown_ends_at When question 1 opens (3 - 2 - 1 - Go! after Start game), with milliseconds
  * @property Carbon|null $finished_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['code', 'host_id', 'status', 'settings', 'next_room_id', 'started_at', 'finished_at'])]
+#[Fillable(['code', 'host_id', 'status', 'settings', 'next_room_id', 'started_at', 'countdown_ends_at', 'finished_at'])]
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
@@ -54,6 +58,19 @@ class Room extends Model
             'started_at' => 'datetime',
             'finished_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The moment question 1 opens. The model's date format keeps whole seconds, so this one is written with milliseconds, like the question deadlines.
+     *
+     * @return Attribute<CarbonImmutable|null, CarbonInterface|null>
+     */
+    protected function countdownEndsAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value === null ? null : CarbonImmutable::parse($value),
+            set: fn (?CarbonInterface $value) => $value?->setTimezone(date_default_timezone_get())->format('Y-m-d H:i:s.v'),
+        );
     }
 
     /**

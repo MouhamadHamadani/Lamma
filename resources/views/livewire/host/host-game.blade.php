@@ -10,6 +10,8 @@
     $seconds = $room->settings->secondsPerQuestion;
     $nowMs = now()->getTimestampMs();
     $correctOption = $state?->correctOptionId ? $state->options->firstWhere('id', $state->correctOptionId) : null;
+    // Some row climbed this round: one "rank up" sound, a moment after the rows start sliding.
+    $movedUp = $revealed && collect($state->ranking)->contains(fn (array $row) => ($row['rank_change'] ?? 0) > 0);
     $announce = match (true) {
         $state === null => '',
         $revealed => __('The correct answer is :answer', ['answer' => $correctOption ? $tr($correctOption, 'text', $main) : '']),
@@ -58,16 +60,23 @@
     </header>
 
     @if ($state === null)
-        <main class="flex grow flex-col items-center justify-center gap-6 px-5 text-center" data-test="get-ready" aria-live="polite">
+        {{-- Start game was pressed: 3 - 2 - 1 - Go! over the whole screen; the server opens question 1 when it ends (this screen asks at that moment). --}}
+        <main
+            class="flex grow flex-col items-center justify-center gap-6 px-5 text-center" data-test="get-ready" aria-live="polite"
+            @if ($countdownEndsAt) x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }})" @endif
+        >
             <x-lamma.dots class="[&>span]:size-5" />
             <h1 class="font-display text-[clamp(48px,7vw,96px)] font-extrabold leading-none">{{ __('Get ready…') }}</h1>
+            @if ($countdownEndsAt)
+                <x-lamma.countdown :ends-at="$countdownEndsAt" />
+            @endif
         </main>
 
     @elseif (! $revealed)
         {{-- host-4: the question, the four answers, who has answered. --}}
         <main
             wire:key="q-{{ $position }}-open"
-            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.play('question-start')"
+            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.once('q{{ $position }}-start', () => $store.sound.play('question-start'))"
             class="flex min-h-0 grow flex-col gap-[clamp(16px,4dvh,36px)] pb-[clamp(16px,4dvh,36px)] pt-[clamp(20px,4.4dvh,40px)] {{ $gutter }}"
         >
             <div class="flex items-center gap-10">
@@ -111,7 +120,7 @@
         @php $endMs = $nowMs + $dueInMs; @endphp
         <main
             wire:key="q-{{ $position }}-reveal"
-            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.play('reveal')"
+            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.once('q{{ $position }}-reveal', () => { $store.sound.play('reveal'); @if ($movedUp) setTimeout(() => $store.sound.play('rank-up'), 700); @endif })"
             class="flex min-h-0 grow gap-9 pb-[clamp(16px,4dvh,40px)] pt-[clamp(16px,4dvh,36px)] {{ $gutter }}"
         >
             <div class="flex min-w-0 grow flex-col gap-[clamp(14px,3.1dvh,28px)]">
@@ -153,7 +162,7 @@
             </div>
 
             <x-lamma.scoreboard :ranking="$state->ranking" :previous="$state->previousPositions" :colors="$colors" class="w-[clamp(340px,29vw,420px)] shrink-0">
-                <div class="flex flex-col gap-2.5" x-data="lammaTimer({{ $endMs }}, {{ $nowMs }}, {{ \App\Game\GameEngine::REVEAL_SECONDS }}, '')" data-test="next-countdown">
+                <div class="flex flex-col gap-2.5" wire:ignore x-data="lammaTimer({{ $endMs }}, {{ $nowMs }}, {{ \App\Game\GameEngine::REVEAL_SECONDS }}, '')" data-test="next-countdown">
                     <div class="flex justify-between text-[15px] font-semibold text-ink-on-dark">
                         <span>{{ $state->isLast() ? __('Game ends in') : __('Next question in') }}</span>
                         <span dir="ltr" class="font-display text-xl font-extrabold text-sun"><span x-text="secs">{{ (int) ceil($dueInMs / 1000) }}</span> s</span>

@@ -39,6 +39,9 @@ class HostLobby extends Component
     /** The last join or leave, for the screen reader's live region ("Sara joined"). */
     public string $announcement = '';
 
+    /** Everyone is ready and the "ready" chime and wobble have already played, so they play once and not on every refresh. */
+    public bool $startCued = false;
+
     public function mount(Room $room): mixed
     {
         $this->room = $room;
@@ -49,6 +52,8 @@ class HostLobby extends Component
         }
 
         $this->useRoomLocale();
+        // A host who reloads a lobby that is already ready is not told again.
+        $this->startCued = $this->startable();
 
         return null;
     }
@@ -86,6 +91,8 @@ class HostLobby extends Component
         if ($name = $this->nicknameIn($payload)) {
             $this->announcement = __(':name joined', ['name' => $name]);
         }
+        // The new row pops in with this sound (resources/js/sound.js listens for lamma-sound).
+        $this->dispatch('lamma-sound', name: 'join');
     }
 
     /** @param  array<string, mixed>  $payload  the PlayerLeft event */
@@ -197,6 +204,17 @@ class HostLobby extends Component
         return is_numeric($id) ? (int) $id : null;
     }
 
+    /** Every connected player is ready (and there is one): "Start game" unlocks. */
+    private function startable(): bool
+    {
+        if ($this->room->status !== RoomStatus::Lobby) {
+            return false;
+        }
+        $connected = $this->room->players()->whereNull('left_at')->get();
+
+        return $connected->isNotEmpty() && $connected->where('is_ready', true)->count() === $connected->count();
+    }
+
     public function render(): View
     {
         $settings = $this->room->settings;
@@ -212,6 +230,13 @@ class HostLobby extends Component
         if ($canStart) {
             $this->startError = '';
         }
+
+        // Once, when the last player taps Ready: a chime and a short wobble of the Start button. Someone un-readying re-arms it.
+        if ($canStart && ! $this->startCued) {
+            $this->dispatch('lamma-sound', name: 'ready-on');
+            $this->dispatch('lamma-wobble');
+        }
+        $this->startCued = $canStart;
 
         return view('livewire.host.host-lobby', [
             'players' => $players,

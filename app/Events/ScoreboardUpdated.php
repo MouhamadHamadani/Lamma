@@ -6,7 +6,7 @@ use App\Game\Scoreboard;
 use App\Models\Room;
 use App\Models\RoomQuestion;
 
-/** Every total after the question's points were added, ranked, with what each player gained on it. */
+/** Every total after the question's points were added, ranked, with what each player gained on it and how many places they climbed (rank_change). */
 class ScoreboardUpdated extends RoomEvent
 {
     /** @var list<array<string, mixed>> */
