@@ -3,7 +3,8 @@
 A full run of Lamma by hand, start to finish. It takes about 60 minutes. Tick each box as you go and write down anything that
 differs from "Expect". For how to start the servers and put phones on the laptop's network, see
 [realtime-testing.md](realtime-testing.md); this file assumes that works. Section 17 is the same game on the **live domain**,
-after a deploy ([deployment.md](deployment.md)), and section 18 is the **selfie** step on real phones (the one thing the automated tests cannot do: a real front camera).
+after a deploy ([deployment.md](deployment.md)), section 18 is the **selfie** step on real phones (the one thing the automated tests cannot do: a real front camera), and
+section 19 is **sound and motion**: what needs your ears and a real device ([sound-and-motion.md](sound-and-motion.md) lists every sound and animation).
 
 ## What the automated tests already prove
 
@@ -20,7 +21,9 @@ depend on a real phone, a real socket, a real screen reader or your eyes. You ca
 English logged-in player), by clicking: log in, join, Ready, Start, answer right and wrong, reveal, three questions, podium, results. It runs
 **without Reverb**: the screens follow by polling, so it proves the game works when the socket is down. It cannot prove the socket itself, so
 every real-time step (a name appearing without a reload, the "Reconnecting…" card) is still yours. `SmokeTest` opens every public and account page in
-English and Arabic, on a phone and a laptop, with an accessibility audit. `HostScreensTest` checks that no host screen scrolls at 1280x720 and 1920x1080.
+English and Arabic, on a phone and a laptop, with an accessibility audit. `HostScreensTest` checks that no host screen scrolls at 1280x720 and 1920x1080. `MotionTest` (browser) opens every host and phone screen at 390x844, 1280x720 and 1920x1080
+(no JavaScript or console errors, no accessibility problems, no scrolling on the host), again with reduced motion (nothing moves, no confetti), and plays a game with the
+sound store recording which sounds play in which order and that nothing plays while muted. It cannot hear: that is section 19.
 
 ## What you need
 
@@ -73,7 +76,7 @@ right language, scores add up.
 | --- | --- | --- |
 | ☐ | Tap **I'm ready** on A and B: "2 of 3 ready", **Start game** still disabled ("Unlocks when everyone taps Ready."). | FullGameTest (Ready, Start unlocks), HostLobbyTest |
 | ☐ | Tap it again on A: it un-readies. | RoomRosterTest |
-| ☐ | Everyone ready: **Start game** enables. Press it. The host shows question 1, all phones move to the question at the same moment. | FullGameTest *phone* |
+| ☐ | Everyone ready: **Start game** enables (with a short wobble and a soft chime, once). Press it. The host and every phone show **3 · 2 · 1 · Go!** together, then question 1 opens on all of them at the same moment. | FullGameTest, MotionTest, GameEngineTest (the countdown) *phone* |
 | ☐ | Pressing Start twice quickly starts one game. | GameEngineTest |
 
 ## 4. A question (host and phones)
@@ -288,6 +291,32 @@ Needs **https**: the live domain, or a tunnel, see [realtime-testing.md](realtim
 | ☐ | **Admin:** `/admin` > Rooms > a room > the **Players** tab shows each thumbnail and a **Remove photo** action. | PhotoModerationTest |
 | ☐ | **Nothing leaks:** after the game, My games shows no photos; the browser console and `storage/logs` have no photo data; `ls storage/app/public/player-photos` shows only random file names. | PhotoLifecycleTest |
 
+## 19. Sound and motion (real phones; a laptop on a TV)
+
+Only you can hear it. Sounds are synthesized by the browser until the official files are put in `public/sounds/` (see [sound-and-motion.md](sound-and-motion.md)); this is
+the check that they are pleasant, in time, and not too loud. Test the host on a **laptop connected to a TV** if you have one, and the phones on at least **iPhone Safari** and
+**Android Chrome**. Use `npm run build` first (or `npm run dev`).
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **Host starts with sound on, after a click.** Open the host lobby: the speaker button (top right) shows sound on. Nothing plays until you click: press **Start game** and you hear the countdown ticks, a rising "go", then the question chime. | MotionTest (sound store), SoundTest |
+| ☐ | **Mute persists.** Press the host's speaker (it shows off), reload the page: still off, and no sound at all for a whole question. Press it again: a soft tap and sound is back. | SoundTest (reload), MotionTest |
+| ☐ | **A phone starts silent.** Join on a phone: the speaker button in the header shows sound **off**; Ready, the question and the reveal make **no sound**. (A room of phones must not beep.) | MotionTest, SoundsTest |
+| ☐ | **Unlock on a phone.** Tap the phone's speaker: a soft tap sound. Tap **I'm ready**: a little two-note chime; tap again: a lower one. After a reload the first tap anywhere unlocks the sound again. | *phone* |
+| ☐ | **iPhone silent switch.** Flip the side switch to silent: the game makes no sound on iPhone Safari (the browser obeys the switch; this is normal). Flip it back: sound returns. The vibration button is **not shown** on iPhone (Safari cannot vibrate). | *phone* |
+| ☐ | **Android haptics.** The vibration button is next to the speaker, pressed. A tap on an answer: a very short buzz; **Correct**: a longer one; **Not quite** / **Time's up**: three short pulses (never harsh). Switch vibration off: none; reload: still off. | *phone* |
+| ☐ | **The countdown.** Host and phones show **3 · 2 · 1 · Go!** together (within a fraction of a second of each other), one tick per number, a "go" at the end, and the first question opens right after. Reload one phone half way through the 3 · 2 · 1: it shows the right number. | MotionTest, GameEngineTest *phone* |
+| ☐ | **A question (host).** The question chime; as phones answer, each answer ticks a little higher (needs the socket); the timer ring turns coral under 5 s, ticks each second and trembles in the last 3; at 0 a gentle low buzz ("time's up"). | HostMotionTest *phone* |
+| ☐ | **A question (phone).** The answer tiles slide in one after the other; a tap gives an instant press, a "lock-in" sound (if on) and a tiny buzz; the tile you picked grows and settles; the timer bar breathes under 5 s. | PlayerMotionTest *phone* |
+| ☐ | **The reveal (host).** The correct tile pops with a ring and a burst of confetti shapes; "reveal" swoosh; scoreboard rows slide to their new place, the +100 counts up with fast ticks; a row that climbed shows a small up arrow and plays a short rising sound, once. | HostMotionTest *phone* |
+| ☐ | **The reveal (phone).** Right: the teal screen wipes up, the check draws itself, **+100** pops, a small confetti burst, a chime and a longer buzz. Wrong, or time's up: the screen stays **cream** (never red), the cross shakes once, a soft low thud, a short buzz. | PlayerMotionTest, MotionTest *phone* |
+| ☐ | **Streaks.** Answer **three in a row** right: a sun chip with a bolt and "3 in a row" next to the +100, with a sparkle sound; one wrong answer resets it. The score is still exactly 100 per right answer. | PlayerMotionTest, MotionTest |
+| ☐ | **The podium.** Bars grow 3rd, 2nd, 1st with a thud each, the crown drops, then the winner's name scales in with the fanfare and about 6 seconds of gentle confetti; switch to another tab during it: the confetti stops. On the winner's phone: fanfare, a buzz and a burst; the leaderboard rows slide in and your own row swells once. | HostMotionTest, PlayerMotionTest *phone* |
+| ☐ | **Reduced motion.** Turn on the system setting (iPhone: Settings > Accessibility > Motion > Reduce Motion; Android: Remove animations; Windows: Animation effects off; macOS: Reduce motion) and reload: screens **fade instead of moving**, nothing shakes, pulses or flies, there is no confetti, the check is simply there, and sound starts **off** (turn it on yourself to hear it). | MotionTest (reduced motion) *phone* |
+| ☐ | **Smooth on a TV.** Host at full screen on the TV for a whole game (countdown, question, reveal, podium): no stutter, no fan noise from the laptop. | frame time measured in the Phase report |
+| ☐ | **Loud enough, never harsh.** Play each sound at the volume you would use in a living room: the host's sounds are clear over talking, the phone's are soft; none clips or startles. | |
+| ☐ | **Arabic.** Repeat a question and a reveal on an Arabic phone: the tiles slide in from the right, confetti mirrors, the cross and the check look the same, "انطلقوا!" counts down with the same ticks. | MotionTest (Arabic host) *phone* |
+
 ## Sign-off
 
 | Area | Result | Notes |
@@ -310,5 +339,6 @@ Needs **https**: the live domain, or a tunnel, see [realtime-testing.md](realtim
 | 16 Google Analytics | | |
 | 17 Live domain | | |
 | 18 Player selfies | | |
+| 19 Sound and motion | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

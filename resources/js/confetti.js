@@ -8,7 +8,13 @@ const TOKENS = ['coral', 'teal', 'sun', 'navy'];
 
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const rtl = () => document.documentElement.dir === 'rtl';
-const color = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--color-${name}`).trim();
+// The colours come from the CSS tokens, looked up once each (the tokens never change, and reading a style for every piece on every frame would cost).
+const colors = new Map();
+const color = (name) => {
+    if (!colors.has(name)) colors.set(name, getComputedStyle(document.documentElement).getPropertyValue(`--color-${name}`).trim());
+
+    return colors.get(name);
+};
 
 let canvas = null;
 let ctx = null;
