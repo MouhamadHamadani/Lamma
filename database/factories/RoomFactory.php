@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\GameMode;
 use App\Enums\RoomStatus;
 use App\Game\RoomCodeGenerator;
 use App\Game\RoomSettings;
@@ -27,6 +28,12 @@ class RoomFactory extends Factory
             'started_at' => null,
             'finished_at' => null,
         ];
+    }
+
+    /** Vote mode (the first category and the pool still have to be set: see voteRoom() in tests/Pest.php). */
+    public function vote(int $every = 5): static
+    {
+        return $this->state(['game_mode' => GameMode::Vote, 'vote_every' => $every]);
     }
 
     public function playing(): static

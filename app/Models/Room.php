@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\GameMode;
 use App\Enums\RoomStatus;
 use App\Game\PlayerPhoto;
 use App\Game\RoomSettings;
+use App\Game\VoteSettings;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Database\Factories\RoomFactory;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
@@ -23,6 +26,9 @@ use Illuminate\Support\Carbon;
  * @property string $code
  * @property int|null $host_id
  * @property RoomStatus $status
+ * @property GameMode $game_mode
+ * @property int|null $vote_every Vote mode: the players vote on the next category after every this many questions
+ * @property int|null $first_category_id Vote mode: the category of the first batch
  * @property RoomSettings $settings
  * @property int|null $next_room_id The room that replaced this one after "Play again"
  * @property Carbon|null $started_at
@@ -31,7 +37,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['code', 'host_id', 'status', 'settings', 'next_room_id', 'started_at', 'countdown_ends_at', 'finished_at'])]
+#[Fillable(['code', 'host_id', 'status', 'game_mode', 'vote_every', 'first_category_id', 'settings', 'next_room_id', 'started_at', 'countdown_ends_at', 'finished_at'])]
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
@@ -41,6 +47,7 @@ class Room extends Model
     {
         static::creating(function (Room $room) {
             $room->status ??= RoomStatus::Lobby;
+            $room->game_mode ??= GameMode::Classic;
             if (! array_key_exists('settings', $room->getAttributes())) {
                 $room->settings = new RoomSettings;
             }
@@ -54,6 +61,9 @@ class Room extends Model
     {
         return [
             'status' => RoomStatus::class,
+            'game_mode' => GameMode::class,
+            'vote_every' => 'integer',
+            'first_category_id' => 'integer',
             'settings' => RoomSettings::class,
             'started_at' => 'datetime',
             'finished_at' => 'datetime',
@@ -148,5 +158,50 @@ class Room extends Model
     public function roomQuestions(): HasMany
     {
         return $this->hasMany(RoomQuestion::class)->orderBy('position');
+    }
+
+    public function isVote(): bool
+    {
+        return $this->game_mode === GameMode::Vote;
+    }
+
+    /**
+     * How long the game is. A Vote-mode room adds its questions a batch at a time, so this is the host's chosen total from the start; a Classic
+     * room drew every question at the start.
+     */
+    public function totalQuestions(): int
+    {
+        return $this->isVote() ? $this->settings->questionCount : $this->roomQuestions()->count();
+    }
+
+    /** The Vote-mode setup (for Play again), or null for a Classic room. */
+    public function voteSettings(): ?VoteSettings
+    {
+        if (! $this->isVote() || $this->first_category_id === null) {
+            return null;
+        }
+
+        /** @var list<int> $pool */
+        $pool = $this->pool()->orderBy('categories.id')->pluck('categories.id')->map(fn ($id) => (int) $id)->all();
+
+        return new VoteSettings($this->first_category_id, $pool, (int) $this->vote_every);
+    }
+
+    /** @return BelongsTo<Category, $this> Vote mode: the category of the first batch */
+    public function firstCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'first_category_id');
+    }
+
+    /** @return BelongsToMany<Category, $this> Vote mode: the top-level categories the players vote between */
+    public function pool(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'room_category_pool');
+    }
+
+    /** @return HasMany<CategoryVoteRound, $this> */
+    public function voteRounds(): HasMany
+    {
+        return $this->hasMany(CategoryVoteRound::class)->orderBy('round');
     }
 }
