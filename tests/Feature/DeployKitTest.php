@@ -375,7 +375,8 @@ describe('docs/deployment.md', function () {
         preg_match_all('/`((?:deploy|docs|\.github|config|public|storage)\/[\w.\/-]*[\w])`/', deployFile('docs/deployment.md'), $paths);
 
         foreach (array_unique($paths[1]) as $path) {
-            if (str_contains($path, 'storage/logs') || str_contains($path, 'public/storage') || $path === 'public/brand' || str_ends_with($path, '/')) {
+            // storage/logs and Livewire's upload folder are made at run time, so a fresh clone (CI) has neither.
+            if (str_contains($path, 'storage/logs') || str_contains($path, 'livewire-tmp') || str_contains($path, 'public/storage') || $path === 'public/brand' || str_ends_with($path, '/')) {
                 continue;
             }
             expect(file_exists(base_path($path)) || is_dir(base_path($path)))->toBeTrue("docs/deployment.md mentions {$path}");
