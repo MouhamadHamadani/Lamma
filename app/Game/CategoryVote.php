@@ -112,18 +112,6 @@ class CategoryVote
     }
 
     /**
-     * The categories of the batches so far, in order: the first category, then each vote's winner.
-     *
-     * @return list<int>
-     */
-    public function played(Room $room): array
-    {
-        $winners = $room->voteRounds()->whereNotNull('winner_category_id')->pluck('winner_category_id')->map(fn ($id) => (int) $id)->all();
-
-        return array_values(array_filter([(int) $room->first_category_id, ...$winners]));
-    }
-
-    /**
      * Up to three pool categories at random, none played yet in this cycle. When fewer than three are left the vote offers what is left; when none
      * is, a new cycle starts: every pool category except the one just played.
      *
@@ -132,7 +120,7 @@ class CategoryVote
     public function offer(Room $room): array
     {
         $pool = $room->pool()->active()->topLevel()->pluck('categories.id')->map(fn ($id) => (int) $id)->all();
-        $played = $this->played($room);
+        $played = $room->playedCategories();
 
         // Replay the game so far: a cycle ends when every pool category has been played, and the next one starts from nothing.
         $used = [];

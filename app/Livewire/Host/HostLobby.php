@@ -245,7 +245,10 @@ class HostLobby extends Component
             'canStart' => $canStart,
             'inLobby' => $inLobby,
             'both' => $settings->hostScreenLocale === HostScreenLocale::Both,
-            'categoryLabel' => CategorySelection::label($settings->categoryIds),
+            // Vote mode: the game starts with its first category and the players choose the rest.
+            'categoryLabel' => $this->room->isVote()
+                ? __('Vote · starts with :category', ['category' => CategorySelection::label($this->room->categoryIds())])
+                : CategorySelection::label($settings->categoryIds),
             'joinUrl' => $joinUrl,
             'joinAddress' => preg_replace('#^https?://#', '', route('join')),
             'qr' => QrCode::svg($joinUrl),

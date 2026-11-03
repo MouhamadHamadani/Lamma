@@ -453,5 +453,6 @@
     "The next category shows when time is up or everyone has voted.": "تظهر الفئة التالية عند انتهاء الوقت أو عندما يصوّت الجميع.",
     "You didn't vote": "لم تصوّت",
     "Your pick won!": "فاز اختيارك!",
-    "Vote · :count categories": "تصويت · :count فئات"
+    "Vote · :count categories": "تصويت · :count فئات",
+    "Vote · starts with :category": "تصويت · نبدأ بـ :category"
 }

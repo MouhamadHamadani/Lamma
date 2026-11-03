@@ -453,5 +453,6 @@
     "The next category shows when time is up or everyone has voted.": "The next category shows when time is up or everyone has voted.",
     "You didn't vote": "You didn't vote",
     "Your pick won!": "Your pick won!",
-    "Vote · :count categories": "Vote · :count categories"
+    "Vote · :count categories": "Vote · :count categories",
+    "Vote · starts with :category": "Vote · starts with :category"
 }

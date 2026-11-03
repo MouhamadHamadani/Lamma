@@ -41,7 +41,8 @@
                     @php
                         $rank = (int) $game->rank;
                         $tile = $rank === 1 ? 'bg-sun' : ($rank === 2 ? 'bg-teal' : 'bg-coral');
-                        $names = CategorySelection::label($game->room->settings->categoryIds);
+                        // Vote mode: the categories that were played, not the pool.
+                        $names = CategorySelection::label($game->room->categoryIds());
                     @endphp
                     <li class="flex items-center gap-4 rounded-tile border-2 border-line bg-white px-4 py-3.5" wire:key="game-{{ $game->id }}" data-test="game" data-rank="{{ $rank }}">
                         <span class="{{ $tile }} flex size-[60px] shrink-0 -rotate-3 items-center justify-center rounded-2xl border-3 border-navy font-display text-2xl font-extrabold shadow-sticker-sm" dir="ltr" role="img" aria-label="{{ __('Your place: :rank', ['rank' => Scoreboard::ordinal($rank)]) }}">{{ $rank }}<span class="text-sm">{{ Scoreboard::suffix($rank) }}</span></span>

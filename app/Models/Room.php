@@ -174,6 +174,28 @@ class Room extends Model
         return $this->isVote() ? $this->settings->questionCount : $this->roomQuestions()->count();
     }
 
+    /**
+     * Vote mode: the category of each batch so far, in order (the first category, then each vote's winner; a category can come back in a new cycle).
+     *
+     * @return list<int>
+     */
+    public function playedCategories(): array
+    {
+        $winners = $this->voteRounds()->whereNotNull('winner_category_id')->pluck('winner_category_id')->map(fn ($id) => (int) $id)->all();
+
+        return array_values(array_filter([(int) $this->first_category_id, ...$winners]));
+    }
+
+    /**
+     * What this game is about, for labels (My games, the admin): the host's choice in Classic; in Vote mode the categories actually played, not the pool.
+     *
+     * @return list<int>
+     */
+    public function categoryIds(): array
+    {
+        return $this->isVote() ? array_values(array_unique($this->playedCategories())) : $this->settings->categoryIds;
+    }
+
     /** The Vote-mode setup (for Play again), or null for a Classic room. */
     public function voteSettings(): ?VoteSettings
     {

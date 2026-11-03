@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Rooms\Tables;
 
+use App\Enums\GameMode;
 use App\Enums\RoomStatus;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -22,6 +23,9 @@ class RoomsTable
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge(),
+                TextColumn::make('game_mode')
+                    ->label('Mode')
+                    ->badge(),
                 TextColumn::make('players_count')
                     ->counts('players')
                     ->label('Players')
@@ -34,6 +38,9 @@ class RoomsTable
             ->filters([
                 SelectFilter::make('status')
                     ->options(RoomStatus::class),
+                SelectFilter::make('game_mode')
+                    ->label('Mode')
+                    ->options(GameMode::class),
             ])
             ->recordActions([
                 ViewAction::make(),

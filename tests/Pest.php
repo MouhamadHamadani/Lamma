@@ -165,6 +165,30 @@ function playToVote(Room $room): CategoryVoteRound
     throw new RuntimeException('The game never reached a vote.');
 }
 
+/**
+ * Play a Vote-mode room (starting it if it is still a lobby) to its end, nobody answering. At each vote $onVote($round) may cast votes; then the host
+ * skips the rest of the vote. Returns the finished room.
+ */
+function finishVoteGame(Room $room, ?Closure $onVote = null): Room
+{
+    $engine = app(GameEngine::class);
+    if ($room->fresh()->status === RoomStatus::Lobby) {
+        startGame($room);
+    }
+
+    for ($guard = 0; $guard < 100 && $room->fresh()->status === RoomStatus::Playing; $guard++) {
+        $question = $room->fresh()->currentQuestion();
+        $engine->reveal($room, $question->position, force: true);
+        if (($vote = votes()->openRound($room->fresh())) !== null) {
+            $onVote?->__invoke($vote);
+            $engine->closeVote($room, $vote->round, force: true);
+        }
+        $engine->advance($room, $question->position, force: true);
+    }
+
+    return $room->fresh();
+}
+
 /** The top-level category a room question belongs to (its own category, or the parent of its subcategory). */
 function topCategoryOf(RoomQuestion $roomQuestion): int
 {

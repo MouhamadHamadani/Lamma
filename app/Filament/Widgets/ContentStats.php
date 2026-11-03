@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\GameMode;
 use App\Models\Category;
 use App\Models\Question;
 use App\Models\Room;
@@ -23,7 +24,8 @@ class ContentStats extends StatsOverviewWidget
                 ->description("{$translated} fully translated")
                 ->color($translated === $questions ? 'success' : 'warning'),
             Stat::make('Users', User::count()),
-            Stat::make('Rooms', Room::count()),
+            Stat::make('Rooms', Room::count())
+                ->description(Room::where('game_mode', GameMode::Vote)->count().' in Vote mode'),
         ];
     }
 }
