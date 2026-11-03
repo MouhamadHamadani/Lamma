@@ -221,7 +221,8 @@ describe('when they play', function () {
         $js = file_get_contents(resource_path('js/lamma.js'));
 
         expect($js)->toContain("play('timer-tick')")->toContain('ticks && s <= 5 && s > 0')->toContain("play('time-up')");
-        expect(file_get_contents(resource_path('views/components/lamma/timer-ring.blade.php')))->toContain(', true)"');
+        // ticks = true, then the seconds a screen reader hears
+        expect(file_get_contents(resource_path('views/components/lamma/timer-ring.blade.php')))->toContain(', true, {{ Js::from(array_values($marks)) }})"');
         expect(file_get_contents(resource_path('views/livewire/host/host-game.blade.php')))->toContain("''".')" data-test="next-countdown"');
     });
 });

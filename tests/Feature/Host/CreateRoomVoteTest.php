@@ -200,7 +200,7 @@ describe('the Vote setup', function () {
         votePage()->call('chooseFirst', $a->id)->call('togglePool', $b->id)->call('togglePool', $c->id)
             ->set('questionCount', 20)->set('voteEvery', 5)
             ->assertSee('Opening Act')
-            ->assertSee('3 categories')
+            ->assertSee('Vote · 3 categories')
             ->assertSeeHtml('Every <bdi dir="ltr">5</bdi> questions · <bdi dir="ltr">3</bdi> votes')
             ->set('questionCount', 10)
             ->assertSeeHtml('Every <bdi dir="ltr">5</bdi> questions · 1 vote');

@@ -1,7 +1,7 @@
-{{-- Host countdown ring. `endsAt` is the server deadline (Carbon or date string); `seconds` is the full question length. Drains linearly, turns coral under 5 s,
+{{-- Host countdown ring. `endsAt` is the server deadline (Carbon or date string); `seconds` is the full length; `marks`: the seconds a screen reader hears (10 and 5). Drains linearly, turns coral under 5 s,
      ticks (a sound) in the last 5, trembles in the last 3.
      wire:ignore: it runs on its own clock; the server time in x-data changes with every render, and Livewire would otherwise start a new timer (and a new interval) on each refresh. --}}
-@props(['endsAt', 'seconds' => 20])
+@props(['endsAt', 'seconds' => 20, 'marks' => [10, 5]])
 @php
     $end = \Illuminate\Support\Carbon::parse($endsAt)->getTimestampMs();
     $now = now()->getTimestampMs();
@@ -10,7 +10,7 @@
     $circumference = 389.56; // 2π × 62
 @endphp
 <div
-    wire:ignore x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }}, true)"
+    wire:ignore x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }}, true, {{ Js::from(array_values($marks)) }})"
     role="timer" dir="ltr" x-bind:class="{ 'motion-safe:animate-ring-shake': secs <= 3 && secs > 0 }"
     {{ $attributes->class('relative size-[clamp(104px,16.7dvh,150px)] shrink-0') }}
 >

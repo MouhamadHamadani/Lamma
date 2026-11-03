@@ -4,11 +4,13 @@ namespace App\Livewire\Host;
 
 use App\Enums\HostScreenLocale;
 use App\Enums\RoomStatus;
+use App\Game\CategoryVote;
 use App\Game\GameEngine;
 use App\Game\GameState;
 use App\Game\GameView;
 use App\Game\RoomManager;
 use App\Game\RoomPresence;
+use App\Game\VoteState;
 use App\Models\Room;
 use App\Support\CategoryStyle;
 use Illuminate\Contracts\View\View;
@@ -47,10 +49,23 @@ class HostGame extends Component
     {
         $channel = 'echo-presence:'.RoomPresence::channel($this->room->code);
 
-        return collect(['QuestionStarted', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'joining', 'leaving'])
+        return collect(['QuestionStarted', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'VoteStarted', 'VoteResult', 'joining', 'leaving'])
             ->mapWithKeys(fn (string $event) => ["{$channel},{$event}" => '$refresh'])
             ->put("{$channel},PlayerAnswered", 'playerAnswered')
+            ->put("{$channel},PlayerVoted", 'playerVoted')
             ->all();
+    }
+
+    /**
+     * Vote mode: someone voted. The screen refreshes (the counts on the tiles and their avatar's check) with the same soft tick as an answer.
+     *
+     * @param  array<string, mixed>  $payload  the PlayerVoted event
+     */
+    public function playerVoted(array $payload = []): void
+    {
+        $voted = is_numeric($payload['voted'] ?? null) ? (int) $payload['voted'] : 1;
+
+        $this->dispatch('lamma-sound', name: 'tap', rate: round(1 + min(0.6, max(0, $voted - 1) * 0.06), 2));
     }
 
     /**
@@ -89,6 +104,14 @@ class HostGame extends Component
         $engine->advance($this->room, $position, force: true);
     }
 
+    /** "Skip vote": close the vote now with the votes so far. The round is the one on screen, so a late or double click does nothing. */
+    public function skipVote(GameEngine $engine, int $round): void
+    {
+        $this->authorize('host', $this->room);
+
+        $engine->closeVote($this->room, $round, force: true);
+    }
+
     public function closeRoom(RoomManager $rooms): mixed
     {
         $this->authorize('host', $this->room);
@@ -98,10 +121,11 @@ class HostGame extends Component
         return $this->redirectRoute('rooms.create');
     }
 
-    public function render(GameView $view, GameEngine $engine): View
+    public function render(GameView $view, GameEngine $engine, CategoryVote $votes): View
     {
         $room = $this->room->fresh() ?? $this->room;
         $state = $view->forRoom($room);
+        $vote = $view->vote($room);
         $mode = $room->settings->hostScreenLocale;
 
         // A room closed part-way has no results to show.
@@ -114,6 +138,7 @@ class HostGame extends Component
 
         return view('livewire.host.host-game', [
             'state' => $state,
+            'vote' => $vote,
             'countdownEndsAt' => $countdownEndsAt,
             'both' => $mode === HostScreenLocale::Both,
             // The language of the main line; Both is English with Arabic lines under it.
@@ -121,8 +146,21 @@ class HostGame extends Component
             'tone' => $state ? CategoryStyle::tintName($state->category->tintSlug()) : null,
             'icon' => $state ? CategoryStyle::icon($state->category->slug) : null,
             // Milliseconds until the next thing is due, relative, so the browser's clock does not matter.
-            'dueInMs' => $state ? $this->dueInMs($state, $engine) : ($countdownEndsAt ? max(0, (int) now()->diffInMilliseconds($countdownEndsAt, false)) : null),
+            'dueInMs' => match (true) {
+                $vote !== null => $this->voteDueInMs($vote, $votes),
+                $state !== null => $this->dueInMs($state, $engine),
+                $countdownEndsAt !== null => max(0, (int) now()->diffInMilliseconds($countdownEndsAt, false)),
+                default => null,
+            },
         ]);
+    }
+
+    /** Vote mode: an open vote is due to close at its deadline plus the grace; a closed one's result gives way to the next question after the result beat. */
+    private function voteDueInMs(VoteState $vote, CategoryVote $votes): int
+    {
+        $due = $vote->isOpen() ? $votes->dueAt($vote->round) : $vote->round->closed_at?->addSeconds(CategoryVote::resultSeconds());
+
+        return max(0, (int) now()->diffInMilliseconds($due ?? now(), false));
     }
 
     /** When tick() has work to do: a question's reveal is due ends_at + grace, a reveal's follow-up after the pause. */

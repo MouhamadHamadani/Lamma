@@ -1,5 +1,5 @@
 {{-- Phone countdown bar. Same props and behaviour as <x-lamma.timer-ring> (including wire:ignore, for the same reason). --}}
-@props(['endsAt', 'seconds' => 20])
+@props(['endsAt', 'seconds' => 20, 'marks' => [10, 5]])
 @php
     $end = \Illuminate\Support\Carbon::parse($endsAt)->getTimestampMs();
     $now = now()->getTimestampMs();
@@ -7,7 +7,7 @@
     $secs = (int) ceil($left / 1000);
 @endphp
 <div
-    wire:ignore x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }}, true)"
+    wire:ignore x-data="lammaTimer({{ $end }}, {{ $now }}, {{ $seconds }}, {{ Js::from(__(':seconds seconds left')) }}, true, {{ Js::from(array_values($marks)) }})"
     role="timer" dir="ltr"
     {{ $attributes->class('flex items-center gap-3') }}
 >

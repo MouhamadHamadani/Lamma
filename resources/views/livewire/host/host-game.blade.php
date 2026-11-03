@@ -12,8 +12,11 @@
     $correctOption = $state?->correctOptionId ? $state->options->firstWhere('id', $state->correctOptionId) : null;
     // Some row climbed this round: one "rank up" sound, a moment after the rows start sliding.
     $movedUp = $revealed && collect($state->ranking)->contains(fn (array $row) => ($row['rank_change'] ?? 0) > 0);
+    $winner = $vote?->winner();
     $announce = match (true) {
         $state === null => '',
+        $vote !== null && $vote->isOpen() => __('Vote started'),
+        $vote !== null => __(':category won', ['category' => $winner?->getTranslation('name', $main, false) ?? '']),
         $revealed => __('The correct answer is :answer', ['answer' => $correctOption ? $tr($correctOption, 'text', $main) : '']),
         default => __('Question :n of :total', ['n' => $position, 'total' => $state->total]),
     };
@@ -33,18 +36,20 @@
         @if ($state)
             <div class="flex items-center gap-3">
                 <x-lamma.chip size="lg" class="border-2 border-line bg-white" data-test="progress-label">
-                    @if ($revealed)
+                    @if ($vote)
+                        {{ __('Next category') }}
+                    @elseif ($revealed)
                         {{ __('Answer · Question :n', ['n' => $position]) }}
                     @else
                         {{ __('Question :n of :total', ['n' => $position, 'total' => $state->total]) }}
                     @endif
                 </x-lamma.chip>
-                <x-lamma.progress-dots :total="$state->total" :current="$position" />
+                <x-lamma.progress-dots :total="$state->total" :current="$position" :every="$room->isVote() ? $room->vote_every : null" :voting="$vote !== null" />
             </div>
         @endif
 
         <div class="flex items-center gap-3">
-            @if ($state)
+            @if ($state && ! $vote)
                 <x-lamma.chip :tone="$tone" size="lg" :icon="$icon" class="hidden md:inline-flex" data-test="category">{{ $state->category->fullName($main) }}</x-lamma.chip>
                 <x-lamma.room-code :code="$room->code" size="chip" data-test="room-code">{{ __('Room') }}</x-lamma.room-code>
             @endif
@@ -70,6 +75,111 @@
             @if ($countdownEndsAt)
                 <x-lamma.countdown :ends-at="$countdownEndsAt" />
             @endif
+        </main>
+
+    @elseif ($vote)
+        {{-- Vote mode: the players choose the category of the next batch on their phones. Built from host-4 (the open question) and host-5 (the reveal):
+             three upright answer tiles (colour + shape), live counts, who has voted, then the winner with who voted for what. --}}
+        @php
+            $round = $vote->round->round;
+            $name = fn ($category, string $lang) => $category->getTranslation('name', $lang, false);
+            $tied = $vote->tiedIndexes();
+            $random = $vote->wasTie() || $vote->noVotes();
+            $titleKey = match (true) {
+                $vote->isOpen() => 'Choose the next category',
+                $vote->wasTie() => 'Tie, picking randomly',
+                $vote->noVotes() => 'Nobody voted, picking randomly',
+                default => 'The next category is',
+            };
+        @endphp
+        <main
+            wire:key="v-{{ $round }}-{{ $vote->isOpen() ? 'open' : 'result' }}" data-test="vote" data-vote="{{ $vote->isOpen() ? 'open' : 'result' }}"
+            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); @if ($vote->isOpen()) $store.sound.once('v{{ $round }}-start', () => $store.sound.play('question-start')) @endif"
+            class="flex min-h-0 grow flex-col gap-[clamp(16px,4dvh,36px)] pb-[clamp(16px,4dvh,36px)] pt-[clamp(20px,4.4dvh,40px)] {{ $gutter }}"
+        >
+            <div class="flex items-center gap-10">
+                <div class="flex min-w-0 grow flex-col gap-2.5 motion-safe:animate-fade-up">
+                    {{-- The keys are listed for the lang files: __('Choose the next category'), __('Tie, picking randomly'), __('Nobody voted, picking randomly'), __('The next category is') --}}
+                    <h1 lang="{{ $main }}" class="text-balance font-display text-[clamp(30px,4.2vw,60px)] font-extrabold leading-[1.1]" data-test="vote-title">{{ __($titleKey, [], $main) }}</h1>
+                    @if ($both)
+                        <p lang="ar" dir="rtl" class="text-balance text-end font-display text-[clamp(22px,2.7vw,38px)] font-bold leading-tight text-ink-muted" data-test="vote-title-alt">{{ __($titleKey, [], 'ar') }}</p>
+                    @endif
+                </div>
+                @if ($vote->isOpen())
+                    <x-lamma.timer-ring :ends-at="$vote->round->ends_at" :seconds="\App\Game\CategoryVote::seconds()" :marks="[5]" data-test="timer" />
+                @endif
+            </div>
+
+            @if ($vote->isOpen())
+                <div class="grid grid-cols-3 gap-6 pt-3" data-test="vote-options">
+                    @foreach ($vote->options as $index => $category)
+                        <x-lamma.answer
+                            size="vote" :index="$index" :lang="$main" :text="$name($category, $main)" :text-alt="$both ? $name($category, 'ar') : null"
+                            :label="__('Category :letter: :text', ['letter' => chr(65 + $index), 'text' => $name($category, $main)])"
+                            :count="$vote->counts[$category->id] ?? 0" data-category="{{ $category->id }}"
+                        />
+                    @endforeach
+                </div>
+            @else
+                {{-- The result. A tie (or nobody voting) is a playful beat: the highlight hops across the tied tiles, then lands on the winner. Static for its
+                     3 seconds, so wire:ignore keeps a refresh from replaying it. --}}
+                <div
+                    wire:ignore x-data="lammaVoteLanding({{ $random ? 'true' : 'false' }}, {{ Js::from($tied) }}, {{ (int) $vote->indexOf($winner?->id) }}, 'v{{ $round }}')"
+                    x-bind:data-landing="landing" class="grid grid-cols-3 gap-6 pt-3 [&[data-landing]_[data-flourish]]:invisible" data-test="vote-options"
+                >
+                    @foreach ($vote->options as $index => $category)
+                        @php
+                            $won = $category->id === $winner?->id;
+                            $voters = $vote->votersOf($category->id);
+                            $isTied = in_array($index, $tied, true) ? 'true' : 'false';
+                        @endphp
+                        <x-lamma.answer
+                            size="vote" :index="$index" :lang="$main" :text="$name($category, $main)" :text-alt="$both ? $name($category, 'ar') : null"
+                            :label="__('Category :letter: :text', ['letter' => chr(65 + $index), 'text' => $name($category, $main)])"
+                            :state="$won ? 'correct' : 'faded'" :badge="__('Winner')" :count="$vote->counts[$category->id] ?? 0"
+                            data-category="{{ $category->id }}" data-index="{{ $index }}" data-winner="{{ $won ? 'true' : 'false' }}"
+                            @class(['motion-safe:transition-[scale,opacity]', 'z-10 scale-105' => $won])
+                            x-bind:class="landing ? { 'opacity-100!': {{ $isTied }}, 'scale-100!': hop !== {{ $index }}, 'scale-110!': hop === {{ $index }} } : {}"
+                        >
+                            @if ($voters->isNotEmpty())
+                                <x-slot:pickers>
+                                    @foreach ($voters->take(4) as $player)
+                                        <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id] ?? 0" :size="36" :photo="$player->avatarUrl()" data-voter="{{ $player->id }}" />
+                                    @endforeach
+                                    @if ($voters->count() > 4)
+                                        <span dir="ltr" class="flex size-9 shrink-0 items-center justify-center rounded-full border-3 border-navy bg-white text-[13px] font-extrabold text-navy">+{{ $voters->count() - 4 }}</span>
+                                    @endif
+                                </x-slot:pickers>
+                            @endif
+                        </x-lamma.answer>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="grow"></div>
+
+            <footer class="flex items-center justify-between gap-6">
+                <div class="flex min-w-0 items-center gap-4">
+                    @if ($vote->isOpen())
+                        <div class="flex gap-2" data-test="voted-avatars">
+                            @foreach ($vote->players->take(14) as $player)
+                                @php $done = $vote->voteOf($player) !== null; @endphp
+                                <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id] ?? 0" :size="44" :photo="$player->avatarUrl()" :checked="$done" class="{{ $done ? '' : 'opacity-40' }}" wire:key="voter-{{ $player->id }}" />
+                            @endforeach
+                        </div>
+                    @endif
+                    <span class="font-display text-2xl font-bold" aria-live="polite" data-test="voted-count">{{ __(':voted of :total voted', ['voted' => $vote->voted, 'total' => $vote->expected]) }}</span>
+                </div>
+
+                @if ($vote->isOpen())
+                    <button type="button" wire:click="skipVote({{ $round }})" class="flex min-h-11 items-center gap-2 text-base font-bold text-ink-muted hover:text-navy" data-test="skip-vote">
+                        {{ __('Skip vote') }}
+                        <x-lamma.icon name="arrow-right" :size="18" class="rtl:-scale-x-100" />
+                    </button>
+                @else
+                    <p class="text-base font-bold text-ink-muted" data-test="vote-next">{{ __('Next question coming up…') }}</p>
+                @endif
+            </footer>
         </main>
 
     @elseif (! $revealed)

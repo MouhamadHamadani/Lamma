@@ -105,6 +105,27 @@
                 </div>
 
                 <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Answers · vote (Vote mode: three across, live counts, then the winner)</h3>
+                    <div class="grid grid-cols-3 gap-6 pt-3">
+                        @foreach (array_slice($planets, 0, 3) as $i => [$en, $arabic])
+                            <x-lamma.answer size="vote" :index="$i" :text="$ar ? $arabic : $en" :text-alt="$ar ? null : $arabic" :count="[2, 0, 1][$i]" :label="__('Category :letter: :text', ['letter' => chr(65 + $i), 'text' => $ar ? $arabic : $en])" />
+                        @endforeach
+                    </div>
+                    <div class="grid grid-cols-3 gap-6 pt-6">
+                        @foreach (array_slice($planets, 0, 3) as $i => [$en, $arabic])
+                            <x-lamma.answer size="vote" :index="$i" :text="$ar ? $arabic : $en" :count="[2, 0, 1][$i]" :state="$i === 0 ? 'correct' : 'faded'" :badge="__('Winner')" @class(['z-10 scale-105' => $i === 0])>
+                                @if ($i === 0)
+                                    <x-slot:pickers>
+                                        <x-lamma.avatar name="Sara" :color="0" :size="36" />
+                                        <x-lamma.avatar name="Ali" :color="1" :size="36" />
+                                    </x-slot:pickers>
+                                @endif
+                            </x-lamma.answer>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="space-y-4">
                     <h3 class="font-display text-2xl font-bold">Answers · phone (default · selected · locked · faded · correct)</h3>
                     <div class="flex flex-wrap items-start gap-10">
                         <div class="w-[350px] space-y-3">
@@ -132,10 +153,11 @@
                 </div>
 
                 <div class="space-y-4">
-                    <h3 class="font-display text-2xl font-bold">Progress dots · question 3 of 10 · 5 of 5</h3>
+                    <h3 class="font-display text-2xl font-bold">Progress dots · question 3 of 10 · 5 of 5 · Vote mode, voting after 5 of 15</h3>
                     <div class="flex flex-wrap items-center gap-10">
                         <x-lamma.progress-dots :total="10" :current="3" />
                         <x-lamma.progress-dots :total="5" :current="5" />
+                        <x-lamma.progress-dots :total="15" :current="5" :every="5" :voting="true" />
                     </div>
                 </div>
 

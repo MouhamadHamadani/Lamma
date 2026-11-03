@@ -1,7 +1,7 @@
 // Countdown for the timer ring/bar. The server owns the deadline (`ends_at`, epoch ms); the client only displays it.
 // `serverNow` (epoch ms at render time) cancels out any skew between the server and device clocks.
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('lammaTimer', (endsAt, serverNow, seconds, announcement, ticks = false) => ({
+    window.Alpine.data('lammaTimer', (endsAt, serverNow, seconds, announcement, ticks = false, marks = [10, 5]) => ({
         left: 0,
         say: '',
         interval: null,
@@ -23,9 +23,9 @@ document.addEventListener('alpine:init', () => {
             };
             tick();
             this.interval = setInterval(tick, 50);
-            // Screen readers hear the timer at 10 s and 5 s only, not every second.
+            // Screen readers hear the timer at the marks only (10 s and 5 s; a vote: 5 s), not every second.
             this.$watch('secs', (s) => {
-                if (s === 10 || s === 5) this.say = announcement.replace(':seconds', s);
+                if (marks.includes(s)) this.say = announcement.replace(':seconds', s);
                 // A question's timer (ticks = true) ticks for each of the last five seconds (resources/js/sound.js).
                 if (ticks && s <= 5 && s > 0) window.Alpine.store('sound').once(`tick-${endsAt}-${s}`, () => window.Alpine.store('sound').play('timer-tick'));
             });
@@ -126,6 +126,49 @@ document.addEventListener('alpine:init', () => {
 
         destroy() {
             clearInterval(this.interval);
+        },
+    }));
+});
+
+// Vote mode: the result of a category vote. A tie (or nobody voting) is a playful beat: the highlight hops across the tied tiles (`tied`, display indexes)
+// for about a second with soft taps, then lands on the winner (`winner`) with the reveal sound, a pop and a burst of confetti. A clear win lands at once.
+// Under reduced motion it lands at once too. `key` makes the sound and the shuffle happen once per vote, even if Livewire re-runs this.
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('lammaVoteLanding', (random, tied, winner, key) => ({
+        landing: false,
+        hop: null,
+        timers: [],
+
+        init() {
+            const sound = window.Alpine.store('sound');
+            const land = () => {
+                this.landing = false;
+                this.hop = null;
+                sound.once(`${key}-result`, () => sound.play('reveal'));
+                const tile = this.$el.querySelector(`[data-index="${winner}"]`);
+                window.lammaFx.pop(tile);
+                window.lammaConfetti.burst(tile, 18);
+            };
+
+            let fresh = false;
+            sound.once(`${key}-shuffle`, () => { fresh = true; });
+            if (!random || !fresh || tied.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                land();
+                return;
+            }
+
+            this.landing = true;
+            let step = 0;
+            const hop = setInterval(() => {
+                this.hop = tied[step % tied.length];
+                sound.play('tap', { rate: 1 + Math.min(0.5, step * 0.06) });
+                step++;
+            }, 150);
+            this.timers.push(hop, setTimeout(() => { clearInterval(hop); land(); }, 1200));
+        },
+
+        destroy() {
+            this.timers.forEach((timer) => { clearInterval(timer); clearTimeout(timer); });
         },
     }));
 });

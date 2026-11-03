@@ -53,33 +53,39 @@
         <div class="flex grow flex-col gap-7 xl:flex-row xl:items-stretch">
             <div class="flex min-w-0 grow flex-col gap-[30px] rounded-card border-2 border-line bg-white p-5 laptop-short:gap-4 laptop-short:p-5 lg:p-8">
                 @if ($vote)
-                {{-- Vote mode: the first category (one), then the pool the players vote between (top-level categories only: a winner brings all its subcategories). --}}
-                <div class="flex flex-col gap-2.5" data-test="vote-setup">
-                    <div class="flex flex-col gap-0.5">
-                        <h2 class="text-base font-bold">{{ __('First category') }}</h2>
-                        <p class="text-[13px] font-medium leading-snug text-ink-subtle laptop-short:sr-only" data-test="vote-help">{{ __('The game starts with this category. After every few questions, the players vote on the category of the next ones.') }}</p>
-                    </div>
-                    <div role="group" aria-label="{{ __('First category') }}" class="-mx-1 flex flex-wrap gap-2 px-1 py-1 laptop-short:flex-nowrap laptop-short:overflow-x-auto">
-                        @foreach ($this->categories as $category)
-                            <x-lamma.subcategory-chip
-                                :category="$category" :tint="CategoryStyle::tint($category->slug)" :selected="$firstCategoryId === $category->id"
-                                wire:key="first-{{ $category->id }}" wire:click="chooseFirst({{ $category->id }})" data-test="first-{{ $category->slug }}"
-                            />
-                        @endforeach
-                    </div>
-
-                    <div class="flex flex-col gap-2.5 pt-2 laptop-short:pt-0 md:flex-row md:items-center md:justify-between">
-                        <div class="flex flex-col gap-0.5">
-                            <h2 class="text-base font-bold">{{ __('Categories to vote on') }}</h2>
-                            <span class="text-[13px] font-medium text-ink-subtle">{!! __('Pick at least :count, the first one included', ['count' => Isolate::ltr(VoteSettings::MIN_POOL)]) !!}</span>
+                {{-- Vote mode: the first category (one), then the pool the players vote between (top-level categories only: a winner brings all its subcategories).
+                     On a short laptop screen the first category, its row of chips and "Vote every" share one line, so the page does not scroll. --}}
+                <div class="flex flex-col gap-2.5 laptop-short:gap-2" data-test="vote-setup">
+                    <div class="flex flex-col gap-2 laptop-short:flex-row laptop-short:items-center laptop-short:gap-3">
+                        <div class="flex flex-col gap-0.5 laptop-short:shrink-0">
+                            <h2 class="text-base font-bold">{{ __('First category') }}</h2>
+                            <p class="text-[13px] font-medium leading-snug text-ink-subtle laptop-short:sr-only" data-test="vote-help">{{ __('The game starts with this category. After every few questions, the players vote on the category of the next ones.') }}</p>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div role="group" aria-label="{{ __('First category') }}" class="-mx-1 flex flex-wrap gap-2 px-1 py-1 laptop-short:min-w-0 laptop-short:grow laptop-short:flex-nowrap laptop-short:overflow-x-auto">
+                            @foreach ($this->categories as $category)
+                                <x-lamma.subcategory-chip
+                                    :category="$category" :tint="CategoryStyle::tint($category->slug)" :selected="$firstCategoryId === $category->id"
+                                    wire:key="first-{{ $category->id }}" wire:click="chooseFirst({{ $category->id }})" data-test="first-{{ $category->slug }}"
+                                />
+                            @endforeach
+                        </div>
+                        <div class="flex items-center gap-3 laptop-short:shrink-0">
                             <h2 class="shrink-0 text-base font-bold">{{ __('Vote every') }}</h2>
                             <x-lamma.segmented
-                                wire:model.live="voteEvery" :label="__('Vote every')" class="w-56"
+                                wire:model.live="voteEvery" :label="__('Vote every')" class="w-44"
                                 :options="collect(VoteSettings::EVERY)->mapWithKeys(fn ($n) => [$n => (string) $n])->all()" data-test="vote-every"
                             />
                         </div>
+                    </div>
+
+                    <div class="flex flex-col gap-0.5 pt-2 laptop-short:flex-row laptop-short:items-baseline laptop-short:gap-3 laptop-short:pt-0">
+                        <h2 class="text-base font-bold">{{ __('Categories to vote on') }}</h2>
+                        {{-- What is still missing takes the hint's place, so the layout does not grow. --}}
+                        @if ($this->voteProblem)
+                            <span class="flex items-center gap-1.5 text-[13px] font-semibold text-coral-700" data-test="vote-problem"><x-lamma.icon name="alert" :size="16" class="self-center" />{{ $this->voteProblem }}</span>
+                        @else
+                            <span class="text-[13px] font-medium text-ink-subtle">{!! __('Pick at least :count, the first one included', ['count' => Isolate::ltr(VoteSettings::MIN_POOL)]) !!}</span>
+                        @endif
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" data-test="pool">
@@ -87,19 +93,22 @@
                             @php
                                 $isFirst = $firstCategoryId === $category->id;
                                 $missing = $this->shortfalls[$category->id] ?? null;
+                                $subtitle = match (true) {
+                                    $missing !== null => new HtmlString(__(':count questions', ['count' => Isolate::ltr($missing)])),
+                                    // The chip row above already says which one is first; a two-line name has no room for the line on a short screen.
+                                    $isFirst => new HtmlString('<span class="laptop-short:sr-only">'.e(__('First category')).'</span>'),
+                                    default => null,
+                                };
                             @endphp
                             <x-lamma.category-toggle
-                                :category="$category" :state="$isFirst || in_array($category->id, $poolIds, true) ? 'all' : 'off'"
-                                :subtitle="$isFirst ? __('First category') : ($missing !== null ? new HtmlString(__(':count questions', ['count' => Isolate::ltr($missing)])) : null)"
+                                :category="$category" :state="$isFirst || in_array($category->id, $poolIds, true) ? 'all' : 'off'" :subtitle="$subtitle"
                                 :aria-disabled="$isFirst ? 'true' : null"
                                 wire:key="pool-{{ $category->id }}" wire:click="togglePool({{ $category->id }})" data-test="pool-{{ $category->slug }}"
                             />
                         @endforeach
                     </div>
 
-                    @if ($this->voteProblem)
-                        <x-lamma.error data-test="vote-problem">{{ $this->voteProblem }}</x-lamma.error>
-                    @elseif ($shortNames !== [])
+                    @if (! $this->voteProblem && $shortNames !== [])
                         <x-lamma.error data-test="vote-shortfalls">
                             {!! __('Not enough questions for a batch of :count in: :categories.', [
                                 'count' => Isolate::ltr(min($voteEvery, $questionCount)),
@@ -216,9 +225,9 @@
 
                 @foreach ([
                     ...($vote ? [
-                        [__('Mode'), __('Vote')],
+                        // The pool size shares the mode's row: the card must stay as short as a Classic one.
+                        [__('Mode'), $this->vote ? __('Vote · :count categories', ['count' => count($this->vote->poolIds)]) : __('Vote')],
                         [__('First category'), $firstCategoryId ? (CategoryVote::names([$firstCategoryId])[$firstCategoryId] ?? '—') : '—'],
-                        [__('Categories to vote on'), $this->vote ? __(':count categories', ['count' => count($this->vote->poolIds)]) : '—'],
                         [__('Votes'), new HtmlString('<span data-test="vote-summary">'.($votes === 1
                             ? __('Every :every questions · 1 vote', ['every' => Isolate::ltr($voteEvery)])
                             : __('Every :every questions · :count votes', ['every' => Isolate::ltr($voteEvery), 'count' => Isolate::ltr($votes)])).'</span>')],
@@ -230,12 +239,12 @@
                     [__('Difficulty'), Difficulty::tryFrom($difficulty)?->getLabel() ?? __('Mixed')],
                     [__('Player photos'), $photos === 'off' ? __('Off') : __('On')],
                 ] as [$label, $value])
-                    <div class="flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base laptop-short:py-2">
+                    <div @class(['flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base', 'laptop-short:py-2' => ! $vote, 'laptop-short:py-1.5' => $vote])>
                         <span class="text-ink-muted">{{ $label }}</span>
                         <span class="text-end font-bold">{{ $value }}</span>
                     </div>
                 @endforeach
-                <div class="flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base laptop-short:py-2">
+                <div @class(['flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base', 'laptop-short:py-2' => ! $vote, 'laptop-short:py-1.5' => $vote])>
                     <span class="text-ink-muted">{{ __('Big screen') }}</span>
                     <span class="text-end font-bold">
                         @if ($screenLanguage)
@@ -268,7 +277,8 @@
                     data-test="create-room-button"
                 >{{ __('Create room') }}</x-lamma.button>
 
-                <p class="pt-2.5 text-center text-sm text-ink-subtle">
+                {{-- A Vote setup's summary is two rows longer: on a short laptop screen this line makes room for them. --}}
+                <p @class(['pt-2.5 text-center text-sm text-ink-subtle', 'laptop-short:hidden' => $vote])>
                     {{ $picked ? __("You'll get a room code to share.") : ($vote ? __('Pick the first category to continue.') : __('Pick at least one category to continue.')) }}
                 </p>
             </aside>

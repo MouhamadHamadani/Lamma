@@ -17,6 +17,9 @@
         'correct' => $streak >= 3 ? __('Correct, plus :points points, :count in a row', ['points' => $gained, 'count' => $streak]) : __('Correct, plus :points points', ['points' => $gained]),
         'wrong' => __('Not quite, the answer was :answer', ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
         'timeout' => __("Time's up, the answer was :answer", ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
+        'vote' => __('Vote started'),
+        'voted' => __('Vote locked in'),
+        'vote-result' => __(':category won', ['category' => $vote?->winner()?->getTranslation('name', $lang, false) ?? '']),
         default => '',
     };
     $seconds = $room->settings->secondsPerQuestion;
@@ -62,6 +65,89 @@
                 @if ($countdownEndsAt)
                     <x-lamma.countdown :ends-at="$countdownEndsAt" />
                 @endif
+            </main>
+
+        @elseif (in_array($phase, ['vote', 'voted'], true))
+            {{-- Vote mode (built from player-3 and player-4): the category of the next questions. One tap locks the vote; then the chosen tile, big and
+                 tilted, while the others vote. Nothing about anyone else's vote is drawn here. --}}
+            @php $round = $vote->round->round; @endphp
+            <main wire:key="pv-{{ $round }}-{{ $phase }}" class="flex grow flex-col gap-4 pb-6 pt-2" data-test="vote" data-vote="{{ $phase }}">
+                <x-lamma.timer-bar :ends-at="$vote->round->ends_at" :seconds="\App\Game\CategoryVote::seconds()" :marks="[5]" data-test="timer" />
+
+                @if ($phase === 'vote')
+                    <div class="flex flex-col gap-1 rounded-tile border-2 border-line bg-white px-5 py-[18px] motion-safe:animate-fade-up">
+                        <span class="flex items-center gap-1.5 text-[13px] font-bold text-ink-muted"><x-lamma.icon name="chart" :size="16" />{{ __('Vote') }}</span>
+                        <h1 class="text-balance font-display text-[25px] font-extrabold leading-tight" data-test="vote-title">{{ __('Choose the next category') }}</h1>
+                    </div>
+
+                    <div class="flex flex-col gap-3" data-test="vote-options">
+                        @foreach ($vote->options as $index => $category)
+                            @php $label = $category->getTranslation('name', $lang, false); @endphp
+                            <x-lamma.answer
+                                size="phone" :index="$index" :lang="$lang" :text="$label"
+                                :label="__('Category :letter: :text', ['letter' => chr(65 + $index), 'text' => $label])"
+                                wire:click="vote({{ $category->id }})" wire:loading.attr="disabled" wire:target="vote"
+                                x-on:click="$store.sound.play('lock-in'); $store.sound.buzz('tap')"
+                                class="motion-safe:animate-slide-in motion-reduce:animate-fade-in" style="animation-delay: {{ $index * 60 }}ms" data-category="{{ $category->id }}"
+                            />
+                        @endforeach
+                    </div>
+
+                    <div class="grow"></div>
+                    <p class="text-center text-sm text-ink-subtle">{{ __("Tap one. You can't change it after.") }}</p>
+                @else
+                    @php $mine = $vote->options->firstWhere('id', $myVote); @endphp
+                    <div class="flex grow flex-col items-center justify-center gap-[22px] text-center">
+                        <span class="text-sm font-bold text-coral-700">{{ __('Vote locked in') }}</span>
+                        <x-lamma.answer
+                            size="phone" state="locked" :index="(int) $vote->indexOf($myVote)" :lang="$lang" :text="$mine?->getTranslation('name', $lang, false) ?? ''"
+                            :label="__('Category :letter: :text', ['letter' => chr(65 + (int) $vote->indexOf($myVote)), 'text' => $mine?->getTranslation('name', $lang, false) ?? ''])"
+                            class="motion-safe:animate-settle motion-reduce:animate-fade-in" data-test="locked-vote"
+                        />
+                        <span aria-hidden="true" class="flex gap-2">
+                            @foreach (['bg-coral', 'bg-sun', 'bg-teal'] as $n => $color)
+                                <span class="size-3 rounded-full {{ $color }} motion-safe:animate-dots" style="animation-delay: {{ $n * 150 }}ms"></span>
+                            @endforeach
+                        </span>
+                        <div class="flex flex-col gap-1.5">
+                            <h1 class="font-display text-[28px] font-extrabold">{{ __('Waiting for the others…') }}</h1>
+                            <p class="text-base text-ink-muted" aria-live="polite" data-test="voted-count">{{ __(':voted of :total voted', ['voted' => $vote->voted, 'total' => $vote->expected]) }}</p>
+                        </div>
+                    </div>
+
+                    <p class="text-center text-sm text-ink-subtle">{{ __('The next category shows when time is up or everyone has voted.') }}</p>
+                @endif
+            </main>
+
+        @elseif ($phase === 'vote-result')
+            {{-- Vote mode: the winning category, and whether this player's pick won. No score, no rank: the next question follows in a moment. --}}
+            @php
+                $round = $vote->round->round;
+                $winner = $vote->winner();
+                $winnerName = $winner?->getTranslation('name', $lang, false) ?? '';
+                $winnerIndex = (int) $vote->indexOf($winner?->id);
+            @endphp
+            <main
+                wire:key="pv-{{ $round }}-result" class="relative flex grow flex-col items-center gap-[18px] pb-7 pt-8 text-center" data-test="vote-result"
+                x-init="$store.sound.once('pv{{ $round }}-result', () => $store.sound.play('reveal'))"
+            >
+                @if ($myVote === null)
+                    <span class="rounded-chip bg-tint-sun px-3.5 py-1.5 text-sm font-bold" data-test="no-vote">{{ __("You didn't vote") }}</span>
+                @endif
+                <span class="text-sm font-bold text-coral-700" data-test="vote-outcome">
+                    {{ $vote->wasTie() ? __('Tie, picking randomly') : ($vote->noVotes() ? __('Nobody voted, picking randomly') : __('The next category is')) }}
+                </span>
+                <x-lamma.answer
+                    size="phone" state="locked" :index="$winnerIndex" :lang="$lang" :text="$winnerName"
+                    :label="__('Category :letter: :text', ['letter' => chr(65 + $winnerIndex), 'text' => $winnerName])"
+                    class="motion-safe:animate-settle motion-reduce:animate-fade-in" data-test="winner"
+                />
+                @if ($myVote !== null && $myVote === $winner?->id)
+                    <p class="font-display text-[26px] font-extrabold motion-safe:animate-chip-pop" data-test="pick-won">{{ __('Your pick won!') }}</p>
+                @endif
+
+                <div class="grow"></div>
+                <p class="text-[15px] font-bold">{{ __('Next question coming up…') }}</p>
             </main>
 
         @elseif ($phase === 'question')

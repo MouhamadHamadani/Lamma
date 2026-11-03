@@ -56,7 +56,7 @@ class PlayerGame extends Component
     {
         $channel = 'echo-presence:'.RoomPresence::channel($this->room->code);
 
-        return collect(['here', 'QuestionStarted', 'PlayerAnswered', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished'])
+        return collect(['here', 'QuestionStarted', 'PlayerAnswered', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'VoteStarted', 'PlayerVoted', 'VoteResult'])
             ->mapWithKeys(fn (string $event) => ["{$channel},{$event}" => '$refresh'])
             ->all();
     }
@@ -76,18 +76,35 @@ class PlayerGame extends Component
         }
     }
 
+    /**
+     * Vote mode: vote for the category of the next questions. One tap and it is final, like an answer; a late, repeated or out-of-turn tap is
+     * refused by the engine and the screen shows the vote as it is.
+     */
+    public function vote(GameEngine $engine, PlayerIdentity $identity, int $categoryId): void
+    {
+        $player = $identity->playerIn($this->room) ?? abort(403);
+
+        try {
+            $engine->castVote($player, $categoryId);
+        } catch (AnswerRejected) {
+            // nothing to add: render() shows the current state
+        }
+    }
+
     public function render(GameView $view, PlayerIdentity $identity): View
     {
         $me = $identity->playerIn($this->room) ?? abort(403);
         $room = $this->room->fresh() ?? $this->room;
         $state = $view->forRoom($room);
+        $vote = $view->vote($room);
         $answer = $state?->answerOf($me);
         $revealed = (bool) $state?->isRevealed();
 
-        // What the player sees: a question to answer, their locked answer, or the outcome.
+        // What the player sees: a question to answer, their locked answer, the outcome, or (Vote mode) the vote on the next category.
         $phase = match (true) {
             $state === null => 'waiting',
             $state->finished => $state->completed() ? 'over' : 'closed',
+            $vote !== null => $vote->isOpen() ? ($vote->voteOf($me) === null ? 'vote' : 'voted') : 'vote-result',
             ! $revealed => $answer ? 'answered' : 'question',
             $answer?->is_correct => 'correct',
             $answer !== null => 'wrong',
@@ -101,6 +118,9 @@ class PlayerGame extends Component
             // Right answers in a row, counting this one (display only; a flat +100 is all that is scored).
             'streak' => $state ? $state->streakOf($me) : 0,
             'state' => $state,
+            'vote' => $vote,
+            // Only this player's own vote ever reaches the phone.
+            'myVote' => $vote?->voteOf($me),
             'phase' => $phase,
             'answer' => $answer,
             'lang' => $me->locale,

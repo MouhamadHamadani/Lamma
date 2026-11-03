@@ -3,6 +3,8 @@
 namespace App\Game;
 
 use App\Enums\RoomStatus;
+use App\Enums\VoteOutcome;
+use App\Models\Category;
 use App\Models\Question;
 use App\Models\Room;
 
@@ -14,7 +16,7 @@ use App\Models\Room;
  */
 class GameView
 {
-    public function __construct(private readonly Scoreboard $scoreboard, private readonly GameEngine $engine) {}
+    public function __construct(private readonly Scoreboard $scoreboard, private readonly GameEngine $engine, private readonly CategoryVote $votes) {}
 
     public function forRoom(Room $room): ?GameState
     {
@@ -44,6 +46,33 @@ class GameView
             previousPositions: $revealed ? $this->scoreboard->previousPositions($ranking) : [],
             finished: $room->status === RoomStatus::Finished,
             streaks: $revealed ? $this->scoreboard->streaks($room, $roomQuestion) : [],
+        );
+    }
+
+    /**
+     * Vote mode: the category vote on screen now, open or showing its result, from its batch's last reveal until the next question opens. Null at any
+     * other moment (and for a batch boundary with only one category left: there was no vote to show).
+     */
+    public function vote(Room $room): ?VoteState
+    {
+        $question = $room->isVote() && $room->status === RoomStatus::Playing ? $room->currentQuestion() : null;
+        $round = $question?->revealed_at !== null ? $this->votes->roundAfter($room, $question->position) : null;
+        if ($round === null || $round->outcome === VoteOutcome::OnlyOption) {
+            return null;
+        }
+
+        $categories = Category::query()->whereIn('id', $round->option_ids)->get()->keyBy('id');
+        $progress = $this->votes->progress($room, $round);
+
+        return new VoteState(
+            round: $round,
+            position: $question->position,
+            options: collect($round->option_ids)->map(fn (int $id) => $categories->get($id))->filter()->values(),
+            players: $room->players()->orderBy('joined_at')->orderBy('id')->get(),
+            votes: $round->votes()->get()->keyBy('room_player_id'),
+            counts: $this->votes->counts($round),
+            voted: $progress['voted'],
+            expected: $progress['expected'],
         );
     }
 }
