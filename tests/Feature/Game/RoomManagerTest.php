@@ -4,8 +4,6 @@ use App\Enums\Difficulty;
 use App\Enums\HostScreenLocale;
 use App\Enums\RoomStatus;
 use App\Game\NotEnoughQuestions;
-use App\Game\PlayerPhoto;
-use App\Game\QuestionPool;
 use App\Game\RoomCodeGenerator;
 use App\Game\RoomManager;
 use App\Game\RoomSettings;
@@ -105,7 +103,7 @@ describe('room codes', function () {
         $codes = Mockery::mock(RoomCodeGenerator::class);
         $codes->shouldReceive('generate')->andReturn('AAAAAA', 'BBBBBB');
 
-        $room = (new RoomManager($codes, app(QuestionPool::class), app(PlayerPhoto::class)))->create($host, settingsFor($category->id));
+        $room = app()->make(RoomManager::class, ['codes' => $codes])->create($host, settingsFor($category->id));
 
         expect($room->code)->toBe('BBBBBB');
     });
@@ -118,7 +116,7 @@ describe('room codes', function () {
         $codes = Mockery::mock(RoomCodeGenerator::class);
         $codes->shouldReceive('generate')->times(3)->andReturn('AAAAAA');
 
-        expect(fn () => (new RoomManager($codes, app(QuestionPool::class), app(PlayerPhoto::class)))->create($host, settingsFor($category->id)))
+        expect(fn () => app()->make(RoomManager::class, ['codes' => $codes])->create($host, settingsFor($category->id)))
             ->toThrow(UniqueConstraintViolationException::class);
     });
 });

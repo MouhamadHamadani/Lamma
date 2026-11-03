@@ -1,7 +1,9 @@
 {{-- Reference: docs/design/screens/host-2-create-room.html. Game rules (availability, one room per host) live in App\Game. --}}
 @use('App\Enums\Difficulty')
 @use('App\Game\CategorySelection')
+@use('App\Game\CategoryVote')
 @use('App\Game\RoomSettings')
+@use('App\Game\VoteSettings')
 @use('App\Support\CategoryStyle')
 @use('App\Support\Isolate')
 @use('Illuminate\Support\HtmlString')
@@ -13,9 +15,13 @@
         'en' => ['English', 'en'],
         default => null,
     };
+    $vote = $this->isVote();
     $chosen = CategorySelection::label($categoryIds);
     $expanded = $this->categories->firstWhere('id', $expandedId);
-    $short = $categoryIds !== [] && $this->available < $questionCount;
+    $picked = $vote ? $this->vote !== null : $categoryIds !== [];
+    $short = $picked && $this->available < $questionCount;
+    $votes = CategoryVote::voteCount($questionCount, $voteEvery);
+    $shortNames = $vote ? CategoryVote::names(array_keys($this->shortfalls)) : [];
 @endphp
 <div class="flex min-h-dvh flex-col">
     <header class="flex h-22 laptop-short:h-16 shrink-0 items-center justify-between border-b-2 border-line bg-white px-5 lg:px-14">
@@ -32,13 +38,78 @@
     </header>
 
     <main class="mx-auto flex w-full max-w-[1600px] grow flex-col gap-7 px-5 pb-12 pt-9 laptop-short:gap-4 laptop-short:pb-5 laptop-short:pt-4 lg:px-14">
-        <div class="flex flex-col gap-1.5">
-            <h1 class="font-display text-[40px] font-extrabold leading-[1.05] laptop-short:text-4xl lg:text-5xl">{{ __('Set up your game') }}</h1>
-            <p class="text-lg text-ink-muted laptop-short:hidden">{{ __('Choose what to play. You can change these before you start.') }}</p>
+        {{-- The mode switch sits beside the title (not above the card) so a Classic setup is exactly as tall as before. --}}
+        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div class="flex flex-col gap-1.5">
+                <h1 class="font-display text-[40px] font-extrabold leading-[1.05] laptop-short:text-4xl lg:text-5xl">{{ __('Set up your game') }}</h1>
+                <p class="text-lg text-ink-muted laptop-short:hidden">{{ __('Choose what to play. You can change these before you start.') }}</p>
+            </div>
+            <x-lamma.segmented
+                wire:model.live="mode" :label="__('Game mode')" class="md:w-80 md:shrink-0"
+                :options="['classic' => __('Classic'), 'vote' => __('Vote')]" data-test="mode"
+            />
         </div>
 
         <div class="flex grow flex-col gap-7 xl:flex-row xl:items-stretch">
             <div class="flex min-w-0 grow flex-col gap-[30px] rounded-card border-2 border-line bg-white p-5 laptop-short:gap-4 laptop-short:p-5 lg:p-8">
+                @if ($vote)
+                {{-- Vote mode: the first category (one), then the pool the players vote between (top-level categories only: a winner brings all its subcategories). --}}
+                <div class="flex flex-col gap-2.5" data-test="vote-setup">
+                    <div class="flex flex-col gap-0.5">
+                        <h2 class="text-base font-bold">{{ __('First category') }}</h2>
+                        <p class="text-[13px] font-medium leading-snug text-ink-subtle laptop-short:sr-only" data-test="vote-help">{{ __('The game starts with this category. After every few questions, the players vote on the category of the next ones.') }}</p>
+                    </div>
+                    <div role="group" aria-label="{{ __('First category') }}" class="-mx-1 flex flex-wrap gap-2 px-1 py-1 laptop-short:flex-nowrap laptop-short:overflow-x-auto">
+                        @foreach ($this->categories as $category)
+                            <x-lamma.subcategory-chip
+                                :category="$category" :tint="CategoryStyle::tint($category->slug)" :selected="$firstCategoryId === $category->id"
+                                wire:key="first-{{ $category->id }}" wire:click="chooseFirst({{ $category->id }})" data-test="first-{{ $category->slug }}"
+                            />
+                        @endforeach
+                    </div>
+
+                    <div class="flex flex-col gap-2.5 pt-2 laptop-short:pt-0 md:flex-row md:items-center md:justify-between">
+                        <div class="flex flex-col gap-0.5">
+                            <h2 class="text-base font-bold">{{ __('Categories to vote on') }}</h2>
+                            <span class="text-[13px] font-medium text-ink-subtle">{!! __('Pick at least :count, the first one included', ['count' => Isolate::ltr(VoteSettings::MIN_POOL)]) !!}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <h2 class="shrink-0 text-base font-bold">{{ __('Vote every') }}</h2>
+                            <x-lamma.segmented
+                                wire:model.live="voteEvery" :label="__('Vote every')" class="w-56"
+                                :options="collect(VoteSettings::EVERY)->mapWithKeys(fn ($n) => [$n => (string) $n])->all()" data-test="vote-every"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" data-test="pool">
+                        @foreach ($this->categories as $category)
+                            @php
+                                $isFirst = $firstCategoryId === $category->id;
+                                $missing = $this->shortfalls[$category->id] ?? null;
+                            @endphp
+                            <x-lamma.category-toggle
+                                :category="$category" :state="$isFirst || in_array($category->id, $poolIds, true) ? 'all' : 'off'"
+                                :subtitle="$isFirst ? __('First category') : ($missing !== null ? new HtmlString(__(':count questions', ['count' => Isolate::ltr($missing)])) : null)"
+                                :aria-disabled="$isFirst ? 'true' : null"
+                                wire:key="pool-{{ $category->id }}" wire:click="togglePool({{ $category->id }})" data-test="pool-{{ $category->slug }}"
+                            />
+                        @endforeach
+                    </div>
+
+                    @if ($this->voteProblem)
+                        <x-lamma.error data-test="vote-problem">{{ $this->voteProblem }}</x-lamma.error>
+                    @elseif ($shortNames !== [])
+                        <x-lamma.error data-test="vote-shortfalls">
+                            {!! __('Not enough questions for a batch of :count in: :categories.', [
+                                'count' => Isolate::ltr(min($voteEvery, $questionCount)),
+                                'categories' => collect($shortNames)->map(fn ($name, $id) => e($name).' ('.Isolate::ltr($this->shortfalls[$id]).')')->join(', '),
+                            ]) !!}
+                            {{ __('Take them out of the pool, or pick another difficulty.') }}
+                        </x-lamma.error>
+                    @endif
+                </div>
+                @else
                 {{-- Categories --}}
                 <div class="flex flex-col gap-2.5">
                     <div class="flex items-baseline justify-between">
@@ -95,6 +166,7 @@
                         <x-lamma.error class="laptop-short:hidden">{{ __('Pick at least one category.') }}</x-lamma.error>
                     @endif
                 </div>
+                @endif
 
                 <div class="grid gap-[30px] md:grid-cols-2 md:gap-7 xl:grid-cols-6 laptop-short:gap-x-7 laptop-short:gap-y-3">
                     <div class="flex flex-col gap-2.5 xl:col-span-2">
@@ -143,8 +215,17 @@
                 <h2 id="summary-title" class="pb-1.5 font-display text-[28px] font-extrabold">{{ __('Your game') }}</h2>
 
                 @foreach ([
-                    [__('Categories'), $chosen === '' ? '—' : $chosen],
-                    [__('Questions'), new HtmlString($questionCount.($categoryIds === [] ? '' : ' <span class="text-[13px] font-medium text-ink-subtle" data-test="available">('.__(':count available', ['count' => Isolate::ltr($this->available)]).')</span>'))],
+                    ...($vote ? [
+                        [__('Mode'), __('Vote')],
+                        [__('First category'), $firstCategoryId ? (CategoryVote::names([$firstCategoryId])[$firstCategoryId] ?? '—') : '—'],
+                        [__('Categories to vote on'), $this->vote ? __(':count categories', ['count' => count($this->vote->poolIds)]) : '—'],
+                        [__('Votes'), new HtmlString('<span data-test="vote-summary">'.($votes === 1
+                            ? __('Every :every questions · 1 vote', ['every' => Isolate::ltr($voteEvery)])
+                            : __('Every :every questions · :count votes', ['every' => Isolate::ltr($voteEvery), 'count' => Isolate::ltr($votes)])).'</span>')],
+                    ] : [
+                        [__('Categories'), $chosen === '' ? '—' : $chosen],
+                    ]),
+                    [__('Questions'), new HtmlString($questionCount.(! $picked ? '' : ' <span class="text-[13px] font-medium text-ink-subtle" data-test="available">('.__(':count available', ['count' => Isolate::ltr($this->available)]).')</span>'))],
                     [__('Time'), __(':seconds s each', ['seconds' => $secondsPerQuestion])],
                     [__('Difficulty'), Difficulty::tryFrom($difficulty)?->getLabel() ?? __('Mixed')],
                     [__('Player photos'), $photos === 'off' ? __('Off') : __('On')],
@@ -188,7 +269,7 @@
                 >{{ __('Create room') }}</x-lamma.button>
 
                 <p class="pt-2.5 text-center text-sm text-ink-subtle">
-                    {{ $categoryIds === [] ? __('Pick at least one category to continue.') : __("You'll get a room code to share.") }}
+                    {{ $picked ? __("You'll get a room code to share.") : ($vote ? __('Pick the first category to continue.') : __('Pick at least one category to continue.')) }}
                 </p>
             </aside>
         </div>

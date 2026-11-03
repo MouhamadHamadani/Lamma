@@ -2,6 +2,7 @@
 
 namespace App\Game;
 
+use App\Enums\GameMode;
 use App\Enums\RoomStatus;
 use App\Events\RoomClosed;
 use App\Events\RoomRestarted;
@@ -20,32 +21,43 @@ class RoomManager
         private readonly RoomCodeGenerator $codes,
         private readonly QuestionPool $questions,
         private readonly PlayerPhoto $photos,
+        private readonly CategoryVote $votes,
     ) {}
 
     /**
-     * A new lobby for the host. A host has at most one room in lobby or playing, so any earlier one is closed first.
+     * A new lobby for the host. A host has at most one room in lobby or playing, so any earlier one is closed first. With $vote the room is a
+     * Vote-mode room (its categories come from $vote, not from the settings): every pool category must supply a batch and the pool the whole game.
      *
      * @throws NotEnoughQuestions
      */
-    public function create(User $host, RoomSettings $settings): Room
+    public function create(User $host, RoomSettings $settings, ?VoteSettings $vote = null): Room
     {
-        $available = $this->questions->available($settings);
+        $available = $vote ? $this->votes->poolTotal($settings, $vote) : $this->questions->available($settings);
         if ($available < $settings->questionCount) {
             throw new NotEnoughQuestions($available, $settings->questionCount);
         }
+        if ($vote && ($short = $this->votes->shortfalls($settings, $vote)) !== []) {
+            throw new NotEnoughQuestions(min($short), min($vote->every, $settings->questionCount));
+        }
 
-        return DB::transaction(function () use ($host, $settings) {
+        return DB::transaction(function () use ($host, $settings, $vote) {
             Room::query()->where('host_id', $host->id)->active()->get()->each($this->close(...));
 
             // The unique index is the final guard against two rooms drawing the same code at once.
             for ($attempt = 1; ; $attempt++) {
                 try {
-                    return Room::create([
+                    $room = Room::create([
                         'code' => $this->codes->generate(),
                         'host_id' => $host->id,
                         'status' => RoomStatus::Lobby,
+                        'game_mode' => $vote ? GameMode::Vote : GameMode::Classic,
+                        'vote_every' => $vote?->every,
+                        'first_category_id' => $vote?->firstCategoryId,
                         'settings' => $settings,
                     ]);
+                    $room->pool()->attach($vote->poolIds ?? []);
+
+                    return $room;
                 } catch (UniqueConstraintViolationException $e) {
                     if ($attempt >= 3) {
                         throw $e;
@@ -79,7 +91,7 @@ class RoomManager
                 return [$existing, false];
             }
 
-            $new = $this->create($by, $locked->settings);
+            $new = $this->create($by, $locked->settings, $locked->voteSettings());
 
             // A new row starts disconnected: its phone has not joined the new room's channel yet (see RoomRoster). Each player's name and photo come
             // with them as a suggestion (they can change both before pressing Ready); the photo is a COPY, so deleting one room never breaks the other.

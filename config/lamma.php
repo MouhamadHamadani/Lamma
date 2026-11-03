@@ -19,6 +19,10 @@ return [
     'photo_uploads_per_minute' => 6,
     'photo_uploads_per_ip_per_minute' => 30,
 
+    // Vote mode (App\Game\CategoryVote): how long a category vote stays open, and how long its result shows before the next question. Seconds.
+    'vote_seconds' => 10,
+    'vote_result_seconds' => 3,
+
     // `php artisan lamma:prune` (scheduled daily) leaves a timestamp here every time it runs, and `lamma:doctor` fails when it is older than
     // scheduler_max_hours: the sign that the `schedule:run` cron line is missing.
     'heartbeat_key' => 'lamma.scheduler.last_run',

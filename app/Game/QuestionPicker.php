@@ -28,8 +28,24 @@ class QuestionPicker
      */
     public function pick(Room $room): Collection
     {
-        $ranked = $this->ranked($room->settings, $room->players()->get(), $this->recentlyAsked($room));
-        $ids = array_slice($ranked, 0, $room->settings->questionCount);
+        return $this->pickFrom($room, $room->settings->categoryIds, $room->settings->questionCount);
+    }
+
+    /**
+     * The same choice from other categories than the room's own (a Vote-mode batch), skipping questions already in the game.
+     *
+     * @param  list<int>  $categoryIds
+     * @param  list<int>  $exclude  question ids never to pick
+     * @return Collection<int, Question> up to $count, options loaded, in random order
+     */
+    public function pickFrom(Room $room, array $categoryIds, int $count, array $exclude = []): Collection
+    {
+        $settings = clone $room->settings;
+        $settings->categoryIds = $categoryIds;
+        $exclude = array_flip($exclude);
+
+        $ranked = array_filter($this->ranked($settings, $room->players()->get(), $this->recentlyAsked($room)), fn (int $id) => ! isset($exclude[$id]));
+        $ids = array_slice(array_values($ranked), 0, max(0, $count));
         $questions = Question::query()->with('options')->findMany($ids)->keyBy('id');
 
         return collect($ids)->shuffle()->map(fn (int $id) => $questions->get($id))->filter()->values();
