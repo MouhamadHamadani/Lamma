@@ -11,6 +11,9 @@ enum Transition: string
     /** The last question was over: the game finished. */
     case Finished = 'finished';
 
+    /** Vote mode: a batch was over and the vote on the next category opened (instead of the next question). */
+    case Voting = 'voting';
+
     /** Already done by an earlier call. */
     case Already = 'already';
 

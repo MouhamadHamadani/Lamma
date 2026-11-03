@@ -6,12 +6,18 @@ use App\Enums\RoomStatus;
 use App\Events\GameFinished;
 use App\Events\GameStarted;
 use App\Events\PlayerAnswered;
+use App\Events\PlayerVoted;
 use App\Events\QuestionRevealed;
 use App\Events\QuestionStarted;
 use App\Events\ScoreboardUpdated;
+use App\Events\VoteResult;
+use App\Events\VoteStarted;
 use App\Jobs\AdvanceQuestion;
+use App\Jobs\CloseVote;
 use App\Jobs\RevealQuestion;
 use App\Jobs\StartQuestion;
+use App\Models\CategoryVote as CategoryVoteModel;
+use App\Models\CategoryVoteRound;
 use App\Models\PlayerAnswer;
 use App\Models\QuestionOption;
 use App\Models\Room;
@@ -256,33 +262,127 @@ class GameEngine
     /**
      * Move on after a reveal: the next question, or the end of the game after the last. Automatic once the reveal pause is over;
      * the host's "Next question" passes $force to skip the wait. Asking for the same position twice does nothing the second time.
+     *
+     * Vote mode, at the end of a batch: the vote on the next category opens instead (Voting), and the next question waits for it to close and
+     * its result to show (lamma.vote_result_seconds), which is when this is asked again (the AdvanceQuestion job that closeVote() queues, or the
+     * host's tick). With only one category left to offer there is no vote: its batch is drawn and the next question opens at once.
      */
     public function advance(Room $room, int $position, bool $force = false): Transition
     {
-        [$transition, $next, $fresh] = $this->locked($room, function (Room $fresh) use ($position, $force) {
+        [$transition, $next, $fresh, $vote] = $this->locked($room, function (Room $fresh) use ($position, $force) {
             $question = $fresh->status === RoomStatus::Playing ? $fresh->currentQuestion() : null;
             if ($question === null || $question->position !== $position || $question->revealed_at === null) {
-                return [Transition::Stale, null, $fresh];
+                return [Transition::Stale, null, $fresh, null];
             }
-            if (! $force && now() < $question->revealed_at->addSeconds(self::REVEAL_SECONDS)) {
-                return [Transition::TooEarly, null, $fresh];
+
+            $vote = $this->votes->roundAfter($fresh, $position);
+            if ($vote?->isOpen()) {
+                // The vote is under way; closeVote() moves the game on.
+                return [Transition::Already, null, $fresh, null];
+            }
+            $waitUntil = $vote?->closed_at?->addSeconds(CategoryVote::resultSeconds()) ?? $question->revealed_at->addSeconds(self::REVEAL_SECONDS);
+            if (! $force && now() < $waitUntil) {
+                return [Transition::TooEarly, null, $fresh, null];
+            }
+
+            if ($position < $fresh->totalQuestions() && $vote === null && $this->votes->due($fresh, $position)) {
+                $vote = $this->votes->open($fresh, $position);
+                if ($vote->isOpen()) {
+                    return [Transition::Voting, null, $fresh, $vote];
+                }
             }
 
             // The last question, or (Vote mode, the content ran dry since the room was set up) nothing left to ask: the game is over.
             if ($position >= $fresh->totalQuestions() || ! $fresh->roomQuestions()->where('position', $position + 1)->exists()) {
                 $fresh->update(['status' => RoomStatus::Finished, 'finished_at' => now()]);
 
-                return [Transition::Finished, null, $fresh];
+                return [Transition::Finished, null, $fresh, null];
             }
 
-            return [Transition::Done, $this->begin($fresh, $position + 1), $fresh];
+            return [Transition::Done, $this->begin($fresh, $position + 1), $fresh, null];
         });
 
         match ($transition) {
             Transition::Finished => GameFinished::broadcast($fresh)->toOthers(),
             Transition::Done => $this->announce($fresh, $next),
+            Transition::Voting => $this->announceVote($fresh, $vote),
             default => null,
         };
+
+        return $transition;
+    }
+
+    /**
+     * Vote mode: a player votes for one of the offered categories. Accepted only while the vote is open and no later than its deadline plus the same
+     * grace as an answer, once per player per round (the unique index decides a race), never changed. The room row lock serializes it with
+     * closeVote(), so a vote arriving as the vote closes is either counted or refused, never half-counted. When every connected player has voted
+     * the vote closes at once.
+     *
+     * @throws AnswerRejected
+     */
+    public function castVote(RoomPlayer $player, int $categoryId): CategoryVoteModel
+    {
+        [$room, $round, $vote] = DB::transaction(function () use ($player, $categoryId) {
+            $room = Room::query()->whereKey($player->room_id)->lockForUpdate()->firstOrFail();
+
+            $round = $room->status === RoomStatus::Playing ? $this->votes->openRound($room) : null;
+            if ($round === null) {
+                throw new AnswerRejected(AnswerRejected::CLOSED);
+            }
+            if (now() > $this->votes->dueAt($round)) {
+                throw new AnswerRejected(AnswerRejected::LATE);
+            }
+            if (! in_array($categoryId, $round->option_ids, true)) {
+                throw new AnswerRejected(AnswerRejected::INVALID_OPTION);
+            }
+            if ($round->votes()->where('room_player_id', $player->id)->exists()) {
+                throw new AnswerRejected(AnswerRejected::ALREADY_ANSWERED);
+            }
+
+            try {
+                $vote = CategoryVoteModel::create(['room_id' => $room->id, 'round' => $round->round, 'room_player_id' => $player->id, 'category_id' => $categoryId]);
+            } catch (UniqueConstraintViolationException) {
+                throw new AnswerRejected(AnswerRejected::ALREADY_ANSWERED);
+            }
+
+            return [$room, $round, $vote];
+        });
+
+        ['voted' => $voted, 'expected' => $expected] = $this->votes->progress($room, $round);
+        PlayerVoted::broadcast($room->code, $round->round, $this->votes->counts($round), $voted, $expected)->toOthers();
+
+        // Everyone connected has voted: no reason to wait for the timer.
+        $this->closeVote($room, $round->round);
+
+        return $vote;
+    }
+
+    /**
+     * Vote mode: close the vote. Allowed once its deadline plus the grace has passed, or as soon as every connected player has voted; the host's
+     * "Skip vote" passes $force to close it now with the votes so far. Picks the winner (a tie or no votes: at random, and recorded), draws its
+     * batch, shows the result, and queues the next question for when the result has been on screen long enough. Closing twice does nothing.
+     */
+    public function closeVote(Room $room, int $round, bool $force = false): Transition
+    {
+        [$transition, $vote, $fresh] = $this->locked($room, function (Room $fresh) use ($round, $force) {
+            $vote = $fresh->status === RoomStatus::Playing ? $fresh->voteRounds()->where('round', $round)->first() : null;
+            if ($vote === null) {
+                return [Transition::Stale, null, $fresh];
+            }
+            if (! $vote->isOpen()) {
+                return [Transition::Already, null, $fresh];
+            }
+            if (! $force && now() < $this->votes->dueAt($vote) && ! $this->votes->everyoneVoted($fresh, $vote)) {
+                return [Transition::TooEarly, null, $fresh];
+            }
+
+            return [Transition::Done, $this->votes->close($fresh, $vote)->fresh(), $fresh];
+        });
+
+        if ($transition === Transition::Done) {
+            VoteResult::broadcast($fresh, $vote)->toOthers();
+            AdvanceQuestion::dispatch($fresh->id, $this->votes->positionOf($fresh, $vote))->delay(now()->addSeconds(CategoryVote::resultSeconds()));
+        }
 
         return $transition;
     }
@@ -297,9 +397,12 @@ class GameEngine
         $room = $room->fresh() ?? $room;
         $question = $room->status === RoomStatus::Playing ? $room->currentQuestion() : null;
 
+        $vote = $question?->revealed_at !== null ? $this->votes->openRound($room) : null;
+
         return match (true) {
             $question === null => $room->status === RoomStatus::Playing ? $this->startQuestion($room) : Transition::Stale,
             $question->revealed_at === null => $this->reveal($room, $question->position),
+            $vote !== null => $this->closeVote($room, $vote->round),
             default => $this->advance($room, $question->position),
         };
     }
@@ -346,6 +449,13 @@ class GameEngine
     {
         QuestionStarted::broadcast($room, $question)->toOthers();
         RevealQuestion::dispatch($room->id, $question->position)->delay($this->revealDueAt($question));
+    }
+
+    /** Tell everyone the vote is open and schedule its close. Called after the transaction has committed. */
+    private function announceVote(Room $room, CategoryVoteRound $vote): void
+    {
+        VoteStarted::broadcast($room, $vote)->toOthers();
+        CloseVote::dispatch($room->id, $vote->round)->delay($this->votes->dueAt($vote));
     }
 
     /**

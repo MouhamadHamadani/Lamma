@@ -17,11 +17,6 @@ beforeEach(function () {
     Queue::fake();
 });
 
-function votes(): CategoryVote
-{
-    return app(CategoryVote::class);
-}
-
 describe('the first batch', function () {
     it('draws only the first batch, from the first category, with the option order fixed', function () {
         $room = voteRoom(questions: 20, every: 5);

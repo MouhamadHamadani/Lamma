@@ -2,10 +2,13 @@
 
 use App\Enums\Difficulty;
 use App\Enums\RoomStatus;
+use App\Game\CategoryVote;
 use App\Game\GameEngine;
 use App\Game\PlayerPhoto;
 use App\Game\RoomSettings;
+use App\Game\Transition;
 use App\Models\Category;
+use App\Models\CategoryVoteRound;
 use App\Models\PlayerAnswer;
 use App\Models\Question;
 use App\Models\Room;
@@ -130,6 +133,36 @@ function voteRoom(int $players = 2, int $questions = 20, int $every = 5, int $po
     RoomPlayer::factory()->for($room)->count($players)->create(['is_ready' => true, 'left_at' => null]);
 
     return $room;
+}
+
+function votes(): CategoryVote
+{
+    return app(CategoryVote::class);
+}
+
+/**
+ * Play a Vote-mode room (starting it if it is still a lobby) through to its next vote: every open question is revealed and moved on at once,
+ * nobody answering. Returns the open vote round.
+ */
+function playToVote(Room $room): CategoryVoteRound
+{
+    $engine = app(GameEngine::class);
+    if ($room->fresh()->status === RoomStatus::Lobby) {
+        startGame($room);
+    }
+
+    for ($guard = 0; $guard < 30; $guard++) {
+        $question = $room->fresh()->currentQuestion();
+        $engine->reveal($room, $question->position, force: true);
+        if (($vote = votes()->openRound($room->fresh())) !== null) {
+            return $vote;
+        }
+        if ($engine->advance($room, $question->position, force: true) === Transition::Voting) {
+            return votes()->openRound($room->fresh());
+        }
+    }
+
+    throw new RuntimeException('The game never reached a vote.');
 }
 
 /** The top-level category a room question belongs to (its own category, or the parent of its subcategory). */
