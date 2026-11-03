@@ -94,7 +94,8 @@
         @endphp
         <main
             wire:key="v-{{ $round }}-{{ $vote->isOpen() ? 'open' : 'result' }}" data-test="vote" data-vote="{{ $vote->isOpen() ? 'open' : 'result' }}"
-            x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); @if ($vote->isOpen()) $store.sound.once('v{{ $round }}-start', () => $store.sound.play('question-start')) @endif"
+            {{-- One tick at the due moment, however many times a refresh re-runs this (Livewire does when the text changes): the poll is the fallback. --}}
+            x-init="$store.sound.once('v{{ $round }}-{{ $vote->isOpen() ? 'close' : 'next' }}-tick', () => setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }})); @if ($vote->isOpen()) $store.sound.once('v{{ $round }}-start', () => $store.sound.play('question-start')) @endif"
             class="flex min-h-0 grow flex-col gap-[clamp(16px,4dvh,36px)] pb-[clamp(16px,4dvh,36px)] pt-[clamp(20px,4.4dvh,40px)] {{ $gutter }}"
         >
             <div class="flex items-center gap-10">

@@ -5,6 +5,7 @@ differs from "Expect". For how to start the servers and put phones on the laptop
 [realtime-testing.md](realtime-testing.md); this file assumes that works. Section 17 is the same game on the **live domain**,
 after a deploy ([deployment.md](deployment.md)), section 18 is the **selfie** step on real phones (the one thing the automated tests cannot do: a real front camera), and
 section 19 is **sound and motion**: what needs your ears and a real device ([sound-and-motion.md](sound-and-motion.md) lists every sound and animation).
+Section 20 is **Vote mode**, the second game mode: the phones vote on the category of the next questions.
 
 ## What the automated tests already prove
 
@@ -317,6 +318,31 @@ the check that they are pleasant, in time, and not too loud. Test the host on a 
 | ☐ | **Loud enough, never harsh.** Play each sound at the volume you would use in a living room: the host's sounds are clear over talking, the phone's are soft; none clips or startles. | |
 | ☐ | **Arabic.** Repeat a question and a reveal on an Arabic phone: the tiles slide in from the right, confetti mirrors, the cross and the check look the same, "انطلقوا!" counts down with the same ticks. | MotionTest (Arabic host) *phone* |
 
+## 20. Vote mode (one laptop, three phones)
+
+The second game mode (Phase 11): the host picks the first category and a pool; after every few questions the phones vote on the category of the next
+ones. Same setup as the top of this file: **Phone A** a guest in Arabic, **Phone B** a guest in English, **Phone C** logged in (`test@example.com`). Reverb,
+the queue worker and the scheduler running (`composer dev`). The host screen in **Both**.
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **Set it up.** `/rooms/create`, press **Vote** beside the title. The classic category grid is replaced by **First category** (a row of chips, pick one), **Categories to vote on** (pick at least 3; the first is in it and cannot be taken out) and **Vote every 3 / 5 / 10**. Pick 20 questions, vote every 5: the summary says *Vote · N categories*, the first category, and *Every 5 questions · 3 votes*. Nothing scrolls at 1280x720. Switch back to Classic: your classic choice is still there. | CreateRoomVoteTest, VoteModeTest |
+| ☐ | **It refuses what cannot work.** Only two categories: "Pick at least 3 categories…", Create is off. 10 questions with vote every 10: "Vote every 10 questions needs a game longer than 10 questions." Hard with a thin category in the pool: it is named with its count and Create is off. | CreateRoomVoteTest |
+| ☐ | **The first batch.** Create, join with the three phones, Ready, Start. The lobby chip says *Vote · starts with …*. Questions 1-5 are all from the first category (the chip at the top right of the host); the progress dots show small upright markers after 5, 10 and 15. | VoteBatchTest, VoteScreensTest |
+| ☐ | **A normal vote.** After the reveal of question 5 (its 5 s pause, or **Next question**): the host shows **Choose the next category** with **اختر الفئة التالية** under it, a 10 s ring, three big tiles (colour + shape + name in English and Arabic) with a count on each, and *0 of 3 voted*. The phones show the timer bar and three tiles **in their own language** (Phone A in Arabic, right to left). The question-start chime plays on the host. | VoteScreensTest, VoteModeTest *phone* |
+| ☐ | **Voting.** Tap a tile on Phone A: it locks at once (no confirm), a short buzz on Android, the tile grows big and tilted, *Vote locked in*, pulsing dots, *1 of 3 voted*. The host's count on that tile goes up with a pop and Phone A's avatar gets a check, **without a reload**. Tap another tile on Phone A: nothing changes. The phones never show who voted for what. | VoteTest, VoteScreensTest *phone* |
+| ☐ | **It closes early.** Phones B and C vote for the **same** category: the vote closes as soon as the third vote is in, without waiting for the ring. Host: the winner grows with a **Winner** badge, the others fade, mini avatars on each tile show who voted for it; "The next category is". The phones show the winner; the two who picked it see **Your pick won!**. About 3 s later question 6 opens, from the winner. | VoteTest, VoteModeTest |
+| ☐ | **A tie.** At the next vote (after question 10), Phone A and Phone B vote for **different** categories and Phone C waits. When the ring runs out: **Tie, picking randomly** (and the Arabic line), the highlight hops between the two tied tiles for about a second with soft taps, then lands on one with the reveal sound and confetti. It is never the third tile. Phone C sees **You didn't vote** and the result. | VoteTest, VoteSimulationTest *phone* |
+| ☐ | **Nobody votes.** At the last vote (after question 15) nobody taps: at 0, **Nobody voted, picking randomly**, the hop runs across all the tiles and lands on one of them. Questions 16-20 come from it. No vote after question 20: the podium follows as usual. | VoteTest, VoteSimulationTest |
+| ☐ | **Reconnect mid-vote.** During a vote, lock Phone B's screen (or turn its Wi-Fi off) for 3 seconds and back: it lands on the vote with the right time left and can still vote; if it had voted, it shows its locked vote. Reload the **host** mid-vote: the same tiles in the same order, the counts, the ring at the right second. Reload a phone during the result: the result. | VoteScreensTest, VoteSimulationTest *phone* |
+| ☐ | **The host skips the vote.** At a vote, after one phone voted, press **Skip vote**: it closes at once with the votes so far (that category wins), and the next question follows after the result. Double-clicking Skip vote does nothing more. | VoteTest, VoteScreensTest |
+| ☐ | **Two of three always agree.** A new Vote room with the three phones: at every vote Phones A and B pick the same category and Phone C another one. A and B's pick wins every time (2 to 1, never a tie), each vote closes as soon as the third phone has voted, and a category is never offered again until every pool category has been played (then a new round of them starts, never with the one just played). | VoteTest |
+| ☐ | **A shorter last batch.** Create a Vote room with 10 questions, vote every 3 (votes after 3, 6 and 9): the last batch is a single question. The game ends after question 10. | VoteBatchTest |
+| ☐ | **One option left.** With a pool of exactly 3 and 15 questions every 5: the second vote has only one category left, so there is **no vote screen**: question 11 simply opens from it. | VoteTest |
+| ☐ | **Play again keeps the mode.** On the podium press **Play again**: the new lobby is a Vote room with the same first category, pool and vote every (the chip says *Vote · starts with …*). | CreateRoomVoteTest |
+| ☐ | **Results and admin.** On Phone C, `/me/games` lists the categories that were actually **played** (the first and the winners), not the whole pool. In `/admin`: Rooms has a **Mode** column and filter, a Vote room's page shows the pool and vote every, the dashboard's Rooms card says *N in Vote mode*, and "Most-played categories" only counts what was played. | VoteResultsTest |
+| ☐ | **Classic is unchanged.** Play one short Classic game: no vote, no markers on the progress dots, everything as before. | VoteSimulationTest, GameSimulationTest |
+
 ## Sign-off
 
 | Area | Result | Notes |
@@ -340,5 +366,6 @@ the check that they are pleasant, in time, and not too loud. Test the host on a 
 | 17 Live domain | | |
 | 18 Player selfies | | |
 | 19 Sound and motion | | |
+| 20 Vote mode | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

@@ -234,3 +234,23 @@ Respect `prefers-reduced-motion`: replace movement with simple fades and don't p
   - Admin panel: keep the Filament defaults and set Filament's primary colour to coral and its font to IBM Plex Sans Arabic.
   - Reconnecting state: a simple centred card saying "Reconnecting…" with pulsing dots.
   - Host screens in Arabic only: mirror the English ones.
+
+## 10. Vote mode (Phase 11, built without design files)
+
+The second game mode: the host picks the first category and a pool, and after every 3, 5 or 10 questions the phones vote on the category of the next ones.
+There were no design files for it; the screens are built from the existing components and the closest reference screens, and keep the motion language of
+section 7. Look at them in the gallery (`/_components`, "Answers · vote") and in a game.
+
+| Screen | Built from | What it shows |
+| --- | --- | --- |
+| Create room, Vote | host-2-create-room | A **Classic / Vote** `<x-lamma.segmented>` beside the title (so a Classic setup is as tall as before). Vote replaces the category grid with **First category** (one `<x-lamma.subcategory-chip>` per top-level category, single choice), **Categories to vote on** (`<x-lamma.category-toggle>` tiles, top-level only; the first one is on and locked) and **Vote every 3 / 5 / 10** (segmented). A missing step takes the hint's place in coral; a category that cannot fill a batch shows its count on its tile and in an error under the grid. The summary card says *Vote · N categories*, the first category and *Every N questions · M votes*. On a short laptop screen (`laptop-short`) the first-category chips, their label and Vote every share one line, so nothing scrolls at 1280x720. |
+| Host vote | host-4-question | The question title's place: **Choose the next category** (+ the Arabic line in Both), the timer ring (10 s; screen readers hear 5 s only). Three **upright answer tiles** (`<x-lamma.answer size="vote">`: colour + shape, name, Arabic name in Both, a third of the screen tall, three across) with a **count chip** on the top corner that pops when it changes. Footer: the players' avatars with a check once they voted, "N of M voted", **Skip vote**. The progress dots get a small upright marker after each batch (coral while that vote is on). |
+| Host result (3 s) | host-5-reveal | The winner keeps the correct-answer treatment (sticker-lg shadow, the ring, a drop-in badge that says **Winner**) and is enlarged to 105%; the others fade to 35%; mini avatars on each tile show who voted for it (a crowd becomes "+N"). Title: *The next category is*, or **Tie, picking randomly** / **Nobody voted, picking randomly** (+ Arabic). For a tie or no votes the highlight **hops** across the tied tiles (150 ms a hop, a soft tap each, about 1.2 s) before it lands on the winner with the reveal sound, a pop and a confetti burst. Under reduced motion it lands at once, without the hop. |
+| Phone vote | player-3-question | The timer bar, a card with **Choose the next category**, three stacked phone answer tiles in the player's own language. One tap locks the vote (the lock-in sound and the tap buzz), no confirm step. |
+| Phone voted | player-4-answered | *Vote locked in*, the chosen tile big and tilted (`state="locked"`), the pulsing dots, "Waiting for the others…", "N of M voted". Nothing about anyone else's vote. |
+| Phone result | player-5 | The winner as the big tilted tile, the tie / no-votes line, **Your pick won!** (chip-pop) when it was this player's, or a sun chip **You didn't vote**. No score, no rank: the next question follows. |
+
+Motion: the tiles pop in staggered like answers (`pop-in`, 60 ms), the count chip `chip-pop`s on each change, the phone tiles `slide-in`, the locked tile `settle`s;
+every one of them is behind `motion-safe:` with a fade under reduced motion, and the hop is skipped. Sounds: the question-start chime when the vote opens, the reveal
+swoosh for the result, the soft answer tick on the host for each vote (no new sound names). Each cue is a `$store.sound.once` so a refresh does not replay it, and the
+timers and the result's hop are `wire:ignore`.

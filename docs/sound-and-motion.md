@@ -51,6 +51,10 @@ four placeholder files, delete its line in `config/lamma.php` (`placeholders`) s
 
 The two file names that differ from the sound names are `tick.wav` (sound `timer-tick`) and `podium.wav` (sound `win`); they keep those names.
 
+Vote mode (Phase 11) adds no sound name: `question-start` when the vote opens (host), `tap` on the host for each vote (rising like the answer tick) and for each
+hop of a tie's shuffle, `lock-in` and the `tap` buzz when a phone votes, `reveal` when the result lands (host and phone), and the vote's timer ticks like a
+question's (`timer-tick`, `time-up`).
+
 ## Animations
 
 Everything uses `transform`, `opacity` (and, for the drawn check mark, a stroke offset): no layout work. Everything is behind `motion-safe:`; under
@@ -85,6 +89,8 @@ animation class without `motion-safe:`.)
 | `tile-drop` | the phone's rank tile drops in and lands tilted | 650 ms |
 | `own-row` | the player's own leaderboard row slides in, then swells once | 1300 ms |
 | `dots` | the waiting dots | 1.2 s, repeating |
+| `pop-in` + `chip-pop` (Vote mode) | the three vote tiles pop in (staggered 60 ms); a tile's vote count pops each time it changes | 250 ms; 350 ms |
+| hop (Vote mode, `lammaVoteLanding`) | a tie or no votes: the highlight hops across the tied tiles (scale 1.1), then lands on the winner with a pop (Web Animations) and an 18-piece burst; skipped under reduced motion | 150 ms a hop, about 1.2 s |
 
 Confetti (`lammaConfetti.burst(origin, count)` and `lammaConfetti.rain(ms)`): one fixed canvas, `pointer-events: none`, `aria-hidden`, created when needed and
 removed after the last piece lands; the four answer shapes in the brand colours (read from the CSS tokens); origins and drift are mirrored in right-to-left

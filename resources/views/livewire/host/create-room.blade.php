@@ -38,14 +38,15 @@
     </header>
 
     <main class="mx-auto flex w-full max-w-[1600px] grow flex-col gap-7 px-5 pb-12 pt-9 laptop-short:gap-4 laptop-short:pb-5 laptop-short:pt-4 lg:px-14">
-        {{-- The mode switch sits beside the title (not above the card) so a Classic setup is exactly as tall as before. --}}
-        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        {{-- The mode switch sits beside the title (not above the card) so a Classic setup is exactly as tall as before; on a short laptop screen it is taller than
+             the title, so it is pinned to the row's bottom end and reaches into the space above instead of making the row taller. --}}
+        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between laptop-short:relative">
             <div class="flex flex-col gap-1.5">
                 <h1 class="font-display text-[40px] font-extrabold leading-[1.05] laptop-short:text-4xl lg:text-5xl">{{ __('Set up your game') }}</h1>
                 <p class="text-lg text-ink-muted laptop-short:hidden">{{ __('Choose what to play. You can change these before you start.') }}</p>
             </div>
             <x-lamma.segmented
-                wire:model.live="mode" :label="__('Game mode')" class="md:w-80 md:shrink-0"
+                wire:model.live="mode" :label="__('Game mode')" class="md:w-80 md:shrink-0 laptop-short:absolute laptop-short:bottom-0 laptop-short:end-0"
                 :options="['classic' => __('Classic'), 'vote' => __('Vote')]" data-test="mode"
             />
         </div>
@@ -226,7 +227,7 @@
                 @foreach ([
                     ...($vote ? [
                         // The pool size shares the mode's row: the card must stay as short as a Classic one.
-                        [__('Mode'), $this->vote ? __('Vote · :count categories', ['count' => count($this->vote->poolIds)]) : __('Vote')],
+                        [__('Mode'), $this->vote && count($this->vote->poolIds) >= VoteSettings::MIN_POOL ? __('Vote · :count categories', ['count' => count($this->vote->poolIds)]) : __('Vote')],
                         [__('First category'), $firstCategoryId ? (CategoryVote::names([$firstCategoryId])[$firstCategoryId] ?? '—') : '—'],
                         [__('Votes'), new HtmlString('<span data-test="vote-summary">'.($votes === 1
                             ? __('Every :every questions · 1 vote', ['every' => Isolate::ltr($voteEvery)])
