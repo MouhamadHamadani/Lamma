@@ -49,6 +49,7 @@ class GameEngine
         private readonly QuestionPicker $picker,
         private readonly ScoringService $scoring,
         private readonly SeenQuestions $seen,
+        private readonly CategoryVote $votes,
     ) {}
 
     /**
@@ -85,18 +86,27 @@ class GameEngine
                     throw GameStartException::notEveryoneReady();
                 }
 
-                $questions = $this->picker->pick($locked);
-                if ($questions->count() < $locked->settings->questionCount) {
-                    throw GameStartException::notEnoughQuestions($questions->count(), $locked->settings->questionCount);
-                }
+                if ($locked->isVote()) {
+                    // Vote mode: only the first batch, from the first category. Each vote adds the next one (CategoryVote::close).
+                    $batch = $this->votes->batchSize($locked, 0);
+                    $drawn = $this->votes->drawBatch($locked, (int) $locked->first_category_id, $batch);
+                    if ($drawn < $batch) {
+                        throw GameStartException::notEnoughQuestions($drawn, $batch);
+                    }
+                } else {
+                    $questions = $this->picker->pick($locked);
+                    if ($questions->count() < $locked->settings->questionCount) {
+                        throw GameStartException::notEnoughQuestions($questions->count(), $locked->settings->questionCount);
+                    }
 
-                foreach ($questions as $index => $question) {
-                    $locked->roomQuestions()->create([
-                        'question_id' => $question->id,
-                        'position' => $index + 1,
-                        // Shuffled once, here: every screen shows the same A, B, C, D for the whole game.
-                        'option_order' => $question->options->pluck('id')->shuffle()->values()->all(),
-                    ]);
+                    foreach ($questions as $index => $question) {
+                        $locked->roomQuestions()->create([
+                            'question_id' => $question->id,
+                            'position' => $index + 1,
+                            // Shuffled once, here: every screen shows the same A, B, C, D for the whole game.
+                            'option_order' => $question->options->pluck('id')->shuffle()->values()->all(),
+                        ]);
+                    }
                 }
 
                 $now = now();
@@ -258,7 +268,8 @@ class GameEngine
                 return [Transition::TooEarly, null, $fresh];
             }
 
-            if ($position >= $fresh->roomQuestions()->count()) {
+            // The last question, or (Vote mode, the content ran dry since the room was set up) nothing left to ask: the game is over.
+            if ($position >= $fresh->totalQuestions() || ! $fresh->roomQuestions()->where('position', $position + 1)->exists()) {
                 $fresh->update(['status' => RoomStatus::Finished, 'finished_at' => now()]);
 
                 return [Transition::Finished, null, $fresh];

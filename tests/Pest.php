@@ -111,6 +111,35 @@ function gameRoom(int $players = 2, int $questions = 3, array $settings = [], ?U
     return $room;
 }
 
+/**
+ * A Vote-mode lobby ready to start: $categories (or $pool new top-level categories with $perCategory playable questions each) as the pool, the first
+ * one as the first category, a game of $questions voting every $every, and $players connected players who have tapped Ready.
+ *
+ * @param  list<Category>  $categories
+ */
+function voteRoom(int $players = 2, int $questions = 20, int $every = 5, int $pool = 3, int $perCategory = 12, array $categories = [], array $settings = [], ?User $host = null): Room
+{
+    $categories = $categories ?: collect(range(1, $pool))->map(fn () => categoryWithQuestions($perCategory))->all();
+
+    $room = Room::factory()->vote($every)->create([
+        ...($host ? ['host_id' => $host->id] : []),
+        'first_category_id' => $categories[0]->id,
+        'settings' => new RoomSettings(...['questionCount' => $questions, 'secondsPerQuestion' => 20, ...$settings]),
+    ]);
+    $room->pool()->attach(collect($categories)->pluck('id')->all());
+    RoomPlayer::factory()->for($room)->count($players)->create(['is_ready' => true, 'left_at' => null]);
+
+    return $room;
+}
+
+/** The top-level category a room question belongs to (its own category, or the parent of its subcategory). */
+function topCategoryOf(RoomQuestion $roomQuestion): int
+{
+    $category = $roomQuestion->question()->with('category')->first()->category;
+
+    return $category->parent_id ?? $category->id;
+}
+
 /** Start the room's game as its host and return question 1 (open). The 3 · 2 · 1 · Go! countdown is skipped: question 1 opens right now. */
 function startGame(Room $room): RoomQuestion
 {

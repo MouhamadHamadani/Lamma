@@ -36,7 +36,7 @@ class GameView
             options: collect($roomQuestion->option_order)->map(fn (int $id) => $question->options->firstWhere('id', $id))->filter()->values(),
             players: $room->players()->orderBy('joined_at')->orderBy('id')->get(),
             answers: $roomQuestion->answers()->get()->keyBy('room_player_id'),
-            total: $room->roomQuestions()->count(),
+            total: $room->totalQuestions(),
             answered: $progress['answered'],
             expected: $progress['expected'],
             correctOptionId: $revealed ? $question->options->firstWhere('is_correct', true)?->id : null,
