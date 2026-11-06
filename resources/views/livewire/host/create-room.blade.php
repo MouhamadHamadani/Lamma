@@ -178,7 +178,7 @@
                 </div>
                 @endif
 
-                <div class="grid gap-[30px] md:grid-cols-2 md:gap-7 xl:grid-cols-6 laptop-short:gap-x-7 laptop-short:gap-y-3">
+                <div class="grid gap-[30px] md:grid-cols-2 md:gap-7 xl:grid-cols-6 xl:items-end laptop-short:gap-x-7 laptop-short:gap-y-3">
                     <div class="flex flex-col gap-2.5 xl:col-span-2">
                         <h2 class="text-base font-bold">{{ __('Number of questions') }}</h2>
                         <x-lamma.segmented wire:model.live="questionCount" :label="__('Number of questions')" :options="array_combine(RoomSettings::QUESTION_COUNTS, RoomSettings::QUESTION_COUNTS)" />
@@ -202,7 +202,7 @@
                         <x-lamma.segmented wire:model.live="photos" :label="__('Player photos')" :options="['on' => __('On'), 'off' => __('Off')]" class="md:w-64 md:shrink-0 xl:w-auto" />
                     </div>
 
-                    <div class="flex flex-col gap-2.5 xl:col-span-3">
+                    <div class="flex flex-col gap-2.5 xl:col-span-2">
                         <h2 class="text-base font-bold">{{ __('Difficulty') }}</h2>
                         <x-lamma.segmented
                             wire:model.live="difficulty" :label="__('Difficulty')"
@@ -210,12 +210,18 @@
                         />
                     </div>
 
-                    <div class="flex flex-col gap-2.5 xl:col-span-3">
+                    <div class="flex flex-col gap-2.5 xl:col-span-2">
                         <h2 class="text-base font-bold">{{ __('Big-screen language') }}</h2>
                         <x-lamma.segmented
                             wire:model.live="hostScreenLocale" :label="__('Big-screen language')"
                             :options="['en' => ['label' => 'English', 'lang' => 'en'], 'ar' => ['label' => 'العربية', 'lang' => 'ar'], 'both' => __('Both')]"
                         />
+                    </div>
+
+                    {{-- The longest label on the page: on a short laptop screen it sits beside its switch, so the row does not grow. --}}
+                    <div class="order-last flex flex-col gap-2.5 xl:order-none md:col-span-2 md:flex-row md:items-center md:justify-between md:gap-6 xl:col-span-2 xl:flex-col xl:items-stretch xl:justify-start xl:gap-2.5 laptop-short:flex-row laptop-short:items-center laptop-short:gap-2" data-test="double-final-setting">
+                        <h2 class="text-base font-bold laptop-short:text-sm laptop-short:leading-tight">{{ __('Double points on the last question') }}</h2>
+                        <x-lamma.segmented wire:model.live="doubleFinal" :label="__('Double points on the last question')" :options="['on' => __('On'), 'off' => __('Off')]" class="md:w-64 md:shrink-0 xl:w-auto laptop-short:w-28" />
                     </div>
                 </div>
             </div>
@@ -237,15 +243,16 @@
                     ]),
                     [__('Questions'), new HtmlString($questionCount.(! $picked ? '' : ' <span class="text-[13px] font-medium text-ink-subtle" data-test="available">('.__(':count available', ['count' => Isolate::ltr($this->available)]).')</span>'))],
                     [__('Time'), __(':seconds s each', ['seconds' => $secondsPerQuestion])],
+                    [__('Last question'), $doubleFinal === 'off' ? __('Normal points') : __('Double points')],
                     [__('Difficulty'), Difficulty::tryFrom($difficulty)?->getLabel() ?? __('Mixed')],
                     [__('Player photos'), $photos === 'off' ? __('Off') : __('On')],
                 ] as [$label, $value])
-                    <div @class(['flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base', 'laptop-short:py-2' => ! $vote, 'laptop-short:py-1.5' => $vote])>
+                    <div @class(['flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base', 'laptop-short:py-2' => ! $vote, 'laptop-short:py-1' => $vote])>
                         <span class="text-ink-muted">{{ $label }}</span>
                         <span class="text-end font-bold">{{ $value }}</span>
                     </div>
                 @endforeach
-                <div @class(['flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base', 'laptop-short:py-2' => ! $vote, 'laptop-short:py-1.5' => $vote])>
+                <div @class(['flex justify-between gap-3 border-b border-dashed border-line py-3.5 text-base', 'laptop-short:py-2' => ! $vote, 'laptop-short:py-1' => $vote])>
                     <span class="text-ink-muted">{{ __('Big screen') }}</span>
                     <span class="text-end font-bold">
                         @if ($screenLanguage)

@@ -49,7 +49,7 @@ class CreateRoom extends Component
 
     public int $questionCount = 10;
 
-    public int $secondsPerQuestion = 20;
+    public int $secondsPerQuestion = 15;
 
     /** easy | medium | hard | mixed */
     public string $difficulty = 'mixed';
@@ -59,6 +59,9 @@ class CreateRoom extends Component
 
     /** on | off: whether players can add a selfie (RoomSettings::showPhotos). */
     public string $photos = 'on';
+
+    /** on | off: the last question counts double (RoomSettings::doubleFinal). */
+    public string $doubleFinal = 'on';
 
     /** classic | vote (App\Enums\GameMode). Classic uses $categoryIds; Vote uses the three below and leaves $categoryIds as it was. */
     public string $mode = 'classic';
@@ -169,6 +172,7 @@ class CreateRoom extends Component
             difficulty: Difficulty::tryFrom($this->difficulty),
             hostScreenLocale: HostScreenLocale::tryFrom($this->hostScreenLocale) ?? HostScreenLocale::Both,
             showPhotos: $this->photos !== 'off',
+            doubleFinal: $this->doubleFinal !== 'off',
         );
     }
 
@@ -309,6 +313,7 @@ class CreateRoom extends Component
             'difficulty' => [Rule::in([...array_column(Difficulty::cases(), 'value'), 'mixed'])],
             'hostScreenLocale' => [Rule::enum(HostScreenLocale::class)],
             'photos' => [Rule::in(['on', 'off'])],
+            'doubleFinal' => [Rule::in(['on', 'off'])],
         ];
     }
 

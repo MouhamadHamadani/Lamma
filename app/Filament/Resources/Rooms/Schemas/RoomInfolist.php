@@ -53,6 +53,10 @@ class RoomInfolist
                     ->label('Player photos')
                     ->state(fn (Room $record): string => $record->settings->showPhotos ? 'On' : 'Off')
                     ->badge(),
+                TextEntry::make('double_final')
+                    ->label('Double last question')
+                    ->state(fn (Room $record): string => $record->settings->doubleFinal ? 'On' : 'Off')
+                    ->badge(),
             ])
             ->columns(3);
     }

@@ -5,6 +5,7 @@ use App\Models\PlayerAnswer;
 use App\Models\Room;
 use App\Models\RoomPlayer;
 use App\Models\User;
+use Database\Seeders\ContentSeeder;
 use Illuminate\Support\Facades\Queue;
 
 /*
@@ -153,3 +154,17 @@ it('does not scroll with the x2 chip and 4-digit scores on the host, from 1280x7
     sbShot($page, "scoring-host-podium-{$width}");
     $page->assertNoJavaScriptErrors();
 })->with(['1280x720' => [1280, 720], '1920x1080' => [1920, 1080]]);
+
+it('does not scroll on create room at 1280x720 with the new setting, in Arabic too', function (string $locale) {
+    (new ContentSeeder)->run();
+    $this->actingAs(User::factory()->create(['preferred_locale' => $locale]));
+
+    $page = visit('/rooms/create')->withLocale($locale)->resize(1280, 720);
+    sbWait($page, "document.querySelector('[data-test=double-final-setting]')", 15, 'create room');
+    sbNoScroll($page);
+
+    $page->click('[data-test=mode] button:nth-child(2)');
+    sbWait($page, "document.querySelector('[data-test=vote-setup]')", 10, 'the Vote setup');
+    sbNoScroll($page);
+    $page->assertNoJavaScriptErrors();
+})->with(['English' => 'en', 'Arabic' => 'ar']);

@@ -49,16 +49,17 @@ describe('the page', function () {
         createRoomPage()
             ->assertSet('categoryIds', [])
             ->assertSet('questionCount', 10)
-            ->assertSet('secondsPerQuestion', 20)
+            ->assertSet('secondsPerQuestion', 15)
             ->assertSet('difficulty', 'mixed')
             ->assertSet('hostScreenLocale', 'both')
-            ->assertSet('photos', 'on');
+            ->assertSet('photos', 'on')
+            ->assertSet('doubleFinal', 'on');
     });
 
-    it('offers 5/10/15/20 questions and 10/20/30 seconds, and four difficulties and three languages', function () {
+    it('offers 5/10/15/20 questions and 10/15/20/30 seconds, and four difficulties and three languages', function () {
         $html = $this->actingAs($this->host)->withSession(['locale' => 'en'])->get(route('rooms.create'))->getContent();
 
-        foreach (['>5<', '>10<', '>15<', '>20<', '>10 s<', '>20 s<', '>30 s<', '>Easy<', '>Medium<', '>Hard<', '>Mixed<', '>English<', '>العربية<', '>Both<'] as $option) {
+        foreach (['>5<', '>10<', '>15<', '>20<', '>10 s<', '>15 s<', '>20 s<', '>30 s<', '>Easy<', '>Medium<', '>Hard<', '>Mixed<', '>English<', '>العربية<', '>Both<'] as $option) {
             expect($html)->toContain($option);
         }
     });
@@ -186,7 +187,7 @@ describe('creating the room', function () {
             ->and($room->settings->hostScreenLocale)->toBe(HostScreenLocale::Ar);
     });
 
-    it('stores Mixed as no difficulty filter, and the defaults as 10 questions / 20 s / both languages', function () {
+    it('stores Mixed as no difficulty filter, and the defaults as 10 questions / 15 s / both languages / double final on', function () {
         $category = categoryWithQuestions(12);
 
         createRoomPage()->call('toggleCategory', $category->id)->call('create');
@@ -194,8 +195,9 @@ describe('creating the room', function () {
         $settings = Room::sole()->settings;
         expect($settings->difficulty)->toBeNull()
             ->and($settings->questionCount)->toBe(10)
-            ->and($settings->secondsPerQuestion)->toBe(20)
-            ->and($settings->hostScreenLocale)->toBe(HostScreenLocale::Both);
+            ->and($settings->secondsPerQuestion)->toBe(15)
+            ->and($settings->hostScreenLocale)->toBe(HostScreenLocale::Both)
+            ->and($settings->doubleFinal)->toBeTrue();
     });
 
     it('closes the host\'s previous room', function () {
@@ -219,9 +221,11 @@ describe('creating the room', function () {
         'question count' => ['questionCount', 7],
         'too many questions' => ['questionCount', 100],
         'seconds' => ['secondsPerQuestion', 45],
+        'seconds we do not offer' => ['secondsPerQuestion', 25],
         'difficulty' => ['difficulty', 'impossible'],
         'screen language' => ['hostScreenLocale', 'fr'],
         'photos' => ['photos', 'maybe'],
+        'double final' => ['doubleFinal', 'maybe'],
     ]);
 });
 
@@ -255,6 +259,43 @@ describe('player photos', function () {
         $new = app(RoomManager::class)->playAgain($old, $old->host);
 
         expect($new->settings->showPhotos)->toBeFalse();
+    });
+});
+
+describe('double points on the last question', function () {
+    it('has an On / Off switch, On by default, and the summary card says it', function () {
+        $page = createRoomPage()->assertSee('Double points on the last question')->assertSeeHtml('data-test="double-final-setting"');
+
+        expect($page->html())->toMatch('/Last question<\/span>\s*<span class="text-end font-bold">Double points</');
+
+        $page->set('doubleFinal', 'off');
+        expect($page->html())->toMatch('/Last question<\/span>\s*<span class="text-end font-bold">Normal points</');
+    });
+
+    it('is translated', function () {
+        $this->actingAs($this->host)->withSession(['locale' => 'ar'])->get(route('rooms.create'))
+            ->assertSee('نقاط مضاعفة في السؤال الأخير')->assertSee('السؤال الأخير');
+    });
+
+    it('stores the choice in the room settings, in Classic and in Vote mode', function (string $choice, bool $expected) {
+        $category = categoryWithQuestions(12);
+        createRoomPage()->call('toggleCategory', $category->id)->set('doubleFinal', $choice)->call('create')->assertHasNoErrors();
+        expect(Room::sole()->settings->doubleFinal)->toBe($expected);
+
+        Room::query()->delete();
+        $others = [categoryWithQuestions(12), categoryWithQuestions(12)];
+        createRoomPage()->set('mode', 'vote')->call('chooseFirst', $category->id)->call('togglePool', $others[0]->id)->call('togglePool', $others[1]->id)
+            ->set('doubleFinal', $choice)->call('create')->assertHasNoErrors();
+        expect(Room::sole()->settings->doubleFinal)->toBe($expected);
+    })->with([['on', true], ['off', false]]);
+
+    it('keeps the choice for the room that "Play again" makes', function () {
+        $category = categoryWithQuestions(12);
+        $old = Room::factory()->finished()->create(['settings' => ['category_ids' => [$category->id], 'double_final' => false, 'seconds_per_question' => 20]]);
+
+        $new = app(RoomManager::class)->playAgain($old, $old->host);
+
+        expect($new->settings->doubleFinal)->toBeFalse()->and($new->settings->secondsPerQuestion)->toBe(20);
     });
 });
 

@@ -19,9 +19,18 @@ it('gives a new room lobby status and default settings', function () {
     expect($room->fresh()->status)->toBe(RoomStatus::Lobby)
         ->and($room->fresh()->settings)->toEqual(new RoomSettings)
         ->and($room->settings->questionCount)->toBe(10)
-        ->and($room->settings->secondsPerQuestion)->toBe(20)
+        ->and($room->settings->secondsPerQuestion)->toBe(15)
+        ->and($room->settings->doubleFinal)->toBeTrue()
         ->and($room->settings->difficulty)->toBeNull()
         ->and($room->settings->hostScreenLocale)->toBe(HostScreenLocale::Both);
+});
+
+it('leaves an existing room on the timer it was created with, and reads a missing or odd double-final setting as on', function () {
+    $room = Room::factory()->create(['settings' => ['seconds_per_question' => 20, 'question_count' => 5]]);
+    expect($room->fresh()->settings->secondsPerQuestion)->toBe(20)->and($room->fresh()->settings->doubleFinal)->toBeTrue();
+
+    expect(RoomSettings::fromArray(['double_final' => false])->doubleFinal)->toBeFalse()
+        ->and(RoomSettings::fromArray(['double_final' => 'nonsense'])->doubleFinal)->toBeTrue();
 });
 
 it('round-trips room settings through JSON', function () {
@@ -44,7 +53,7 @@ it('fills missing or invalid settings keys with defaults', function () {
     $settings = RoomSettings::fromArray(['question_count' => '7', 'difficulty' => 'nonsense']);
 
     expect($settings->questionCount)->toBe(7)
-        ->and($settings->secondsPerQuestion)->toBe(20)
+        ->and($settings->secondsPerQuestion)->toBe(15)
         ->and($settings->difficulty)->toBeNull()
         ->and($settings->showPhotos)->toBeTrue();
 });

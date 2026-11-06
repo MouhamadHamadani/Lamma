@@ -20,7 +20,7 @@ final class RoomSettings implements Arrayable, Castable
     public const QUESTION_COUNTS = [5, 10, 15, 20];
 
     /** Seconds per question the host can pick. */
-    public const SECONDS_PER_QUESTION = [10, 20, 30];
+    public const SECONDS_PER_QUESTION = [10, 15, 20, 30];
 
     /**
      * @param  list<int>  $categoryIds
@@ -28,7 +28,7 @@ final class RoomSettings implements Arrayable, Castable
     public function __construct(
         public array $categoryIds = [],
         public int $questionCount = 10,
-        public int $secondsPerQuestion = 20,
+        public int $secondsPerQuestion = 15,
         public ?Difficulty $difficulty = null,
         public HostScreenLocale $hostScreenLocale = HostScreenLocale::Both,
         public bool $showPhotos = true,
