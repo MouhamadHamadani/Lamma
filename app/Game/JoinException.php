@@ -26,9 +26,4 @@ class JoinException extends RuntimeException
     {
         return new self('nickname', __('That nickname is taken in this room'));
     }
-
-    public static function isHost(): self
-    {
-        return new self('code', __("You're the host of this room, so you can't play in it."));
-    }
 }

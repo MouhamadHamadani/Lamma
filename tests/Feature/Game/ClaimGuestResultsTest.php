@@ -141,14 +141,15 @@ describe('what is not claimed', function () {
         expect($other->fresh()->user_id)->not->toBe($user->id);
     });
 
-    it('never turns the host into a player of their own room', function () {
+    it('attaches the row the host\'s own phone played as a guest, and it keeps its device token', function () {
         $room = Room::factory()->create();
         $hosted = guestRow(room: $room);
         $elsewhere = guestRow();
 
         logInWithCookie($room->host);
 
-        expect($hosted->fresh()->user_id)->toBeNull()
+        expect($hosted->fresh()->user_id)->toBe($room->host->id)
+            ->and($hosted->fresh()->guest_token)->toBe(GUEST)
             ->and($elsewhere->fresh()->user_id)->toBe($room->host->id);
     });
 

@@ -60,8 +60,11 @@ class RoomPresence
     }
 
     /**
-     * The "player" guard: a guest's row, found from the lamma_guest cookie. A guest can be in several rooms, so the
+     * The "player" guard: this device's row, found from the lamma_guest cookie. A guest can be in several rooms, so the
      * channel being authorized (channel_name=presence-room.CODE) picks the row; with no room named it is the latest.
+     * It comes before the web guard on the channel (routes/channels.php), so the host's own phone is its player row, a member of
+     * its own, while their big screen (the same account, no row for this device) stays the host. Someone logged in never gets a
+     * row another account has claimed on a shared device.
      */
     public function guestPlayerFor(?string $channelName): ?RoomPlayer
     {
@@ -75,6 +78,7 @@ class RoomPresence
         return RoomPlayer::query()
             ->where('guest_token', $token)
             ->when($code, fn ($query) => $query->whereHas('room', fn ($room) => $room->where('code', $code)))
+            ->when($this->identity->user(), fn ($query, $user) => $query->where(fn ($rows) => $rows->whereNull('user_id')->orWhere('user_id', $user->id)))
             ->latest('id')
             ->first();
     }

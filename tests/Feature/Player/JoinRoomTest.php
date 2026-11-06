@@ -181,10 +181,12 @@ describe('inline errors', function () {
         joinWith(joinPage(), $room->code, 'Sara', 'fr')->assertHasErrors('language');
     });
 
-    it('does not let a host join their own room', function () {
+    it('lets a host join their own room from their phone', function () {
         $room = Room::factory()->create();
 
-        joinWith(joinPage(user: $room->host), $room->code, 'Host')->assertSee("You're the host of this room")->assertNoRedirect();
+        joinWith(joinPage(user: $room->host), $room->code, 'Host')->assertHasNoErrors()->assertRedirect(route('play', ['room' => $room->code]));
+
+        expect($room->players()->sole()->user_id)->toBe($room->host->id);
     });
 });
 

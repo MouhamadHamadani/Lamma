@@ -51,10 +51,16 @@
                     >{!! $qr !!}</div>
                 </div>
 
-                <p class="relative flex items-center gap-2.5 text-base text-ink-muted">
-                    <x-lamma.icon name="globe" :size="22" />
-                    {{ __('Each player picks Arabic or English when they join.') }}
-                </p>
+                <div class="relative flex flex-col gap-1.5 text-base text-ink-muted">
+                    <p class="flex items-center gap-2.5">
+                        <x-lamma.icon name="globe" :size="22" />
+                        {{ __('Each player picks Arabic or English when they join.') }}
+                    </p>
+                    <p class="flex items-center gap-2.5" data-test="host-can-play">
+                        <x-lamma.icon name="phone" :size="22" />
+                        {{ __('Want to play too? Join from your phone with this code.') }}
+                    </p>
+                </div>
             </section>
 
             <aside class="flex flex-col gap-3.5 lg:min-h-0 lg:w-[460px] lg:shrink-0">

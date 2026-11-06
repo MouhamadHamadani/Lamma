@@ -246,3 +246,53 @@ describe('the player guard and identity', function () {
             ->and($player->toJson())->not->toContain(GUEST_TOKEN);
     });
 });
+
+describe('the host on their own phone', function () {
+    it('is a player on the phone and the host on the big screen, two members with the same account', function () {
+        $room = Room::factory()->create();
+        $phone = RoomPlayer::factory()->for($room)->forUser($room->host)->create(['guest_token' => GUEST_TOKEN, 'nickname' => 'Hadi']);
+
+        test()->actingAs($room->host);
+
+        $onThePhone = member(authorizeChannel($room->code, ['lamma_guest' => GUEST_TOKEN])->assertOk());
+        expect($onThePhone)->toMatchArray(['user_id' => "player:{$phone->id}", 'room_player_id' => $phone->id, 'nickname' => 'Hadi', 'is_host' => false]);
+
+        $onTheScreen = member(authorizeChannelWithout($room->code)->assertOk());
+        expect($onTheScreen)->toMatchArray(['user_id' => $room->host->id, 'room_player_id' => null, 'is_host' => true]);
+    });
+
+    it('stays a player when the phone is logged out', function () {
+        $room = Room::factory()->create();
+        $phone = RoomPlayer::factory()->for($room)->forUser($room->host)->create(['guest_token' => GUEST_TOKEN]);
+
+        expect(member(authorizeChannel($room->code, ['lamma_guest' => GUEST_TOKEN])->assertOk())['room_player_id'])->toBe($phone->id);
+    });
+
+    it('stays the host on a device with a guest cookie that has no row in this room', function () {
+        $room = Room::factory()->create();
+        RoomPlayer::factory()->for(Room::factory()->create())->create(['guest_token' => GUEST_TOKEN]);
+
+        test()->actingAs($room->host);
+
+        expect(member(authorizeChannel($room->code, ['lamma_guest' => GUEST_TOKEN])->assertOk()))->toMatchArray(['room_player_id' => null, 'is_host' => true]);
+    });
+});
+
+describe('a shared device', function () {
+    it('never lets someone logged in use a row another account has claimed', function () {
+        $room = Room::factory()->create();
+        RoomPlayer::factory()->for($room)->create(['guest_token' => GUEST_TOKEN, 'user_id' => User::factory()->create()->id]);
+
+        test()->actingAs(User::factory()->create());
+
+        authorizeChannel($room->code, ['lamma_guest' => GUEST_TOKEN])->assertForbidden();
+    });
+});
+
+/** POST /broadcasting/auth from a device that has no lamma_guest cookie, whatever earlier calls in the test sent. */
+function authorizeChannelWithout(string $code): TestResponse
+{
+    Auth::guard('player')->forgetUser();
+
+    return test()->call('POST', '/broadcasting/auth', ['channel_name' => "presence-room.{$code}", 'socket_id' => '1234.5678'], [], [], ['HTTP_ACCEPT' => 'application/json']);
+}

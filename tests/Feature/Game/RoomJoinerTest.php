@@ -11,6 +11,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 
+const HOST_PHONE = 'h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0h0';
+
 function joinerFor(?User $user = null, ?string $token = null): RoomJoiner
 {
     $request = Request::create('/join', 'GET', cookies: $token ? ['lamma_guest' => $token] : []);
@@ -96,13 +98,20 @@ describe('joining as a logged-in user', function () {
             ->and(Cookie::hasQueued('lamma_guest'))->toBeFalse();
     });
 
-    it('keeps the host out of their own room', function () {
+    it('lets the host join their own room from their phone, the row marked with the device', function () {
         $room = Room::factory()->create();
 
-        $e = joinError(fn () => joinerFor($room->host)->join($room->code, 'Host', 'en'));
+        $player = joinerFor($room->host, HOST_PHONE)->join($room->code, 'Host', 'en');
 
-        expect($e->field)->toBe('code')->and($e->getMessage())->toContain('host')
-            ->and($room->players()->count())->toBe(0);
+        expect($player->user_id)->toBe($room->host->id)->and($player->guest_token)->toBe(HOST_PHONE)->and($room->players()->count())->toBe(1);
+    });
+
+    it('gives the host\'s phone a device token when it has none yet', function () {
+        $room = Room::factory()->create();
+
+        $player = joinerFor($room->host)->join($room->code, 'Host', 'en');
+
+        expect($player->guest_token)->toHaveLength(64)->and(Cookie::hasQueued('lamma_guest'))->toBeTrue();
     });
 
     it('lets a host play in someone else\'s room', function () {

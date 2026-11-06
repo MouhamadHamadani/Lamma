@@ -26,12 +26,6 @@ class RoomJoiner
     {
         $room = Room::where('code', RoomCodeGenerator::normalize($code))->first() ?? throw JoinException::roomNotFound();
 
-        // The host runs the big screen and does not play.
-        $user = $this->identity->user();
-        if ($user && $room->host_id === $user->id) {
-            throw JoinException::isHost();
-        }
-
         // Rejoining: the same user or device gets their row back, in any room state, never a second player.
         if ($existing = $this->identity->playerIn($room)) {
             return $existing;
@@ -48,9 +42,15 @@ class RoomJoiner
             throw JoinException::nicknameTaken();
         }
 
+        // The host's big screen never plays, but their phone can, under the same account. The device token is what tells the two apart on the presence channel (RoomPresence::guestPlayerFor).
+        $identity = $this->identity->attributes();
+        if ($this->identity->user()?->id === $room->host_id) {
+            $identity['guest_token'] = $this->identity->issueGuestToken();
+        }
+
         try {
             $player = $room->players()->create([
-                ...$this->identity->attributes(),
+                ...$identity,
                 'nickname' => $nickname,
                 'locale' => array_key_exists($locale, config('locales.supported')) ? $locale : config('app.locale'),
                 'score' => 0,
