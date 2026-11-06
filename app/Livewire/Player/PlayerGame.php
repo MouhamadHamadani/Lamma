@@ -115,7 +115,7 @@ class PlayerGame extends Component
             'me' => $me->fresh() ?? $me,
             // Before question 1 (after the host pressed Start game) the 3 - 2 - 1 - Go! countdown shows; it ends at countdown_ends_at.
             'countdownEndsAt' => $state === null && $room->status === RoomStatus::Playing ? $room->countdown_ends_at : null,
-            // Right answers in a row, counting this one (display only; a flat +100 is all that is scored).
+            // Right answers in a row, counting this one (display only: a streak scores nothing).
             'streak' => $state ? $state->streakOf($me) : 0,
             'state' => $state,
             'vote' => $vote,

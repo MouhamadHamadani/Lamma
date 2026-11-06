@@ -197,6 +197,7 @@ class GameEngine
 
             $now = now();
             $correct = (bool) QuestionOption::query()->whereKey($optionId)->value('is_correct');
+            $points = $this->scoring->pointsFor($correct, $now, $question->started_at, $question->ends_at, $this->scoring->isDoubled($room, $question));
 
             try {
                 $answer = $question->answers()->create([
@@ -204,7 +205,10 @@ class GameEngine
                     'question_option_id' => $optionId,
                     'answered_at' => $now,
                     'is_correct' => $correct,
-                    'points' => $this->scoring->pointsFor($correct, $now, $question),
+                    'points' => $points->total,
+                    'base_points' => $points->base,
+                    'speed_bonus' => $points->speedBonus,
+                    'multiplier' => $points->multiplier,
                 ]);
             } catch (UniqueConstraintViolationException) {
                 throw new AnswerRejected(AnswerRejected::ALREADY_ANSWERED);

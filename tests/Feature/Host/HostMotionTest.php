@@ -222,7 +222,7 @@ describe('the reveal', function () {
 
         $html = motionGame($room)->call('skipTimer', 1)->html();
 
-        expect(substr_count($html, 'lammaCountUp(100, 400, true)'))->toBe(1)->and(substr_count($html, 'lammaCountUp(100, 400, false)'))->toBe(1);
+        expect(substr_count($html, 'lammaCountUp(200, 400, true)'))->toBe(1)->and(substr_count($html, 'lammaCountUp(200, 400, false)'))->toBe(1);
     });
 });
 

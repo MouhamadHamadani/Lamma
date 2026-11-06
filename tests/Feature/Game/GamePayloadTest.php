@@ -130,7 +130,7 @@ describe('QuestionRevealed', function () {
             ->and(array_column($payload['picks'], 'option_id'))->toBe($question->option_order)
             ->and(array_column($picks[$right]['players'], 'id'))->toBe([$players[0]->id])
             ->and(array_column($picks[$wrong]['players'], 'id'))->toBe([$players[1]->id])
-            ->and(collect($payload['points'])->pluck('points', 'player_id')->all())->toBe([$players[0]->id => 100, $players[1]->id => 0, $players[2]->id => 0])
+            ->and(collect($payload['points'])->pluck('points', 'player_id')->all())->toBe([$players[0]->id => 200, $players[1]->id => 0, $players[2]->id => 0])
             ->and($payload['revealed_at'])->toBe('2026-10-01T12:00:21.000Z');
     });
 
@@ -156,8 +156,8 @@ describe('ScoreboardUpdated', function () {
         $ranking = lastPayload(ScoreboardUpdated::class)['ranking'];
 
         expect(array_column($ranking, 'rank'))->toBe([1, 1, 3])
-            ->and(array_column($ranking, 'total'))->toBe([100, 100, 0])
-            ->and(array_column($ranking, 'gained'))->toBe([100, 100, 0])
+            ->and(array_column($ranking, 'total'))->toBe([200, 200, 0])
+            ->and(array_column($ranking, 'gained'))->toBe([200, 200, 0])
             ->and(array_column(array_column($ranking, 'player'), 'id'))->toBe([$players[0]->id, $players[1]->id, $players[2]->id])
             ->and(array_keys($ranking[0]['player']))->toBe(['id', 'nickname', 'locale', 'avatar_url']);
     });
@@ -175,8 +175,8 @@ describe('ScoreboardUpdated', function () {
 
         $ranking = lastPayload(ScoreboardUpdated::class)['ranking'];
 
-        expect(collect($ranking)->pluck('total', 'player.id')->all())->toBe([$players[0]->id => 100, $players[1]->id => 100, $players[2]->id => 100])
-            ->and(collect($ranking)->pluck('gained', 'player.id')->all())->toBe([$players[0]->id => 0, $players[1]->id => 100, $players[2]->id => 100]);
+        expect(collect($ranking)->pluck('total', 'player.id')->all())->toBe([$players[0]->id => 200, $players[1]->id => 200, $players[2]->id => 200])
+            ->and(collect($ranking)->pluck('gained', 'player.id')->all())->toBe([$players[0]->id => 0, $players[1]->id => 200, $players[2]->id => 200]);
     });
 
     it('knows where each player stood before the round, to animate the rows', function () {
@@ -212,7 +212,7 @@ describe('GameFinished', function () {
         $ranking = lastPayload(GameFinished::class)['ranking'];
 
         expect(array_column(array_column($ranking, 'player'), 'id'))->toBe([$players[1]->id, $players[0]->id])
-            ->and(array_column($ranking, 'total'))->toBe([300, 0]);
+            ->and(array_column($ranking, 'total'))->toBe([800, 0]); // 200 + 200 + the last question doubled
     });
 });
 

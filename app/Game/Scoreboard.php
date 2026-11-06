@@ -47,7 +47,7 @@ class Scoreboard
 
     /**
      * How many right answers in a row each player has, up to and including this question (a wrong or missing answer breaks the run).
-     * Display only: scoring stays a flat +100.
+     * Display only: a streak scores nothing.
      *
      * @return array<int, int> player id => streak
      */

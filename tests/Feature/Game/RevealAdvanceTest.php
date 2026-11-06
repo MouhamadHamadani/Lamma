@@ -70,7 +70,7 @@ describe('revealing', function () {
 
         expect($result)->toBe(Transition::Done)
             ->and($question->fresh()->revealed_at->format('H:i:s.v'))->toBe('12:00:21.000')
-            ->and($players[0]->fresh()->score)->toBe(100)
+            ->and($players[0]->fresh()->score)->toBe(200)
             ->and($players[1]->fresh()->score)->toBe(0)
             ->and($players[2]->fresh()->score)->toBe(0);
         Event::assertDispatchedTimes(QuestionRevealed::class, 1);
@@ -124,7 +124,7 @@ describe('revealing early', function () {
         answer($players[2], $question, false);
 
         expect($question->fresh()->revealed_at->format('H:i:s'))->toBe('12:00:04')
-            ->and($players[0]->fresh()->score)->toBe(100);
+            ->and($players[0]->fresh()->score)->toBe(200);
         Event::assertDispatchedTimes(QuestionRevealed::class, 1);
         Queue::assertPushed(AdvanceQuestion::class, 1);
     });
@@ -185,7 +185,7 @@ describe('reveal is idempotent', function () {
         $third = engine()->reveal($room, 1);
 
         expect([$first, $second, $third])->toBe([Transition::Done, Transition::Already, Transition::Already])
-            ->and($players[0]->fresh()->score)->toBe(100);
+            ->and($players[0]->fresh()->score)->toBe(200);
         Event::assertDispatchedTimes(QuestionRevealed::class, 1);
         Event::assertDispatchedTimes(ScoreboardUpdated::class, 1);
         Queue::assertPushed(AdvanceQuestion::class, 1);
@@ -199,7 +199,7 @@ describe('reveal is idempotent', function () {
         work(new RevealQuestion($room->id, 1));
         work(new RevealQuestion($room->id, 1));
 
-        expect($players[0]->fresh()->score)->toBe(100);
+        expect($players[0]->fresh()->score)->toBe(200);
         Event::assertDispatchedTimes(QuestionRevealed::class, 1);
     });
 
@@ -213,7 +213,7 @@ describe('reveal is idempotent', function () {
         work(new RevealQuestion($room->id, 1));
 
         Event::assertDispatchedTimes(QuestionRevealed::class, 1);
-        expect($players[0]->fresh()->score)->toBe(100);
+        expect($players[0]->fresh()->score)->toBe(200);
     });
 
     it('survives the job arriving after the host skipped on to the next question', function () {
@@ -373,7 +373,7 @@ describe('advancing', function () {
 
         $room->refresh();
         expect($room->status)->toBe(RoomStatus::Finished)->and($room->finished_at)->not->toBeNull()
-            ->and($players[0]->fresh()->score)->toBe(300)->and($players[1]->fresh()->score)->toBe(100);
+            ->and($players[0]->fresh()->score)->toBe(800)->and($players[1]->fresh()->score)->toBe(200); // 200 + 200 + the last question doubled
         Event::assertDispatchedTimes(GameFinished::class, 1);
         Event::assertDispatched(GameFinished::class, fn (GameFinished $e) => $e->broadcastWith()['ranking'][0]['player']['id'] === $players[0]->id);
         Event::assertDispatchedTimes(QuestionStarted::class, 3);

@@ -36,6 +36,7 @@ it('round-trips room settings through JSON', function () {
             'difficulty' => 'hard',
             'host_screen_locale' => 'ar',
             'show_photos' => true,
+            'double_final' => true,
         ]);
 });
 

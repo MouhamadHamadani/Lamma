@@ -201,11 +201,11 @@ describe('the reveal screens (player-5)', function () {
 
         $page = phone($room);
 
-        $page->assertSee('Correct!')->assertSeeHtml('data-test="reveal-correct"')->assertSeeHtml('lammaCountUp(100, 400, true)')
+        $page->assertSee('Correct!')->assertSeeHtml('data-test="reveal-correct"')->assertSeeHtml('lammaCountUp(200, 400, true)')
             ->assertSee('Correct answer')->assertSee(option($question, array_search(optionOf($question), $question->option_order))->getTranslation('text', 'en'))
             ->assertSee('Next question coming up…');
         expect($page->html())->toContain('bg-teal motion-safe:animate-wipe-in')->and($page->html())->toContain("You're")->and($page->html())->toContain('1st');
-        $page->assertSeeHtml('Correct, plus 100 points');
+        $page->assertSeeHtml('Correct, plus 200 points');
     });
 
     it('shows Not quite on cream when the answer was wrong, with the correct one', function () {
@@ -251,8 +251,8 @@ describe('the reveal screens (player-5)', function () {
 
         $page = phone($room);
 
-        $page->assertSeeHtml('dir="ltr" x-data="lammaCountUp(100, 400, true)"');
-        expect($page->html())->toContain('<bdi dir="ltr">100</bdi>');
+        $page->assertSeeHtml('dir="ltr" x-data="lammaCountUp(200, 400, true)"');
+        expect($page->html())->toContain('<bdi dir="ltr">200</bdi>');
     });
 
     it('says the final results are coming up after the last question', function () {

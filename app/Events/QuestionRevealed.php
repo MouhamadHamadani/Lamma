@@ -34,7 +34,7 @@ class QuestionRevealed extends RoomEvent
                         ...($room->settings->showPhotos ? ['avatar_url' => $answer->roomPlayer->avatarUrl()] : []),
                     ])->values()->all(),
             ])->values()->all(),
-            // streak: right answers in a row so far (display only: a flat +100 is all that is scored)
+            // points: the total this answer scored. streak: right answers in a row so far (display only: it scores nothing)
             'points' => $room->players()->orderBy('id')->pluck('id')->map(fn (int $id) => ['player_id' => $id, 'points' => (int) ($gained[$id] ?? 0), 'streak' => $streaks[$id] ?? 0])->all(),
             'revealed_at' => self::iso($roomQuestion->revealed_at),
         ];

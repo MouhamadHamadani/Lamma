@@ -169,6 +169,7 @@ describe('live regions (HANDOFF section 8)', function () {
     });
 
     it('announces the phone\'s states in the words of the handoff', function () {
+        at('12:00:00.000');
         $room = gameRoom(players: 2);
         $room->players()->orderBy('id')->first()->update(['guest_token' => str_repeat('l', 64), 'locale' => 'en']);
         $question = startGame($room);
@@ -179,7 +180,7 @@ describe('live regions (HANDOFF section 8)', function () {
 
         app(GameEngine::class)->reveal($room, 1, force: true);
         $page = Livewire::withCookie('lamma_guest', str_repeat('l', 64))->test(PlayerGame::class, ['room' => $room]);
-        expect($page->html())->toMatch('/data-test="announcer">\s*Correct, plus 100 points\s*</');
+        expect($page->html())->toMatch('/data-test="announcer">\s*Correct, plus 200 points\s*</');
     });
 
     it('names every answer button "Answer B: Mars" and hides the shapes', function () {

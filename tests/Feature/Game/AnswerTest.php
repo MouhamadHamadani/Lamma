@@ -9,10 +9,10 @@ use App\Events\QuestionStarted;
 use App\Events\ScoreboardUpdated;
 use App\Game\AnswerRejected;
 use App\Game\GameEngine;
+use App\Game\Points;
 use App\Game\ScoringService;
 use App\Models\PlayerAnswer;
 use App\Models\QuestionOption;
-use App\Models\RoomQuestion;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -49,7 +49,7 @@ describe('accepting an answer', function () {
             ->and($answer->room_player_id)->toBe($players[0]->id)
             ->and($answer->question_option_id)->toBe(optionOf($question, true))
             ->and($answer->is_correct)->toBeTrue()
-            ->and($answer->points)->toBe(100)
+            ->and($answer->points)->toBe(180) // 100 + a speed bonus of 80 (5.25 s into 20 s)
             ->and($answer->answered_at->format('H:i:s.v'))->toBe('12:00:05.250');
     });
 
@@ -69,24 +69,18 @@ describe('accepting an answer', function () {
         expect($players[0]->fresh()->score)->toBe(0);
     });
 
-    it('uses the ScoringService: flat 100 for a correct answer, nothing for a wrong one', function () {
-        $scoring = new ScoringService;
-
-        expect($scoring->pointsFor(true))->toBe(100)->and($scoring->pointsFor(false))->toBe(0)
-            ->and(ScoringService::POINTS_PER_CORRECT_ANSWER)->toBe(100);
-    });
-
-    it('asks the ScoringService for the points, so a speed bonus only has to change that class', function () {
+    it('asks the ScoringService for the points, so a rule change only has to touch that class', function () {
         [, $question, $players] = openQuestion();
         $this->app->instance(ScoringService::class, new class extends ScoringService
         {
-            public function pointsFor(bool $correct, ?CarbonInterface $answeredAt = null, ?RoomQuestion $question = null): int
+            public function pointsFor(bool $correct, CarbonInterface $answeredAt, CarbonInterface $startedAt, CarbonInterface $endsAt, bool $finalQuestion = false): Points
             {
-                return $correct ? 150 : 5;
+                return $correct ? new Points(150, 10, 3) : new Points(5, 0);
             }
         });
 
-        expect(answer($players[0], $question, true)->points)->toBe(150)
+        expect(answer($players[0], $question, true)->only('points', 'base_points', 'speed_bonus', 'multiplier'))
+            ->toBe(['points' => 480, 'base_points' => 150, 'speed_bonus' => 10, 'multiplier' => 3])
             ->and(answer($players[1], $question, false)->points)->toBe(5);
     });
 

@@ -38,9 +38,9 @@ function motionPhone(string $component, Room $room): Testable
 }
 
 /** A room whose first player is the phone under test (English). */
-function phoneRoom(int $players = 2, int $questions = 3, array $me = []): array
+function phoneRoom(int $players = 2, int $questions = 3, array $me = [], array $settings = []): array
 {
-    $room = gameRoom(players: $players, questions: $questions);
+    $room = gameRoom(players: $players, questions: $questions, settings: $settings);
     $room->players()->orderBy('id')->first()->update(['guest_token' => MOTION_TOKEN, 'locale' => 'en', ...$me]);
 
     return [$room, $room->players()->orderBy('id')->get()];
@@ -49,7 +49,8 @@ function phoneRoom(int $players = 2, int $questions = 3, array $me = []): array
 /** Plays one question per entry, the phone's player (first) answering right or wrong and the other the opposite, and stops on the last reveal. */
 function streakGame(array $rights, array $me = []): array
 {
-    [$room, $players] = phoneRoom(questions: count($rights), me: $me);
+    // The last question doubling is not what these tests are about.
+    [$room, $players] = phoneRoom(questions: count($rights), me: $me, settings: ['doubleFinal' => false]);
     startGame($room);
     foreach ($rights as $i => $right) {
         $question = $room->fresh()->currentQuestion();
@@ -189,7 +190,7 @@ describe('the reveal', function () {
 
         $html = motionPhone(PlayerGame::class, $room)->html();
 
-        expect($html)->toMatch('/data-test="announcer">\s*Correct, plus 100 points\s*</')
+        expect($html)->toMatch('/data-test="announcer">\s*Correct, plus 200 points\s*</')
             ->and(substr_count($html, 'aria-live="polite"'))->toBeLessThanOrEqual(3);
     });
 });
@@ -201,7 +202,7 @@ describe('streaks (display only)', function () {
         $page = motionPhone(PlayerGame::class, $room);
 
         $page->assertSeeHtml('data-test="streak"')->assertSeeHtml('data-streak="3"')->assertSee('3 in a row');
-        expect($page->html())->toContain("play('streak')")->toMatch('/data-test="announcer">\s*Correct, plus 100 points, 3 in a row\s*</');
+        expect($page->html())->toContain("play('streak')")->toMatch('/data-test="announcer">\s*Correct, plus 200 points, 3 in a row\s*</');
     });
 
     it('counts on: four in a row says four', function () {
@@ -215,7 +216,7 @@ describe('streaks (display only)', function () {
 
         $html = motionPhone(PlayerGame::class, $room)->html();
 
-        expect($html)->not->toContain('data-test="streak"')->not->toContain("play('streak')")->toMatch('/data-test="announcer">\s*Correct, plus 100 points\s*</');
+        expect($html)->not->toContain('data-test="streak"')->not->toContain("play('streak')")->toMatch('/data-test="announcer">\s*Correct, plus 200 points\s*</');
     })->with([
         'one' => [[true]],
         'two' => [[true, true]],
@@ -229,10 +230,10 @@ describe('streaks (display only)', function () {
         motionPhone(PlayerGame::class, $room)->assertDontSeeHtml('data-test="streak"');
     });
 
-    it('scores a flat 100 for every right answer, streak or not', function () {
+    it('adds nothing for a streak: four instant right answers are 200 each', function () {
         [$room, $me] = streakGame([true, true, true, true]);
 
-        expect($me->fresh()->score)->toBe(400);
+        expect($me->fresh()->score)->toBe(800);
     });
 
     it('speaks Arabic to an Arabic player', function () {

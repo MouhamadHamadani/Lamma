@@ -60,7 +60,7 @@ describe('a whole game driven by the clock and the queue', function () {
         // (questions 2 and 3 were reached by the queue; answer question 2 by one player in between instead)
         expect($room->fresh()->status)->toBe(RoomStatus::Finished)
             ->and($room->roomQuestions()->whereNotNull('revealed_at')->count())->toBe(3)
-            ->and($players[0]->fresh()->score)->toBe(100);
+            ->and($players[0]->fresh()->score)->toBe(200);
         Event::assertDispatchedTimes(GameFinished::class, 1);
     });
 
@@ -97,7 +97,7 @@ describe('a whole game driven by the clock and the queue', function () {
 });
 
 describe('scores over a full 10-question game', function () {
-    it('add up: 100 per correct answer, nothing for wrong, unanswered or disconnected', function () {
+    it('add up: 200 for an instant correct answer, the last question doubled, nothing for wrong, unanswered or disconnected', function () {
         $room = gameRoom(players: 4, questions: 10);
         [$always, $evens, $never, $gone] = $room->players()->orderBy('id')->get()->all();
         $gone->update(['left_at' => now()]);   // dropped before the game: never waited for, never answers
@@ -112,13 +112,13 @@ describe('scores over a full 10-question game', function () {
         }
 
         expect($room->fresh()->status)->toBe(RoomStatus::Finished)
-            ->and($always->fresh()->score)->toBe(1000)
-            ->and($evens->fresh()->score)->toBe(500)
+            ->and($always->fresh()->score)->toBe(2200) // 9 x 200 + 400
+            ->and($evens->fresh()->score)->toBe(1200) // 4 x 200 + 400
             ->and($never->fresh()->score)->toBe(0)
             ->and($gone->fresh()->score)->toBe(0)
             ->and(PlayerAnswer::count())->toBe(30)
             ->and(PlayerAnswer::where('is_correct', true)->count())->toBe(15)
-            ->and(PlayerAnswer::sum('points'))->toBe(1500);
+            ->and(PlayerAnswer::sum('points'))->toBe(3400);
     });
 
     it('matches what every ScoreboardUpdated said, round by round, and the final ranking', function () {
@@ -148,7 +148,7 @@ describe('scores over a full 10-question game', function () {
         }
 
         $final = Event::dispatched(GameFinished::class)->first()[0]->broadcastWith()['ranking'];
-        expect(collect($final)->pluck('total', 'player.id')->all())->toBe([$a->id => 1000, $b->id => 500, $c->id => 300])
+        expect(collect($final)->pluck('total', 'player.id')->all())->toBe([$a->id => 2200, $b->id => 1000, $c->id => 600])
             ->and(array_column($final, 'rank'))->toBe([1, 2, 3]);
     });
 
@@ -196,7 +196,7 @@ describe('a full game by early reveals and the host override', function () {
         Event::assertDispatchedTimes(ScoreboardUpdated::class, 5);
         Event::assertDispatchedTimes(PlayerAnswered::class, 10);
         Event::assertDispatchedTimes(GameFinished::class, 1);
-        expect($players[0]->fresh()->score)->toBe(500);
+        expect($players[0]->fresh()->score)->toBe(1200); // 4 x 200 + 400
     });
 
     it('asks every question exactly once, in position order', function () {
