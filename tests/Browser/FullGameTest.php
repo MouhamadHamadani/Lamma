@@ -135,7 +135,7 @@ it('plays a whole game, from the lobby to the podium', function () {
     $player->assertScript("document.documentElement.dir === 'ltr'");
 
     $scores = [];
-    $plan = [[true, false], [true, false], [false, true]];                              // [guest right?, Maya right?] per question
+    $plan = [[true, false], [false, true], [true, false]];                              // [guest right?, Maya right?] per question; the last one counts double, so the guest wins
     foreach ($plan as $n => [$guestRight, $mayaRight]) {
         $right = correctPosition($room);
         $wrong = $right === 0 ? 1 : 0;
@@ -176,7 +176,7 @@ it('plays a whole game, from the lobby to the podium', function () {
     expect(Room::findOrFail($room->id)->status)->toBe(RoomStatus::Finished);
 
     $hostScreen->assertScript('document.documentElement.scrollHeight <= window.innerHeight + 1');   // the podium fits the screen
-    expect(textOf($hostScreen, '[data-test=headline]'))->toContain('ليلى');                            // the guest won with 200 points
+    expect(textOf($hostScreen, '[data-test=headline]'))->toContain('ليلى');                            // the guest won: two right, one of them the double last question
     expect($hostScreen->script("() => document.querySelectorAll('[data-test=podium-step]').length"))->toBeGreaterThanOrEqual(2);
 
     expect($guest->script("() => document.querySelector('[data-test=player-results]').dataset.rank"))->toBe('1');

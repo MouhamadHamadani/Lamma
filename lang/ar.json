@@ -458,7 +458,6 @@
     ":base + :bonus speed": ":base + :bonus للسرعة",
     "final question": "السؤال الأخير",
     "Double points on the last question": "نقاط مضاعفة في السؤال الأخير",
-    "The last question counts double.": "السؤال الأخير يُحتسب بضعف النقاط.",
     "Last question": "السؤال الأخير",
     "Normal points": "نقاط عادية",
     "Pick :count or more so every vote has a real choice.": "اختر :count أو أكثر ليكون في كل تصويت خيار حقيقي.",

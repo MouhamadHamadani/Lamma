@@ -97,12 +97,12 @@ right language, scores add up.
 | ☐ | Step and what to expect | Auto |
 | --- | --- | --- |
 | ☐ | Answer on all three phones, mixing right and wrong: the reveal happens **immediately** when the last one answers. | FullGameTest, RevealAdvanceTest |
-| ☐ | **Host:** wrong tiles fade to 35%, the correct tile pops with a white "Correct" badge, mini avatars show who picked it, the navy scoreboard shows rank, name, total and "+100" counting up, "N of 3 got it right", "Next question in 5 s" with a draining bar. | HostGameTest, HostScreensTest (fits the screen) |
-| ☐ | **Phones:** **Correct!** on teal with "+100", or **Not quite!** («ليس هذه المرة!») on cream with "+0", each with "You're 1st · 100 pts" and the correct answer. | FullGameTest (Arabic «صحيح», English "Not quite"), PlayerGameTest |
+| ☐ | **Host:** wrong tiles fade to 35%, the correct tile pops with a white "Correct" badge, mini avatars show who picked it, the navy scoreboard shows rank, name, total and the real "+N" counting up, "N of 3 got it right", "Next question in 5 s" with a draining bar. | HostGameTest, HostScreensTest (fits the screen) |
+| ☐ | **Phones:** **Correct!** on teal with the real "+N" and "100 + 65 speed" under it, or **Not quite!** («ليس هذه المرة!») on cream with "+0", each with "You're 1st · 165 pts" and the correct answer. | FullGameTest (Arabic «صحيح», English "Not quite"), PlayerGameTest |
 | ☐ | After 5 s the next question starts by itself. **Next question** on the host skips the wait (click it twice fast: one skip only). | FullGameTest (by itself), RevealAdvanceTest |
 | ☐ | Question 2: **do not answer on phone B**. When the timer ends (about half a second after 0) the reveal shows; phone B says **Time's up!** («انتهى الوقت!») with the correct answer, nothing scored for B. | AnswerTest, RevealAdvanceTest |
 | ☐ | Question 3: press **Skip timer** on the host before anyone answers: the reveal now. | RevealAdvanceTest |
-| ☐ | Scores add up: after each question every total is 100 × its correct answers. | FullGameTest (200 and 100 at the end), GameSimulationTest |
+| ☐ | Scores add up: after each question every total is the sum of the +N that player was shown. | FullGameTest, GameSimulationTest, ScoringTest |
 
 ## 6. Reconnecting in the middle of a game
 
@@ -175,10 +175,10 @@ Finish the game (5 questions). Try to end with a **tie** between two players if 
 | ☐ | Answer a question with **Enter/Space** on a focused tile. | |
 | ☐ | Nothing is reachable only with a mouse (Play again, New game, Next question, Skip timer, sound toggle, Log in, Sign up, Leave room, the account menu). | SmokeTest (menu opens with the keyboard, Escape closes) |
 | ☐ | **Screen reader** (VoiceOver, TalkBack, NVDA): answer buttons read "Answer B: Mars"; the shapes are silent. | AccessibilityTest (names), SmokeTest (axe) |
-| ☐ | Phone hears "Question 3 of 10", "Answer locked in", "Correct, plus 100 points" / "Not quite, the answer was Mars" / "Time's up, the answer was Mars". | AccessibilityTest (live regions) |
+| ☐ | Phone hears "Question 3 of 10", "Answer locked in", "Correct, plus 165 points" / "Not quite, the answer was Mars" / "Time's up, the answer was Mars". | AccessibilityTest (live regions) |
 | ☐ | The countdown is spoken at **10 s and 5 s only**. | AccessibilityTest |
 | ☐ | Host lobby: "<Name> joined" / "<Name> left". Host game: "Question 3 of 5", then "The correct answer is …". | HostLobbyTest, HostGameTest |
-| ☐ | Turn on **Reduce motion** in the operating system: entrances become fades, nothing pulses, the sticker buttons do not slide, "+100" shows its final value. | AccessibilityTest (every animation is `motion-safe:`) |
+| ☐ | Turn on **Reduce motion** in the operating system: entrances become fades, nothing pulses, the sticker buttons do not slide, "+N" shows its final value. | AccessibilityTest (every animation is `motion-safe:`) |
 | ☐ | Zoom the phone page to 200%: still usable. | |
 | ☐ | Every text/background colour pair meets WCAG AA. | AccessibilityTest, SmokeTest (axe contrast) |
 
@@ -309,9 +309,9 @@ the check that they are pleasant, in time, and not too loud. Test the host on a 
 | ☐ | **The countdown.** Host and phones show **3 · 2 · 1 · Go!** together (within a fraction of a second of each other), one tick per number, a "go" at the end, and the first question opens right after. Reload one phone half way through the 3 · 2 · 1: it shows the right number. | MotionTest, GameEngineTest *phone* |
 | ☐ | **A question (host).** The question chime; as phones answer, each answer ticks a little higher (needs the socket); the timer ring turns coral under 5 s, ticks each second and trembles in the last 3; at 0 a gentle low buzz ("time's up"). | HostMotionTest *phone* |
 | ☐ | **A question (phone).** The answer tiles slide in one after the other; a tap gives an instant press, a "lock-in" sound (if on) and a tiny buzz; the tile you picked grows and settles; the timer bar breathes under 5 s. | PlayerMotionTest *phone* |
-| ☐ | **The reveal (host).** The correct tile pops with a ring and a burst of confetti shapes; "reveal" swoosh; scoreboard rows slide to their new place, the +100 counts up with fast ticks; a row that climbed shows a small up arrow and plays a short rising sound, once. | HostMotionTest *phone* |
-| ☐ | **The reveal (phone).** Right: the teal screen wipes up, the check draws itself, **+100** pops, a small confetti burst, a chime and a longer buzz. Wrong, or time's up: the screen stays **cream** (never red), the cross shakes once, a soft low thud, a short buzz. | PlayerMotionTest, MotionTest *phone* |
-| ☐ | **Streaks.** Answer **three in a row** right: a sun chip with a bolt and "3 in a row" next to the +100, with a sparkle sound; one wrong answer resets it. The score is still exactly 100 per right answer. | PlayerMotionTest, MotionTest |
+| ☐ | **The reveal (host).** The correct tile pops with a ring and a burst of confetti shapes; "reveal" swoosh; scoreboard rows slide to their new place, the +N counts up with fast ticks; a row that climbed shows a small up arrow and plays a short rising sound, once. | HostMotionTest *phone* |
+| ☐ | **The reveal (phone).** Right: the teal screen wipes up, the check draws itself, the **+N** pops, a small confetti burst, a chime and a longer buzz. Wrong, or time's up: the screen stays **cream** (never red), the cross shakes once, a soft low thud, a short buzz. | PlayerMotionTest, MotionTest *phone* |
+| ☐ | **Streaks.** Answer **three in a row** right: a sun chip with a bolt and "3 in a row" next to the +N, with a sparkle sound; one wrong answer resets it. A streak adds no points. | PlayerMotionTest, MotionTest |
 | ☐ | **The podium.** Bars grow 3rd, 2nd, 1st with a thud each, the crown drops, then the winner's name scales in with the fanfare and about 6 seconds of gentle confetti; switch to another tab during it: the confetti stops. On the winner's phone: fanfare, a buzz and a burst; the leaderboard rows slide in and your own row swells once. | HostMotionTest, PlayerMotionTest *phone* |
 | ☐ | **Reduced motion.** Turn on the system setting (iPhone: Settings > Accessibility > Motion > Reduce Motion; Android: Remove animations; Windows: Animation effects off; macOS: Reduce motion) and reload: screens **fade instead of moving**, nothing shakes, pulses or flies, there is no confetti, the check is simply there, and sound starts **off** (turn it on yourself to hear it). | MotionTest (reduced motion) *phone* |
 | ☐ | **Smooth on a TV.** Host at full screen on the TV for a whole game (countdown, question, reveal, podium): no stutter, no fan noise from the laptop. | frame time measured in the Phase report |
@@ -329,7 +329,7 @@ the queue worker and the scheduler running (`composer dev`). The host screen in 
 | ☐ | **Set it up.** `/rooms/create`, press **Vote** beside the title. The classic category grid is replaced by **First category** (a row of chips, pick one), **Categories to vote on** (pick at least 3; the first is in it and cannot be taken out) and **Vote every 3 / 5 / 10**. Pick 20 questions, vote every 5: the summary says *Vote · N categories*, the first category, and *Every 5 questions · 3 votes*. Nothing scrolls at 1280x720. Switch back to Classic: your classic choice is still there. | CreateRoomVoteTest, VoteModeTest |
 | ☐ | **It refuses what cannot work.** Only two categories: "Pick at least 3 categories…", Create is off. 10 questions with vote every 10: "Vote every 10 questions needs a game longer than 10 questions." Hard with a thin category in the pool: it is named with its count and Create is off. | CreateRoomVoteTest |
 | ☐ | **The first batch.** Create, join with the three phones, Ready, Start. The lobby chip says *Vote · starts with …*. Questions 1-5 are all from the first category (the chip at the top right of the host); the progress dots show small upright markers after 5, 10 and 15. | VoteBatchTest, VoteScreensTest |
-| ☐ | **A normal vote.** After the reveal of question 5 (its 5 s pause, or **Next question**): the host shows **Choose the next category** with **اختر الفئة التالية** under it, a 10 s ring, three big tiles (colour + shape + name in English and Arabic) with a count on each, and *0 of 3 voted*. The phones show the timer bar and three tiles **in their own language** (Phone A in Arabic, right to left). The question-start chime plays on the host. | VoteScreensTest, VoteModeTest *phone* |
+| ☐ | **A normal vote.** After the reveal of question 5 (its 5 s pause, or **Next question**): the host shows **Choose the next category** with **اختر الفئة التالية** under it, a 15 s ring, three big tiles (colour + shape + name in English and Arabic) with a count on each, and *0 of 3 voted*. The phones show the timer bar and three tiles **in their own language** (Phone A in Arabic, right to left). The question-start chime plays on the host. | VoteScreensTest, VoteModeTest *phone* |
 | ☐ | **Voting.** Tap a tile on Phone A: it locks at once (no confirm), a short buzz on Android, the tile grows big and tilted, *Vote locked in*, pulsing dots, *1 of 3 voted*. The host's count on that tile goes up with a pop and Phone A's avatar gets a check, **without a reload**. Tap another tile on Phone A: nothing changes. The phones never show who voted for what. | VoteTest, VoteScreensTest *phone* |
 | ☐ | **It closes early.** Phones B and C vote for the **same** category: the vote closes as soon as the third vote is in, without waiting for the ring. Host: the winner grows with a **Winner** badge, the others fade, mini avatars on each tile show who voted for it; "The next category is". The phones show the winner; the two who picked it see **Your pick won!**. About 3 s later question 6 opens, from the winner. | VoteTest, VoteModeTest |
 | ☐ | **A tie.** At the next vote (after question 10), Phone A and Phone B vote for **different** categories and Phone C waits. When the ring runs out: **Tie, picking randomly** (and the Arabic line), the highlight hops between the two tied tiles for about a second with soft taps, then lands on one with the reveal sound and confetti. It is never the third tile. Phone C sees **You didn't vote** and the result. | VoteTest, VoteSimulationTest *phone* |
@@ -342,6 +342,27 @@ the queue worker and the scheduler running (`composer dev`). The host screen in 
 | ☐ | **Play again keeps the mode.** On the podium press **Play again**: the new lobby is a Vote room with the same first category, pool and vote every (the chip says *Vote · starts with …*). | CreateRoomVoteTest |
 | ☐ | **Results and admin.** On Phone C, `/me/games` lists the categories that were actually **played** (the first and the winners), not the whole pool. In `/admin`: Rooms has a **Mode** column and filter, a Vote room's page shows the pool and vote every, the dashboard's Rooms card says *N in Vote mode*, and "Most-played categories" only counts what was played. | VoteResultsTest |
 | ☐ | **Classic is unchanged.** Play one short Classic game: no vote, no markers on the progress dots, everything as before. | VoteSimulationTest, GameSimulationTest |
+
+## 21. Speed bonus, the double final question, the host's phone (Phase 12)
+
+The same laptop and phones. Start a Classic game with the defaults and watch the numbers. Do the host's phone part with your own phone, logged in as the host.
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **Create room defaults.** Time per question offers 10, 15, 20, 30 and starts on **15 s**. **Double points on the last question** is On; the summary says *Last question: Double points*. Off says *Normal points*. Nothing scrolls at 1280x720, in Arabic too. | CreateRoomTest, ScoringTest *browser* |
+| ☐ | **Speed counts.** Phone A answers right at once, Phone B answers right near the end. A sees about **+200** and "100 + 100 speed"; B a smaller **+N**, such as "100 + 15 speed". The bonus is always a multiple of 5. On the host, each row's "+N" counts up to that same number and A is ahead. | ScoringTest, ScoringScreensTest, ScoringTest *browser* *phone* |
+| ☐ | **Wrong and time's up.** A wrong answer shows **+0** with no speed line; so does no answer. | ScoringScreensTest |
+| ☐ | **The last moment.** Answer in the last half second, as the ring hits 0 (take a few tries): the answer still counts, "100 + 0 speed". | ScoringTest, AnswerTest *phone* |
+| ☐ | **The last question.** It has an **x2** sticker on the host's timer ring and in the phone's question card; a screen reader says "Double points". A right answer there shows the doubled **+N**, "100 + 65 speed" and **x2 final question**. The host's reveal has the chip after "N of M got it right". Nothing scrolls at 1280x720. Set the setting Off in the next room: no chip, nothing doubles. | ScoringTest, ScoringScreensTest, ScoringTest *browser* |
+| ☐ | **Vote mode too.** The last question of a Vote game has the chip and doubles; the last question of a batch does not. | ScoringTest |
+| ☐ | **Big numbers fit.** On your narrowest phone (360 px wide), with a score over 1,000: the score chip, the reveal and the results leaderboard stay on one line with no sideways scroll. The host's scoreboard and podium look the same as before. | ScoringTest *browser* *phone* |
+| ☐ | **Easy to hard.** A **Mixed** game of 15 or 20 questions: the first ones feel easy and the last ones hard (the admin's room page lists them). A game on one difficulty has no such order. | QuestionPickerTest |
+| ☐ | **Votes are 15 s, and +10 s.** At a vote the ring starts at 15. Press **+10 s**: the ring and every phone's bar jump up by ten **without a reload**, the button is gone, and the vote closes at the new deadline, not the old one. Votes still count in the extra time. Double-clicking does nothing more. | VoteExtendTest, VoteModeTest *phone* |
+| ☐ | **The hint.** In a Vote setup with exactly 3 categories: *Pick 4 or more so every vote has a real choice.* It is not an error: Create stays on. With 4 it goes away. | CreateRoomVoteTest |
+| ☐ | **The host's phone, logged in as the host.** The lobby says *Want to play too? Join from your phone with this code.* On your phone, log in with the host's account, open `/join` and enter the code. You land on the normal phone lobby, your row appears on the big screen **without a reload** and **stays there past 30 seconds** (this is the one thing the automated tests cannot run, because they have no Reverb). Lock the phone: the row goes grey with **Disconnected**; unlock: it comes back. | HostPhoneTest, ChannelAuthTest *phone* |
+| ☐ | **Then play.** Start stays locked until your phone taps Ready. Answer on the phone: you score like anyone, on the big screen's scoreboard. The phone shows no Start, Skip timer, Next question, Close room or remove buttons. The big screen keeps them all and shows no answer buttons. | HostPhoneTest *phone* |
+| ☐ | **The end.** The phone's results say *Saved to your profile* and the game is in `/me/games`. **Play again** on the big screen: your phone follows to the new lobby like the others. | HostPhoneTest *phone* |
+| ☐ | **The host's phone as a guest.** Log out on the phone and join a new room as a guest: it works, with a Save your score card; logging in there as the host saves it. | HostPhoneTest, ClaimGuestResultsTest *phone* |
 
 ## Sign-off
 
@@ -367,5 +388,6 @@ the queue worker and the scheduler running (`composer dev`). The host screen in 
 | 18 Player selfies | | |
 | 19 Sound and motion | | |
 | 20 Vote mode | | |
+| 21 Speed bonus, double final, host's phone | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

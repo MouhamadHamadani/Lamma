@@ -63,7 +63,7 @@ The brand look is a thick navy outline (3px) with a hard offset shadow and no bl
 - **On navy surfaces:** the shadow colour is `navy-900`. The one exception is the "Host a game" / sun CTA on the landing page's navy band, which gets a **coral** shadow.
 - **Press state:** `sticker-press` moves the element 2px right and down and shrinks the shadow to 1px, over 120ms.
 - **Don't use it on:** plain cards, inputs or chips. Those use a 2px `line` border, no shadow.
-- **Playful tilt:** some sticker elements are rotated −4° to +4° (room-code letters, the "+100" chip, the locked answer card, the rank tile). Keep the tilt. It's static, so it doesn't need to change under reduced motion.
+- **Playful tilt:** some sticker elements are rotated −4° to +4° (room-code letters, the "+N" chip, the locked answer card, the rank tile). Keep the tilt. It's static, so it doesn't need to change under reduced motion.
 
 ---
 
@@ -110,7 +110,7 @@ Routes and Livewire components follow the Knowledge Base. Host components are de
 
 - **Create room**
   - Categories are multi-select, and at least one is required: show an inline error under the grid and disable "Create room" until one is picked.
-  - Defaults: 10 questions, 20 s, Mixed difficulty, Both languages.
+  - Defaults: 10 questions, 15 s, Mixed difficulty, Both languages, double points on the last question.
   - The summary card updates live.
 - **Lobby**
   - The player list updates live from the presence channel. New rows fade and slide in over 200ms.
@@ -157,7 +157,7 @@ Routes and Livewire components follow the Knowledge Base. Host components are de
   - Three dots pulse: 1.2s loop, staggered 150ms.
   - Shows "2 of 3 answered", and the timer keeps running.
 - **Reveal – correct**
-  - Full teal background, a cream check circle, **Correct!** and a sun "+100" chip.
+  - Full teal background, a cream check circle, **Correct!** and a sun "+N" chip, with "100 + 65 speed" under it (section 11).
   - Shows the player's rank and total, plus a card with the correct answer.
 - **Reveal – wrong (not drawn; build it like this)**
   - Keep the **cream** background, not red.
@@ -202,8 +202,8 @@ Routes and Livewire components follow the Knowledge Base. Host components are de
 | Question and answers (host) | `QuestionStarted` | Question fades up 12px, then tiles pop in (scale .9→1) staggered 60ms | 250ms ease-out |
 | Timer ring / bar | tick | Linear drain synced to `ends_at`. Under 5 s, the ring turns coral and the number pulses once per second | linear |
 | Reveal | `QuestionRevealed` | Wrong tiles fade to 35%, the correct tile pops to 1.04 then back to 1, the badge drops in | 300ms, spring-ish `cubic-bezier(.34,1.56,.64,1)` |
-| Scoreboard rows | `ScoreboardUpdated` | Rows re-order with FLIP, the "+100" counts up | 400ms ease-in-out |
-| "+100" chip (phone) | reveal | Scale 0→1 with a little overshoot | 350ms spring |
+| Scoreboard rows | `ScoreboardUpdated` | Rows re-order with FLIP, the "+N" counts up | 400ms ease-in-out |
+| "+N" chip (phone) | reveal | Scale 0→1 with a little overshoot | 350ms spring |
 | Podium bars | `GameFinished` | Bars grow from 0 in order 3 → 2 → 1, then the crown drops | 600ms each, 150ms stagger |
 | Waiting dots | answered | Opacity pulse | 1.2s loop |
 
@@ -216,7 +216,8 @@ Respect `prefers-reduced-motion`: replace movement with simple fades and don't p
 - Announce these in an `aria-live="polite"` region:
   - "Question 3 of 10"
   - "Answer locked in"
-  - "Correct, plus 100 points" or "Not quite, the answer was Mars"
+  - "Correct, plus 165 points" or "Not quite, the answer was Mars"
+  - "Double points" after the question and the answer on the last question, when it counts double
   - Lobby joins and leaves on the host
 - Announce the timer only at 10 s and 5 s, not every second.
 - Focus order follows reading order. Show a visible focus ring as a 3px `sun` outline with a 2px offset (`focus-visible` only).
@@ -225,10 +226,10 @@ Respect `prefers-reduced-motion`: replace movement with simple fades and don't p
 ## 9. Decisions baked into these designs (confirm or change)
 
 - **Accounts:** the host has an account; players join as guests with a nickname, and login is optional.
-- **Timer:** 10, 20 or 30 s per question, with 20 s the default.
-- **Scoring:** a flat +100 per correct answer. The UI already has room to show a speed bonus in the "+N" chip.
+- **Timer:** 10, 15, 20 or 30 s per question, with 15 s the default (Phase 12).
+- **Scoring:** 100 per correct answer plus a speed bonus of 0-100, and the last question counts double (Phase 12, section 11).
 - **Answers on phones:** full text on phones (with colour and shape).
-- **Host plays too:** no, the host only runs the big screen.
+- **Host plays too:** the big screen never plays; the host can join from their own phone like anyone (Phase 12).
 - **Difficulty:** Easy / Medium / Hard / Mixed.
 - **Not designed yet:**
   - Admin panel: keep the Filament defaults and set Filament's primary colour to coral and its font to IBM Plex Sans Arabic.
@@ -244,7 +245,7 @@ section 7. Look at them in the gallery (`/_components`, "Answers · vote") and i
 | Screen | Built from | What it shows |
 | --- | --- | --- |
 | Create room, Vote | host-2-create-room | A **Classic / Vote** `<x-lamma.segmented>` beside the title (so a Classic setup is as tall as before). Vote replaces the category grid with **First category** (one `<x-lamma.subcategory-chip>` per top-level category, single choice), **Categories to vote on** (`<x-lamma.category-toggle>` tiles, top-level only; the first one is on and locked) and **Vote every 3 / 5 / 10** (segmented). A missing step takes the hint's place in coral; a category that cannot fill a batch shows its count on its tile and in an error under the grid. The summary card says *Vote · N categories*, the first category and *Every N questions · M votes*. On a short laptop screen (`laptop-short`) the first-category chips, their label and Vote every share one line, so nothing scrolls at 1280x720. |
-| Host vote | host-4-question | The question title's place: **Choose the next category** (+ the Arabic line in Both), the timer ring (10 s; screen readers hear 5 s only). Three **upright answer tiles** (`<x-lamma.answer size="vote">`: colour + shape, name, Arabic name in Both, a third of the screen tall, three across) with a **count chip** on the top corner that pops when it changes. Footer: the players' avatars with a check once they voted, "N of M voted", **Skip vote**. The progress dots get a small upright marker after each batch (coral while that vote is on). |
+| Host vote | host-4-question | The question title's place: **Choose the next category** (+ the Arabic line in Both), the timer ring (15 s; screen readers hear 5 s only). Three **upright answer tiles** (`<x-lamma.answer size="vote">`: colour + shape, name, Arabic name in Both, a third of the screen tall, three across) with a **count chip** on the top corner that pops when it changes. Footer: the players' avatars with a check once they voted, "N of M voted", **+10 s** (once per vote, section 11) and **Skip vote**. The progress dots get a small upright marker after each batch (coral while that vote is on). |
 | Host result (3 s) | host-5-reveal | The winner keeps the correct-answer treatment (sticker-lg shadow, the ring, a drop-in badge that says **Winner**) and is enlarged to 105%; the others fade to 35%; mini avatars on each tile show who voted for it (a crowd becomes "+N"). Title: *The next category is*, or **Tie, picking randomly** / **Nobody voted, picking randomly** (+ Arabic). For a tie or no votes the highlight **hops** across the tied tiles (150 ms a hop, a soft tap each, about 1.2 s) before it lands on the winner with the reveal sound, a pop and a confetti burst. Under reduced motion it lands at once, without the hop. |
 | Phone vote | player-3-question | The timer bar, a card with **Choose the next category**, three stacked phone answer tiles in the player's own language. One tap locks the vote (the lock-in sound and the tap buzz), no confirm step. |
 | Phone voted | player-4-answered | *Vote locked in*, the chosen tile big and tilted (`state="locked"`), the pulsing dots, "Waiting for the others…", "N of M voted". Nothing about anyone else's vote. |
@@ -254,3 +255,20 @@ Motion: the tiles pop in staggered like answers (`pop-in`, 60 ms), the count chi
 every one of them is behind `motion-safe:` with a fade under reduced motion, and the hop is skipped. Sounds: the question-start chime when the vote opens, the reveal
 swoosh for the result, the soft answer tick on the host for each vote (no new sound names). Each cue is a `$store.sound.once` so a refresh does not replay it, and the
 timers and the result's hop are `wire:ignore`.
+
+## 11. Speed bonus, the double final question, and the host's phone (Phase 12, built without design files)
+
+Tension without new screens: everything below sits on an existing screen. Look at the chip in the gallery (`/_components`, next to the streak chip).
+
+| Where | What | Notes |
+| --- | --- | --- |
+| Phone reveal, correct | The real **+N** in the sun chip, and under it a small line **100 + 65 speed** (15px, bold, navy on teal). The numbers are isolated, so Arabic reads «100 + 65 للسرعة» from the right. | Wrong and time's up are unchanged: "+0", no line. An answer from before the speed bonus has no line. |
+| `<x-lamma.double-chip>` | The **x2** sticker: coral, navy text, 3px navy outline, `sticker-sm`, tilted -3°, `chip-pop` with a fade under reduced motion. `size` md (phone) / lg (host). The text is the same in every language, so Both needs no second line; a screen reader hears "Double points". | Only when the question counts double: the game's last question, with the setting on. |
+| Host question | The chip on the top corner of the timer ring. | It is outside the layout, so the last question fits exactly as the others do. |
+| Host reveal | The chip after "N of M got it right". | |
+| Phone question | The chip at the end of the category row in the question card. | |
+| Phone reveal, correct | Under the speed line: the chip + **final question**. | Wrong and time's up: nothing (+0 is +0). |
+| Create room | **Double points on the last question** On / Off, the last of the six settings (now three rows of two). On a short laptop screen the label sits beside its switch in 14px, so the row does not grow. The summary card has a **Last question** row: *Double points* / *Normal points*. | The settings' controls line up on the bottom edge of their row. In a Vote setup at `laptop-short` the summary rows are a little tighter, to make room for it. |
+| Create room, Vote | **Pick 4 or more so every vote has a real choice.** in the hint's place beside "Categories to vote on", when the pool has exactly 3. Muted, not coral: it is a hint, not a rule. | |
+| Host vote | **+10 s** beside **Skip vote**: a pill with a 2px `line` border, the display font, 44px tall, a soft tap. Gone once pressed. Both timers jump to the new deadline and the ring draws against the longer length. | Screen readers hear "Vote extended" on the host and on a phone that has not voted. |
+| Host lobby | **Want to play too? Join from your phone with this code.** under "Each player picks Arabic or English when they join.", with the phone icon. | |

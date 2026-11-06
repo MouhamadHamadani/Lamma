@@ -33,7 +33,7 @@ use Livewire\Livewire;
  * tests/Feature/Broadcasting/ChannelAuthTest.php ("the host on their own phone").
  */
 
-const PHONE_TOKEN = 'p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0';
+const HOST_PHONE_TOKEN = 'p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0';
 
 beforeEach(function () {
     Event::fake([GameStarted::class, QuestionStarted::class, PlayerAnswered::class, QuestionRevealed::class, ScoreboardUpdated::class, GameFinished::class, PlayerJoined::class, RoomRestarted::class]);
@@ -48,18 +48,18 @@ function hostPhoneJoins(Room $room, bool $loggedIn = true): RoomPlayer
         test()->actingAs($room->host);
     }
 
-    Livewire::withCookie('lamma_guest', PHONE_TOKEN)->test(JoinRoom::class)
+    Livewire::withCookie('lamma_guest', HOST_PHONE_TOKEN)->test(JoinRoom::class)
         ->set('code', $room->code)->set('nickname', 'Hadi')->set('language', 'en')->call('join')
         ->assertHasNoErrors()->assertRedirect(route('play', ['room' => $room->code]));
 
-    return $room->players()->where('guest_token', PHONE_TOKEN)->sole();
+    return $room->players()->where('guest_token', HOST_PHONE_TOKEN)->sole();
 }
 
 function hostPhone(string $component, Room $room): Testable
 {
     Auth::guard('player')->forgetUser();
 
-    return Livewire::withCookie('lamma_guest', PHONE_TOKEN)->test($component, ['room' => $room]);
+    return Livewire::withCookie('lamma_guest', HOST_PHONE_TOKEN)->test($component, ['room' => $room]);
 }
 
 describe('joining from the host\'s phone', function () {
@@ -68,7 +68,7 @@ describe('joining from the host\'s phone', function () {
 
         $row = hostPhoneJoins($room);
 
-        expect($row)->user_id->toBe($room->host->id)->guest_token->toBe(PHONE_TOKEN)->nickname->toBe('Hadi')->score->toBe(0)->is_ready->toBeFalse()
+        expect($row)->user_id->toBe($room->host->id)->guest_token->toBe(HOST_PHONE_TOKEN)->nickname->toBe('Hadi')->score->toBe(0)->is_ready->toBeFalse()
             ->and($row->savedToAccount()->whereKey($row->id)->exists())->toBeTrue();
     });
 
@@ -77,7 +77,7 @@ describe('joining from the host\'s phone', function () {
 
         $row = hostPhoneJoins($room, loggedIn: false);
 
-        expect($row)->user_id->toBeNull()->guest_token->toBe(PHONE_TOKEN);
+        expect($row)->user_id->toBeNull()->guest_token->toBe(HOST_PHONE_TOKEN);
     });
 
     it('gives the row back on a second join, never a second player', function () {
@@ -92,7 +92,7 @@ describe('joining from the host\'s phone', function () {
         startGame($room);
         test()->actingAs($room->host);
 
-        Livewire::withCookie('lamma_guest', PHONE_TOKEN)->test(JoinRoom::class)
+        Livewire::withCookie('lamma_guest', HOST_PHONE_TOKEN)->test(JoinRoom::class)
             ->set('code', $room->code)->set('nickname', 'Hadi')->set('language', 'en')->call('join')
             ->assertHasErrors('code');
     });
@@ -191,7 +191,7 @@ describe('a whole game with the host playing from their phone', function () {
 
         $new = app(RoomManager::class)->playAgain($room->fresh(), $room->host);
 
-        expect($new->players()->where('nickname', 'Hadi')->sole())->user_id->toBe($room->host->id)->guest_token->toBe(PHONE_TOKEN);
+        expect($new->players()->where('nickname', 'Hadi')->sole())->user_id->toBe($room->host->id)->guest_token->toBe(HOST_PHONE_TOKEN);
     });
 
     it('lets the big screen take the phone out, like any player', function () {

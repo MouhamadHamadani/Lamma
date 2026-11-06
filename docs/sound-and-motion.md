@@ -41,7 +41,7 @@ four placeholder files, delete its line in `config/lamma.php` (`placeholders`) s
 | `timer-tick` | each of the last 5 seconds of a question | host and phones | file `tick.wav` (0.07 s), else synth | 0.1 s |
 | `time-up` | the question timer reaches 0 (gentle low buzz) | host and phones | synth | 0.55 s |
 | `reveal` | the answer is shown | host | file `reveal.wav` (0.6 s), else synth (swoosh) | 0.5-0.6 s |
-| `score-count` | very short ticks while a "+100" counts up, rising in pitch (one number per screen) | host scoreboard top scorer; phone chip | synth | 0.05 s each |
+| `score-count` | very short ticks while a "+N" counts up, rising in pitch (one number per screen) | host scoreboard top scorer; phone chip | synth | 0.05 s each |
 | `rank-up` | a scoreboard row climbed this round (once) | host reveal | synth | 0.3 s |
 | `correct` | the player was right (two rising notes) | phone reveal | synth | 0.6 s |
 | `wrong` | the player was wrong or ran out of time (soft descending thud) | phone reveal | synth | 0.35 s |
@@ -69,7 +69,7 @@ animation class without `motion-safe:`.)
 | countdown tile (Web Animations) | each number of 3 · 2 · 1 pops in and eases out; "Go!" pops in | 1000 ms per number |
 | `fade-up` | the question text, the headlines | 250 ms |
 | `pop-in` | host answer tiles (staggered 60 ms) | 250 ms |
-| `chip-pop` | the check badge on an answered avatar; the phone's "+100" and streak chips | 350 ms |
+| `chip-pop` | the check badge on an answered avatar; the phone's "+N", streak and x2 chips | 350 ms |
 | `ring-shake` | the host timer ring, in the last 3 seconds | 500 ms, repeating |
 | `tick` | the timer number, in the last 5 seconds | 1 s, repeating |
 | `bar-pulse` | the phone timer bar, under 5 seconds | 1 s, repeating |
@@ -84,7 +84,7 @@ animation class without `motion-safe:`.)
 | squish (Web Animations) + teal burst | the phone's Ready button turning on (16 pieces) | 300 ms |
 | `wipe-in` | the teal "correct" screen wipes up from the bottom | 380 ms |
 | `draw` | the check mark draws itself (after 250 ms) | 450 ms |
-| `chip-pop` | the "+100" chip, with a burst of 22 confetti pieces | 350 ms |
+| `chip-pop` | the "+N" chip, with a burst of 22 confetti pieces | 350 ms |
 | `shake` | the cross (or clock) circle on a wrong answer or time's up, once | 500 ms |
 | `tile-drop` | the phone's rank tile drops in and lands tilted | 650 ms |
 | `own-row` | the player's own leaderboard row slides in, then swells once | 1300 ms |
