@@ -15,7 +15,7 @@
     $winner = $vote?->winner();
     $announce = match (true) {
         $state === null => '',
-        $vote !== null && $vote->isOpen() => __('Vote started'),
+        $vote !== null && $vote->isOpen() => $vote->wasExtended() ? __('Vote extended') : __('Vote started'),
         $vote !== null => __(':category won', ['category' => $winner?->getTranslation('name', $main, false) ?? '']),
         $revealed => __('The correct answer is :answer', ['answer' => $correctOption ? $tr($correctOption, 'text', $main) : '']),
         default => __('Question :n of :total', ['n' => $position, 'total' => $state->total]),
@@ -97,8 +97,8 @@
         @endphp
         <main
             wire:key="v-{{ $round }}-{{ $vote->isOpen() ? 'open' : 'result' }}" data-test="vote" data-vote="{{ $vote->isOpen() ? 'open' : 'result' }}"
-            {{-- One tick at the due moment, however many times a refresh re-runs this (Livewire does when the text changes): the poll is the fallback. --}}
-            x-init="$store.sound.once('v{{ $round }}-{{ $vote->isOpen() ? 'close' : 'next' }}-tick', () => setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }})); @if ($vote->isOpen()) $store.sound.once('v{{ $round }}-start', () => $store.sound.play('question-start')) @endif"
+            {{-- One tick at the due moment, however many times a refresh re-runs this (Livewire does when the text changes), and another if "+10 s" moves it: the poll is the fallback. --}}
+            x-init="$store.sound.once('v{{ $round }}-{{ $vote->isOpen() ? 'close'.($vote->wasExtended() ? '-extended' : '') : 'next' }}-tick', () => setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }})); @if ($vote->isOpen()) $store.sound.once('v{{ $round }}-start', () => $store.sound.play('question-start')) @endif"
             class="flex min-h-0 grow flex-col gap-[clamp(16px,4dvh,36px)] pb-[clamp(16px,4dvh,36px)] pt-[clamp(20px,4.4dvh,40px)] {{ $gutter }}"
         >
             <div class="flex items-center gap-10">
@@ -110,7 +110,8 @@
                     @endif
                 </div>
                 @if ($vote->isOpen())
-                    <x-lamma.timer-ring :ends-at="$vote->round->ends_at" :seconds="\App\Game\CategoryVote::seconds()" :marks="[5]" data-test="timer" />
+                    {{-- The key changes with "+10 s", so the timer (wire:ignore, on its own clock) is redrawn from the new deadline. --}}
+                    <x-lamma.timer-ring wire:key="vote-timer-{{ $round }}-{{ $vote->seconds() }}" :ends-at="$vote->round->ends_at" :seconds="$vote->seconds()" :marks="[5]" data-test="timer" />
                 @endif
             </div>
 
@@ -176,10 +177,19 @@
                 </div>
 
                 @if ($vote->isOpen())
-                    <button type="button" wire:click="skipVote({{ $round }})" class="flex min-h-11 items-center gap-2 text-base font-bold text-ink-muted hover:text-navy" data-test="skip-vote">
-                        {{ __('Skip vote') }}
-                        <x-lamma.icon name="arrow-right" :size="18" class="rtl:-scale-x-100" />
-                    </button>
+                    <div class="flex shrink-0 items-center gap-4">
+                        @unless ($vote->wasExtended())
+                            <button
+                                type="button" wire:click="extendVote({{ $round }})" wire:loading.attr="disabled" wire:target="extendVote" x-on:click="$store.sound.play('tap')"
+                                aria-label="{{ __('Add :seconds seconds to the vote', ['seconds' => \App\Game\CategoryVote::EXTEND_SECONDS]) }}"
+                                class="flex min-h-11 items-center rounded-chip border-2 border-line bg-white px-4 font-display text-lg font-extrabold hover:bg-tint-sun" data-test="extend-vote"
+                            >{!! __(':seconds s', ['seconds' => \App\Support\Isolate::ltr('+'.\App\Game\CategoryVote::EXTEND_SECONDS)]) !!}</button>
+                        @endunless
+                        <button type="button" wire:click="skipVote({{ $round }})" class="flex min-h-11 items-center gap-2 text-base font-bold text-ink-muted hover:text-navy" data-test="skip-vote">
+                            {{ __('Skip vote') }}
+                            <x-lamma.icon name="arrow-right" :size="18" class="rtl:-scale-x-100" />
+                        </button>
+                    </div>
                 @else
                     <p class="text-base font-bold text-ink-muted" data-test="vote-next">{{ __('Next question coming up…') }}</p>
                 @endif

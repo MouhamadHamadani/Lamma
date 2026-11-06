@@ -23,12 +23,15 @@ class CategoryVote
     /** How many categories one vote offers at most. */
     public const OPTIONS = 3;
 
+    /** What the host's "+10 s" adds to a vote, once per round. */
+    public const EXTEND_SECONDS = 10;
+
     public function __construct(private readonly QuestionPool $pool, private readonly QuestionPicker $picker) {}
 
     /** How long a vote stays open (lamma.vote_seconds). */
     public static function seconds(): int
     {
-        return (int) config('lamma.vote_seconds', 10);
+        return (int) config('lamma.vote_seconds', 15);
     }
 
     /** How long the result stays on screen before the next question (lamma.vote_result_seconds). */

@@ -49,7 +49,7 @@ class HostGame extends Component
     {
         $channel = 'echo-presence:'.RoomPresence::channel($this->room->code);
 
-        return collect(['QuestionStarted', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'VoteStarted', 'VoteResult', 'joining', 'leaving'])
+        return collect(['QuestionStarted', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'VoteStarted', 'VoteExtended', 'VoteResult', 'joining', 'leaving'])
             ->mapWithKeys(fn (string $event) => ["{$channel},{$event}" => '$refresh'])
             ->put("{$channel},PlayerAnswered", 'playerAnswered')
             ->put("{$channel},PlayerVoted", 'playerVoted')
@@ -110,6 +110,14 @@ class HostGame extends Component
         $this->authorize('host', $this->room);
 
         $engine->closeVote($this->room, $round, force: true);
+    }
+
+    /** "+10 s": more time for the vote, once per round. The round is the one on screen, so a late or double click does nothing. */
+    public function extendVote(GameEngine $engine, int $round): void
+    {
+        $this->authorize('host', $this->room);
+
+        $engine->extendVote($this->room, $round);
     }
 
     public function closeRoom(RoomManager $rooms): mixed

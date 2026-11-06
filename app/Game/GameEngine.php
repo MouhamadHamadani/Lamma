@@ -10,6 +10,7 @@ use App\Events\PlayerVoted;
 use App\Events\QuestionRevealed;
 use App\Events\QuestionStarted;
 use App\Events\ScoreboardUpdated;
+use App\Events\VoteExtended;
 use App\Events\VoteResult;
 use App\Events\VoteStarted;
 use App\Jobs\AdvanceQuestion;
@@ -365,16 +366,20 @@ class GameEngine
      * Vote mode: close the vote. Allowed once its deadline plus the grace has passed, or as soon as every connected player has voted; the host's
      * "Skip vote" passes $force to close it now with the votes so far. Picks the winner (a tie or no votes: at random, and recorded), draws its
      * batch, shows the result, and queues the next question for when the result has been on screen long enough. Closing twice does nothing.
+     * $deadlineMs is the deadline a CloseVote job was queued for: once the host's "+10 s" has moved it that job is Stale, and the new job takes over.
      */
-    public function closeVote(Room $room, int $round, bool $force = false): Transition
+    public function closeVote(Room $room, int $round, bool $force = false, ?int $deadlineMs = null): Transition
     {
-        [$transition, $vote, $fresh] = $this->locked($room, function (Room $fresh) use ($round, $force) {
+        [$transition, $vote, $fresh] = $this->locked($room, function (Room $fresh) use ($round, $force, $deadlineMs) {
             $vote = $fresh->status === RoomStatus::Playing ? $fresh->voteRounds()->where('round', $round)->first() : null;
             if ($vote === null) {
                 return [Transition::Stale, null, $fresh];
             }
             if (! $vote->isOpen()) {
                 return [Transition::Already, null, $fresh];
+            }
+            if ($deadlineMs !== null && $vote->ends_at?->getTimestampMs() !== $deadlineMs) {
+                return [Transition::Stale, null, $fresh];
             }
             if (! $force && now() < $this->votes->dueAt($vote) && ! $this->votes->everyoneVoted($fresh, $vote)) {
                 return [Transition::TooEarly, null, $fresh];
@@ -386,6 +391,34 @@ class GameEngine
         if ($transition === Transition::Done) {
             VoteResult::broadcast($fresh, $vote)->toOthers();
             AdvanceQuestion::dispatch($fresh->id, $this->votes->positionOf($fresh, $vote))->delay(now()->addSeconds(CategoryVote::resultSeconds()));
+        }
+
+        return $transition;
+    }
+
+    /**
+     * Vote mode: the host's "+10 s". Moves the open vote's deadline, once per round, and queues a CloseVote for the new deadline (the one already queued finds
+     * it moved and goes away). A second press is Already; a press after the vote closed, or for another round, is Stale. Neither changes anything.
+     */
+    public function extendVote(Room $room, int $round): Transition
+    {
+        [$transition, $vote, $fresh] = $this->locked($room, function (Room $fresh) use ($round) {
+            $vote = $fresh->status === RoomStatus::Playing ? $fresh->voteRounds()->where('round', $round)->first() : null;
+            if ($vote === null || ! $vote->isOpen() || $vote->ends_at === null) {
+                return [Transition::Stale, null, $fresh];
+            }
+            if ($vote->extended_at !== null) {
+                return [Transition::Already, null, $fresh];
+            }
+
+            $vote->update(['ends_at' => $vote->ends_at->addSeconds(CategoryVote::EXTEND_SECONDS), 'extended_at' => now()]);
+
+            return [Transition::Done, $vote->fresh(), $fresh];
+        });
+
+        if ($transition === Transition::Done) {
+            VoteExtended::broadcast($fresh, $vote)->toOthers();
+            $this->queueCloseVote($fresh, $vote);
         }
 
         return $transition;
@@ -459,7 +492,12 @@ class GameEngine
     private function announceVote(Room $room, CategoryVoteRound $vote): void
     {
         VoteStarted::broadcast($room, $vote)->toOthers();
-        CloseVote::dispatch($room->id, $vote->round)->delay($this->votes->dueAt($vote));
+        $this->queueCloseVote($room, $vote);
+    }
+
+    private function queueCloseVote(Room $room, CategoryVoteRound $vote): void
+    {
+        CloseVote::dispatch($room->id, $vote->round, $vote->ends_at?->getTimestampMs())->delay($this->votes->dueAt($vote));
     }
 
     /**

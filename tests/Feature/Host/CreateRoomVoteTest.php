@@ -252,3 +252,29 @@ describe('Play again', function () {
             ->and($new->pool()->pluck('categories.id')->sort()->values()->all())->toBe([$a->id, $b->id, $c->id]);
     });
 });
+
+describe('the hint at exactly three categories', function () {
+    it('suggests a fourth without asking for it: three can still be created', function () {
+        $categories = voteCategories(4, 12);
+        $page = votePage()->call('chooseFirst', $categories[0]->id)->call('togglePool', $categories[1]->id)->assertDontSeeHtml('data-test="vote-hint"');
+
+        $page->call('togglePool', $categories[2]->id)
+            ->assertSeeHtml('data-test="vote-hint"')
+            ->assertSeeHtml('Pick <bdi dir="ltr">4</bdi> or more so every vote has a real choice.')
+            ->assertDontSeeHtml('data-test="vote-problem"');
+        expect($page->instance()->canCreate)->toBeTrue();
+
+        $page->call('togglePool', $categories[3]->id)->assertDontSeeHtml('data-test="vote-hint"');
+
+        $page->call('togglePool', $categories[3]->id)->call('create')->assertHasNoErrors();
+        expect(Room::sole()->pool()->count())->toBe(3);
+    });
+
+    it('is in Arabic too', function () {
+        app()->setLocale('ar');
+        $categories = voteCategories(3, 12);
+
+        votePage()->call('chooseFirst', $categories[0]->id)->call('togglePool', $categories[1]->id)->call('togglePool', $categories[2]->id)
+            ->assertSeeHtml('اختر <bdi dir="ltr">4</bdi> أو أكثر ليكون في كل تصويت خيار حقيقي.');
+    });
+});

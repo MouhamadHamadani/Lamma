@@ -56,7 +56,7 @@ class PlayerGame extends Component
     {
         $channel = 'echo-presence:'.RoomPresence::channel($this->room->code);
 
-        return collect(['here', 'QuestionStarted', 'PlayerAnswered', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'VoteStarted', 'PlayerVoted', 'VoteResult'])
+        return collect(['here', 'QuestionStarted', 'PlayerAnswered', 'QuestionRevealed', 'ScoreboardUpdated', 'GameFinished', 'VoteStarted', 'VoteExtended', 'PlayerVoted', 'VoteResult'])
             ->mapWithKeys(fn (string $event) => ["{$channel},{$event}" => '$refresh'])
             ->all();
     }

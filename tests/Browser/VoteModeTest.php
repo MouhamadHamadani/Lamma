@@ -18,7 +18,7 @@ use Tests\Browser\Support\ForgetGuards;
 beforeEach(function () {
     app(Kernel::class)->prependMiddleware(ForgetGuards::class);
     Queue::fake();
-    // Time for the clicks and the polls; the rule itself (10 s) is tested in tests/Feature/Game/VoteTest.php.
+    // Time for the clicks and the polls; the rule itself (15 s) is tested in tests/Feature/Game/VoteTest.php.
     config(['lamma.vote_seconds' => 40]);
 });
 
@@ -145,3 +145,44 @@ it('does not scroll on the create-room Vote setup, nor on the vote and its resul
     '1280x720' => [1280, 720],
     '1920x1080' => [1920, 1080],
 ]);
+
+it('gives the vote ten more seconds: the host presses +10 s once and both timers jump', function () {
+    $host = User::factory()->create(['email' => 'host@lamma.test', 'preferred_locale' => 'en']);
+    $room = voteRoom(players: 0, questions: 10, every: 5, host: $host, settings: ['hostScreenLocale' => HostScreenLocale::Both]);
+    $code = $room->code;
+
+    $hostScreen = visit('/login')->withLocale('en')->resize(1280, 720);
+    $hostScreen->type('[name=email]', $host->email)->type('[name=password]', 'password')->click('[data-test=login-button]');
+    vbWait($hostScreen, "location.pathname === '/me/games'", 15, 'the host login');
+
+    $phone = visit("/join?code={$code}")->withLocale('en')->resize(390, 844);
+    $phone->type('[data-test=nickname-input]', 'Sara')->click('[data-test=join-button]');
+    vbWait($phone, "location.pathname === '/play/{$code}'", 15, 'the phone lobby');
+    $room->players()->update(['left_at' => null, 'is_ready' => true, 'locale' => 'en']);
+    RoomPlayer::factory()->for($room)->create(['nickname' => 'Ali', 'locale' => 'en', 'is_ready' => true, 'left_at' => null]);
+    playToVote($room);
+
+    $hostScreen->navigate("/host/{$code}");
+    vbWait($hostScreen, "document.querySelector('[data-vote=open]')", 15, 'the vote on the host');
+    $phone->navigate("/play/{$code}");
+    vbWait($phone, "document.querySelector('[data-vote=vote]')", 15, 'the vote on the phone');
+    vbNoScroll($hostScreen);
+
+    // Past 40 s (the length this file sets) is only possible once the deadline moved. The phone follows by its poll; Reverb is not running.
+    $seconds = "Number(document.querySelector('[data-test=timer] [x-text=secs]').textContent)";
+    $hostScreen->assertVisible('[data-test=extend-vote]')->click('[data-test=extend-vote]');
+    vbWait($hostScreen, "!document.querySelector('[data-test=extend-vote]')", 10, 'the button to go');
+    vbWait($hostScreen, "{$seconds} > 40", 5, 'the host timer to jump');
+    vbWait($phone, "{$seconds} > 40", 10, 'the phone timer to jump');
+    vbNoScroll($hostScreen);
+
+    // Still counting down, and only one clock on each screen.
+    $before = $hostScreen->script("() => {$seconds}");
+    $hostScreen->wait(2);
+    expect($hostScreen->script("() => {$seconds}"))->toBeLessThan($before);
+    $hostScreen->assertScript("document.querySelectorAll('[data-test=timer]').length === 1");
+    $phone->assertScript("document.querySelectorAll('[data-test=timer]').length === 1");
+
+    $hostScreen->assertNoJavaScriptErrors();
+    $phone->assertNoJavaScriptErrors();
+});

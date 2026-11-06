@@ -58,12 +58,12 @@ describe('opening a vote', function () {
 
         $round = votes()->openRound($room);
         expect($round->round)->toBe(1)
-            ->and($round->ends_at->getTimestampMs())->toBe(now()->addSeconds(10)->getTimestampMs())
+            ->and($round->ends_at->getTimestampMs())->toBe(now()->addSeconds(15)->getTimestampMs())
             ->and($room->fresh()->currentQuestion()->position)->toBe(5)
             ->and($room->roomQuestions()->count())->toBe(5);
         Event::assertDispatched(VoteStarted::class);
         Event::assertNotDispatched(QuestionStarted::class);
-        Queue::assertPushed(CloseVote::class, fn (CloseVote $job) => $job->round === 1 && $job->delay->getTimestampMs() === now()->addSeconds(10)->addMilliseconds(500)->getTimestampMs());
+        Queue::assertPushed(CloseVote::class, fn (CloseVote $job) => $job->round === 1 && $job->delay->getTimestampMs() === now()->addSeconds(15)->addMilliseconds(500)->getTimestampMs());
     });
 
     it('opens on the host\'s Next question at a batch boundary, and only once on a double click', function () {

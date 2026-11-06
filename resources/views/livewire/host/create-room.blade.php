@@ -84,6 +84,9 @@
                         {{-- What is still missing takes the hint's place, so the layout does not grow. --}}
                         @if ($this->voteProblem)
                             <span class="flex items-center gap-1.5 text-[13px] font-semibold text-coral-700" data-test="vote-problem"><x-lamma.icon name="alert" :size="16" class="self-center" />{{ $this->voteProblem }}</span>
+                        @elseif (count($this->vote->poolIds ?? []) === VoteSettings::MIN_POOL)
+                            {{-- A hint, not a rule: with exactly 3 the later votes run down to one or two choices. --}}
+                            <span class="text-[13px] font-medium text-ink-subtle" data-test="vote-hint">{!! __('Pick :count or more so every vote has a real choice.', ['count' => Isolate::ltr(VoteSettings::MIN_POOL + 1)]) !!}</span>
                         @else
                             <span class="text-[13px] font-medium text-ink-subtle">{!! __('Pick at least :count, the first one included', ['count' => Isolate::ltr(VoteSettings::MIN_POOL)]) !!}</span>
                         @endif

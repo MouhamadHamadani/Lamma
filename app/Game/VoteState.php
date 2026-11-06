@@ -3,6 +3,7 @@
 namespace App\Game;
 
 use App\Enums\VoteOutcome;
+use App\Game\CategoryVote as VoteRules;
 use App\Models\Category;
 use App\Models\CategoryVote;
 use App\Models\CategoryVoteRound;
@@ -35,6 +36,18 @@ final class VoteState
     public function isOpen(): bool
     {
         return $this->round->isOpen();
+    }
+
+    /** The host already pressed "+10 s" on this vote (once per round). */
+    public function wasExtended(): bool
+    {
+        return $this->round->extended_at !== null;
+    }
+
+    /** The vote's full length, for the timers to draw against. */
+    public function seconds(): int
+    {
+        return VoteRules::seconds() + ($this->wasExtended() ? VoteRules::EXTEND_SECONDS : 0);
     }
 
     /** The category this player voted for, if any. */

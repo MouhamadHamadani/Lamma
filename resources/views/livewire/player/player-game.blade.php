@@ -17,7 +17,7 @@
         'correct' => $streak >= 3 ? __('Correct, plus :points points, :count in a row', ['points' => $gained, 'count' => $streak]) : __('Correct, plus :points points', ['points' => $gained]),
         'wrong' => __('Not quite, the answer was :answer', ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
         'timeout' => __("Time's up, the answer was :answer", ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
-        'vote' => __('Vote started'),
+        'vote' => $vote->wasExtended() ? __('Vote extended') : __('Vote started'),
         'voted' => __('Vote locked in'),
         'vote-result' => __(':category won', ['category' => $vote?->winner()?->getTranslation('name', $lang, false) ?? '']),
         default => '',
@@ -75,7 +75,8 @@
                  tilted, while the others vote. Nothing about anyone else's vote is drawn here. --}}
             @php $round = $vote->round->round; @endphp
             <main wire:key="pv-{{ $round }}-{{ $phase }}" class="flex grow flex-col gap-4 pb-6 pt-2" data-test="vote" data-vote="{{ $phase }}">
-                <x-lamma.timer-bar :ends-at="$vote->round->ends_at" :seconds="\App\Game\CategoryVote::seconds()" :marks="[5]" data-test="timer" />
+                {{-- The key changes with the host's "+10 s", so the timer (wire:ignore, on its own clock) is redrawn from the new deadline. --}}
+                <x-lamma.timer-bar wire:key="vote-timer-{{ $round }}-{{ $vote->seconds() }}" :ends-at="$vote->round->ends_at" :seconds="$vote->seconds()" :marks="[5]" data-test="timer" />
 
                 @if ($phase === 'vote')
                     <div class="flex flex-col gap-1 rounded-tile border-2 border-line bg-white px-5 py-[18px] motion-safe:animate-fade-up">

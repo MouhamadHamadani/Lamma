@@ -20,13 +20,14 @@ use Illuminate\Support\Carbon;
  * @property int $round 1-based
  * @property list<int> $option_ids the offered top-level categories, in display order
  * @property Carbon|null $ends_at null when there was no vote (one option)
+ * @property Carbon|null $extended_at when the host pressed "+10 s" (once per round); ends_at has already moved
  * @property Carbon|null $closed_at
  * @property int|null $winner_category_id
  * @property VoteOutcome|null $outcome
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['room_id', 'round', 'option_ids', 'ends_at', 'closed_at', 'winner_category_id', 'outcome'])]
+#[Fillable(['room_id', 'round', 'option_ids', 'ends_at', 'extended_at', 'closed_at', 'winner_category_id', 'outcome'])]
 class CategoryVoteRound extends Model
 {
     /** @use HasFactory<CategoryVoteRoundFactory> */
@@ -40,6 +41,7 @@ class CategoryVoteRound extends Model
             'round' => 'integer',
             'option_ids' => 'array',
             'ends_at' => 'datetime',
+            'extended_at' => 'datetime',
             'closed_at' => 'datetime',
             'winner_category_id' => 'integer',
             'outcome' => VoteOutcome::class,

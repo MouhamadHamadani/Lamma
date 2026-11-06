@@ -59,7 +59,7 @@ it('VoteStarted: the offered categories in display order in both languages, the 
         ->and(collect($payload['vote']['options'])->pluck('id')->all())->toBe($round->option_ids)
         ->and($payload['vote']['options'][0]['name'])->toBe(['ar' => $names[$round->option_ids[0]]->getTranslation('name', 'ar'), 'en' => $names[$round->option_ids[0]]->getTranslation('name', 'en')])
         ->and($payload['vote']['options'][0])->toHaveKeys(['tint', 'icon'])
-        ->and($payload['vote']['ends_at'])->toBe('2026-10-01T12:00:10.000Z')
+        ->and($payload['vote']['ends_at'])->toBe('2026-10-01T12:00:15.000Z')
         ->and(json_encode($payload))->not->toContain('count')->not->toContain('votes')->not->toContain('players');
     noSecrets($payload);
 });
