@@ -22,6 +22,9 @@
         'vote-result' => __(':category won', ['category' => $vote?->winner()?->getTranslation('name', $lang, false) ?? '']),
         default => '',
     };
+    if ($state?->doubled && in_array($phase, ['question', 'correct'], true)) {
+        $announce .= '. '.__('Double points');
+    }
     $seconds = $room->settings->secondsPerQuestion;
 @endphp
 <div class="relative min-h-dvh" @if ($phase !== 'over') wire:poll.4s @endif data-test="player-game" data-phase="{{ $phase }}">
@@ -156,7 +159,12 @@
                 <x-lamma.timer-bar :ends-at="$state->roomQuestion->ends_at" :seconds="$seconds" data-test="timer" />
 
                 <div class="flex flex-col gap-2 rounded-tile border-2 border-line bg-white px-5 py-[18px] motion-safe:animate-fade-up">
-                    <span class="flex items-center gap-1.5 text-[13px] font-bold text-ink-muted"><x-lamma.icon :name="$icon" :size="16" />{{ $state->category->fullName($lang) }}</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="flex items-center gap-1.5 text-[13px] font-bold text-ink-muted"><x-lamma.icon :name="$icon" :size="16" />{{ $state->category->fullName($lang) }}</span>
+                        @if ($state->doubled)
+                            <x-lamma.double-chip />
+                        @endif
+                    </div>
                     <h1 lang="{{ $lang }}" class="text-balance font-display text-[25px] font-extrabold leading-tight" data-test="question-text">{{ $tr($state->question, 'text') }}</h1>
                 </div>
 
@@ -206,7 +214,7 @@
                 x-init="$store.sound.once('p{{ $position }}-result', () => { $store.sound.play('{{ $phase === 'correct' ? 'correct' : 'wrong' }}'); $store.sound.buzz('{{ $phase === 'correct' ? 'correct' : 'wrong' }}'); @if ($phase === 'correct') setTimeout(() => lammaConfetti.burst($el.querySelector('[data-test=points-gained]'), 22), 350); @if ($streak >= 3) setTimeout(() => $store.sound.play('streak'), 750); @endif @endif })"
             >
                 <span @class([
-                    'flex size-32 items-center justify-center rounded-full border-3 border-navy shadow-sticker-lg',
+                    'flex size-32 items-center justify-center rounded-full border-3 border-navy shadow-sticker-lg [@media(max-height:699px)]:size-24',
                     'motion-safe:animate-reveal' => $phase === 'correct',
                     'motion-safe:animate-shake' => $phase !== 'correct',
                     'bg-cream' => $phase === 'correct',
@@ -237,10 +245,20 @@
                         ])
                     >+<span x-text="n">{{ $gained }}</span></span>
                     @if ($phase === 'correct' && $streak >= 3)
-                        {{-- Three or more right in a row. Display only: the score is still a flat +100 each. --}}
+                        {{-- Three or more right in a row. Display only: a streak scores nothing. --}}
                         <x-lamma.streak-chip :count="$streak" class="motion-safe:animate-chip-pop" style="animation-delay: 300ms" />
                     @endif
                 </div>
+
+                {{-- How the +N was made up. An answer from before the speed bonus (a game running across the deploy) has no breakdown. --}}
+                @if ($phase === 'correct' && $answer->speed_bonus !== null)
+                    <div class="flex flex-col items-center gap-1.5 text-[15px] font-bold" data-test="points-breakdown">
+                        <p>{!! __(':base + :bonus speed', ['base' => Isolate::ltr($answer->base_points), 'bonus' => Isolate::ltr($answer->speed_bonus)]) !!}</p>
+                        @if ($answer->multiplier > 1)
+                            <p class="flex items-center gap-2"><x-lamma.double-chip />{{ __('final question') }}</p>
+                        @endif
+                    </div>
+                @endif
 
                 @if ($row)
                     <p class="font-display text-[22px] font-bold" data-test="rank-line">{!! __("You're :rank · :points pts", ['rank' => $rankHtml, 'points' => $pointsHtml]) !!}</p>

@@ -16,7 +16,7 @@ use App\Models\Room;
  */
 class GameView
 {
-    public function __construct(private readonly Scoreboard $scoreboard, private readonly GameEngine $engine, private readonly CategoryVote $votes) {}
+    public function __construct(private readonly Scoreboard $scoreboard, private readonly GameEngine $engine, private readonly CategoryVote $votes, private readonly ScoringService $scoring) {}
 
     public function forRoom(Room $room): ?GameState
     {
@@ -46,6 +46,7 @@ class GameView
             previousPositions: $revealed ? $this->scoreboard->previousPositions($ranking) : [],
             finished: $room->status === RoomStatus::Finished,
             streaks: $revealed ? $this->scoreboard->streaks($room, $roomQuestion) : [],
+            doubled: $this->scoring->isDoubled($room, $roomQuestion),
         );
     }
 

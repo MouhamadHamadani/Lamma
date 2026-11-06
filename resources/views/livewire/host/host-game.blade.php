@@ -20,6 +20,9 @@
         $revealed => __('The correct answer is :answer', ['answer' => $correctOption ? $tr($correctOption, 'text', $main) : '']),
         default => __('Question :n of :total', ['n' => $position, 'total' => $state->total]),
     };
+    if ($state?->doubled) {
+        $announce .= '. '.__('Double points');
+    }
 @endphp
 <div>
 @if ($state?->finished)
@@ -197,7 +200,13 @@
                         <p lang="ar" dir="rtl" class="text-balance text-end font-display text-[clamp(22px,2.7vw,38px)] font-bold leading-tight text-ink-muted" data-test="question-text-alt">{{ $tr($state->question, 'text', 'ar') }}</p>
                     @endif
                 </div>
-                <x-lamma.timer-ring :ends-at="$state->roomQuestion->ends_at" :seconds="$seconds" data-test="timer" />
+                {{-- On the ring's corner, outside the layout: the last question must fit exactly as the others do. --}}
+                <div class="relative shrink-0">
+                    <x-lamma.timer-ring :ends-at="$state->roomQuestion->ends_at" :seconds="$seconds" data-test="timer" />
+                    @if ($state->doubled)
+                        <x-lamma.double-chip size="lg" class="absolute -end-3 -top-1" />
+                    @endif
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-6" data-test="answers">
@@ -269,6 +278,9 @@
                 <p class="flex items-center gap-3 font-display text-2xl font-bold" data-test="correct-count">
                     <span class="flex size-10 items-center justify-center rounded-full border-3 border-navy bg-teal"><x-lamma.icon name="check" :size="20" :stroke="3" /></span>
                     {{ __(':correct of :total got it right', ['correct' => $state->correctCount(), 'total' => $state->expected]) }}
+                    @if ($state->doubled)
+                        <x-lamma.double-chip size="lg" />
+                    @endif
                 </p>
             </div>
 

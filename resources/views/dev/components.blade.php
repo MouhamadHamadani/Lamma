@@ -162,12 +162,12 @@
                 </div>
 
                 <div class="space-y-4">
-                    <h3 class="font-display text-2xl font-bold">Scoreboard · Ali moved up, +100 counts up</h3>
+                    <h3 class="font-display text-2xl font-bold">Scoreboard · Ali moved up, +155 counts up</h3>
                     <x-lamma.scoreboard
                         class="h-[420px] w-[420px]"
                         :previous="[2 => 1, 1 => 0, 3 => 2]"
                         :ranking="[
-                            ['rank' => 1, 'player' => ['id' => 2, 'nickname' => $ar ? 'علي' : 'Ali', 'locale' => 'ar'], 'total' => 300, 'gained' => 100, 'rank_change' => 1],
+                            ['rank' => 1, 'player' => ['id' => 2, 'nickname' => $ar ? 'علي' : 'Ali', 'locale' => 'ar'], 'total' => 355, 'gained' => 155, 'rank_change' => 1],
                             ['rank' => 2, 'player' => ['id' => 1, 'nickname' => $ar ? 'سارة' : 'Sara', 'locale' => $loc], 'total' => 200, 'gained' => 100],
                             ['rank' => 3, 'player' => ['id' => 3, 'nickname' => $ar ? 'مايا' : 'Maya', 'locale' => 'en'], 'total' => 100, 'gained' => 0],
                         ]"
@@ -203,6 +203,10 @@
                         <div class="flex flex-col items-start gap-4">
                             <x-lamma.streak-chip :count="3" />
                             <x-lamma.streak-chip :count="7" />
+                            <div class="flex items-center gap-3">
+                                <x-lamma.double-chip />
+                                <x-lamma.double-chip size="lg" />
+                            </div>
                             <x-lamma.button size="md" x-on:click="lammaConfetti.burst($el, 28)">Confetti burst</x-lamma.button>
                         </div>
                     </div>

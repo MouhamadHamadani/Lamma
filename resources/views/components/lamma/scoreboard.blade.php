@@ -1,5 +1,5 @@
 {{-- The navy scoreboard panel on the host's reveal screen. `ranking` is Scoreboard::ranking(); `previous` maps player id => where they stood
-     before this round, so each row slides from there to its new place (FLIP, 400ms) while the "+100" counts up (`gained` false hides it,
+     before this round, so each row slides from there to its new place (FLIP, 400ms) while the "+N" counts up (`gained` false hides it,
      e.g. for the final standings). The leader is lighter with a sun rank number. Nothing on the host scrolls, so how many rows show depends
      on the screen height: 5 from 720px tall, up to 10 on a 1080px screen. The slot is the footer (the "Next question" countdown and button). --}}
 @props(['ranking', 'previous' => [], 'colors' => [], 'gained' => true])

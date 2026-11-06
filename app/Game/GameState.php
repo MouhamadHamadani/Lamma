@@ -20,6 +20,7 @@ final class GameState
      * @param  list<array{rank: int, player: array{id: int, nickname: string, locale: string, avatar_url?: string|null}, total: int, gained: int, rank_change: int}>  $ranking  empty until revealed
      * @param  array<int, int>  $previousPositions  player id => 0-based position before this round's points
      * @param  array<int, int>  $streaks  player id => right answers in a row up to this question; empty until revealed
+     * @param  bool  $doubled  this question counts double (ScoringService::isDoubled): the screens show the x2 chip
      */
     public function __construct(
         public readonly RoomQuestion $roomQuestion,
@@ -36,6 +37,7 @@ final class GameState
         public readonly array $previousPositions,
         public readonly bool $finished,
         public readonly array $streaks = [],
+        public readonly bool $doubled = false,
     ) {}
 
     public function position(): int
