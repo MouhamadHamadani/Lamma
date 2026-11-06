@@ -227,7 +227,7 @@ class CategoryVote
                 'room_id' => $room->id, 'category_id' => $categoryId, 'needed' => $count, 'found' => $questions->count(),
             ]);
             $taken = [...$have, ...$questions->map(fn (Question $question) => $question->id)->all()];
-            $questions = $questions->concat($this->picker->pickFrom($room, $others, $count - $questions->count(), $taken));
+            $questions = $this->picker->inPlayOrder($room, $questions->concat($this->picker->pickFrom($room, $others, $count - $questions->count(), $taken)));
         }
 
         $position = (int) $room->roomQuestions()->reorder()->max('position');

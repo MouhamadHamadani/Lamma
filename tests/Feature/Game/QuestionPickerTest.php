@@ -7,11 +7,13 @@ use App\Events\QuestionStarted;
 use App\Game\GameEngine;
 use App\Game\GameStartException;
 use App\Game\QuestionPicker;
+use App\Models\Category;
 use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\Room;
 use App\Models\RoomQuestion;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 
@@ -212,5 +214,96 @@ describe('the option order', function () {
         $again = $room->fresh()->roomQuestions()->pluck('option_order', 'position')->all();
 
         expect($again)->toBe($stored);
+    });
+});
+
+/** A category with 12 playable questions of each difficulty. */
+function mixedCategory(): Category
+{
+    return tap(Category::factory()->create(), function (Category $category) {
+        foreach (Difficulty::cases() as $difficulty) {
+            Question::factory()->count(12)->withOptions()->create(['category_id' => $category->id, 'difficulty' => $difficulty]);
+        }
+    });
+}
+
+/** The tier of each of the room's questions, in position order: 0 easy, 1 medium, 2 hard. */
+function tiersOf(Room $room): array
+{
+    return $room->roomQuestions()->with('question')->get()
+        ->map(fn (RoomQuestion $row) => array_search($row->question->difficulty, Difficulty::cases(), true))->all();
+}
+
+function expectClimbing(array $tiers): void
+{
+    $sorted = $tiers;
+    sort($sorted);
+
+    expect($tiers)->toBe($sorted);
+}
+
+describe('the order of a Mixed game: easy first, then medium, then hard', function () {
+    it('climbs through the tiers over the whole of a Classic game', function () {
+        $room = gameRoom(questions: 20, category: mixedCategory());
+
+        startGame($room);
+
+        expectClimbing(tiersOf($room));
+        expect(array_unique(tiersOf($room)))->toHaveCount(3);
+    });
+
+    it('is random inside each tier', function () {
+        $room = gameRoom(questions: 20, category: mixedCategory());
+
+        $ids = app(QuestionPicker::class)->pickFrom($room, $room->settings->categoryIds, 36)->where('difficulty', Difficulty::Easy)->pluck('id')->all();
+        $sorted = $ids;
+        sort($sorted);
+
+        // 12 easy questions in id order by chance: one in 479 million.
+        expect($ids)->toHaveCount(12)->not->toBe($sorted);
+    });
+
+    it('starts again from easy in each batch of a Vote game', function () {
+        $room = voteRoom(questions: 6, every: 3, categories: [mixedCategory(), mixedCategory(), mixedCategory()]);
+
+        playToVote($room);
+        app(GameEngine::class)->closeVote($room, 1, force: true);
+
+        $tiers = tiersOf($room);
+        expect($tiers)->toHaveCount(6);
+        expectClimbing(array_slice($tiers, 0, 3));
+        expectClimbing(array_slice($tiers, 3, 3));
+    });
+
+    it('keeps the order when a short category\'s batch is filled from the other pool categories', function () {
+        $short = Category::factory()->create();
+        Question::factory()->count(2)->withOptions()->create(['category_id' => $short->id, 'difficulty' => Difficulty::Hard]);
+        $room = voteRoom(questions: 6, every: 3, categories: [mixedCategory(), $short, mixedCategory()]);
+
+        expect(votes()->drawBatch($room, $short->id, 6))->toBe(6);
+
+        expectClimbing(tiersOf($room));
+    });
+
+    it('leaves a single-difficulty game in random order', function () {
+        $room = gameRoom(questions: 12, category: categoryWithQuestions(14, Difficulty::Hard), settings: ['difficulty' => Difficulty::Hard]);
+
+        $ids = app(QuestionPicker::class)->pick($room)->pluck('id')->all();
+        $sorted = $ids;
+        sort($sorted);
+
+        expect($ids)->toHaveCount(12)->not->toBe($sorted);
+    });
+
+    it('does not change which questions are preferred: unseen first', function () {
+        $category = mixedCategory();
+        $room = gameRoom(players: 1, questions: 3, category: $category);
+        $player = $room->players()->first();
+        $seen = Question::query()->where('category_id', $category->id)->where('difficulty', Difficulty::Easy)->take(11)->pluck('id');
+        foreach ($seen as $id) {
+            DB::table('question_seen')->insert(['question_id' => $id, 'guest_token' => $player->guest_token, 'room_id' => $room->id, 'seen_at' => now()]);
+        }
+
+        expect(app(QuestionPicker::class)->pick($room)->pluck('id')->intersect($seen))->toBeEmpty();
     });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Game;
 
+use App\Enums\Difficulty;
 use App\Models\Question;
 use App\Models\Room;
 use App\Models\RoomPlayer;
@@ -24,7 +25,7 @@ class QuestionPicker
     public function __construct(private readonly QuestionPool $pool, private readonly SeenQuestions $seen) {}
 
     /**
-     * @return Collection<int, Question> up to the room's question count, options loaded, in random order; fewer only when the pool is too small
+     * @return Collection<int, Question> up to the room's question count, options loaded, in the order to ask them (inPlayOrder); fewer only when the pool is too small
      */
     public function pick(Room $room): Collection
     {
@@ -36,7 +37,7 @@ class QuestionPicker
      *
      * @param  list<int>  $categoryIds
      * @param  list<int>  $exclude  question ids never to pick
-     * @return Collection<int, Question> up to $count, options loaded, in random order
+     * @return Collection<int, Question> up to $count, options loaded, in the order to ask them (inPlayOrder)
      */
     public function pickFrom(Room $room, array $categoryIds, int $count, array $exclude = []): Collection
     {
@@ -48,7 +49,23 @@ class QuestionPicker
         $ids = array_slice(array_values($ranked), 0, max(0, $count));
         $questions = Question::query()->with('options')->findMany($ids)->keyBy('id');
 
-        return collect($ids)->shuffle()->map(fn (int $id) => $questions->get($id))->filter()->values();
+        return $this->inPlayOrder($room, collect($ids)->shuffle()->map(fn (int $id) => $questions->get($id))->filter()->values());
+    }
+
+    /**
+     * The order a drawn batch is asked in. A Mixed game climbs: easy, then medium, then hard (the order Difficulty declares them), at random inside each tier because the batch
+     * arrives shuffled and this sort is stable. A single-difficulty game stays as it arrived.
+     *
+     * @param  Collection<int, Question>  $questions
+     * @return Collection<int, Question>
+     */
+    public function inPlayOrder(Room $room, Collection $questions): Collection
+    {
+        if ($room->settings->difficulty !== null) {
+            return $questions;
+        }
+
+        return $questions->sortBy(fn (Question $question) => array_search($question->difficulty, Difficulty::cases(), true))->values();
     }
 
     /**
