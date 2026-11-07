@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Game\PlayerPhoto;
+use App\Game\QuestionImage;
 use App\Game\QuestionReport;
 use App\Models\Admin;
 use App\Models\User;
@@ -78,6 +79,7 @@ class DoctorCommand extends Command
             'Storage link' => fn () => file_exists(public_path('storage')) ? [self::PASS, 'public/storage exists'] : [self::FAIL, 'missing: run php artisan storage:link'],
             'Storage is writable' => $this->writable(...),
             'Player photos' => $this->photos(...),
+            'Question pictures' => $this->questionPictures(...),
             'Front-end build' => fn () => is_file(public_path('build/manifest.json')) ? [self::PASS, 'public/build/manifest.json exists'] : [self::FAIL, 'missing: run npm run build'],
             'Optimized' => fn () => app()->configurationIsCached() && app()->routesAreCached()
                 ? [self::PASS, 'config and routes are cached']
@@ -242,6 +244,35 @@ class DoctorCommand extends Command
         }
 
         return [self::PASS, 'gd with JPEG and WebP, fileinfo, and a writable photo folder'];
+    }
+
+    /**
+     * The pictures of picture questions: the folder they live in must be writable (the content seeder copies the shipped drawings there, and the admin uploads to it), and
+     * GD must read JPEG, PNG and WebP and write WebP so an upload can be checked and re-saved. A folder that cannot be written fails (a deploy would stop at the seeder);
+     * a missing GD feature only warns (the shipped drawings need none, only an admin's upload does).
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function questionPictures(): array
+    {
+        $root = (string) config('filesystems.disks.'.QuestionImage::DISK.'.root');
+        if (! is_writable(is_dir($root) ? $root : dirname($root))) {
+            return [self::FAIL, "not writable: {$root}"];
+        }
+
+        $gd = extension_loaded('gd') ? gd_info() : [];
+        $missing = array_filter([
+            ! extension_loaded('gd') ? 'the gd extension (php8.3-gd)' : null,
+            extension_loaded('gd') && empty($gd['JPEG Support']) ? 'JPEG support in gd' : null,
+            extension_loaded('gd') && empty($gd['PNG Support']) ? 'PNG support in gd' : null,
+            extension_loaded('gd') && (empty($gd['WebP Support']) || ! function_exists('imagewebp')) ? 'WebP support in gd (libwebp)' : null,
+            ! extension_loaded('fileinfo') ? 'the fileinfo extension' : null,
+        ]);
+        if ($missing !== []) {
+            return [self::WARN, 'missing: '.implode(', ', $missing).'. An admin could not upload a picture'];
+        }
+
+        return [self::PASS, 'gd with JPEG, PNG and WebP, fileinfo, and a writable picture folder'];
     }
 
     /**
