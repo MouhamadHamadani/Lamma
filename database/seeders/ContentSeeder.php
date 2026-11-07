@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Enums\Difficulty;
+use App\Enums\QuestionType;
+use App\Game\QuestionImage;
 use App\Models\Category;
 use App\Models\Question;
 use App\Support\SeedKey;
@@ -20,14 +22,20 @@ use Illuminate\Support\Facades\DB;
  *    an admin wrote by hand counts by its English text.
  *
  * The data: database/seeders/data/questions.php (the categories and the first 400 questions) plus one file per category or subcategory in
- * database/seeders/data/questions/<slug>.php (a list of questions), merged by data() below.
+ * database/seeders/data/questions/<slug>.php (a list of questions), plus the packs in database/seeders/data/packs/*.php (each a map of category slug => list of
+ * questions: the variety pack has the true/false, closest-number and picture questions), merged by data() below.
+ *
+ * A question is [difficulty, arabic, english, answer] and, for the kinds below, a fifth element with the extras. The answer of a multiple-choice question is
+ * its four options (the correct one first); of a true/false question true or false; of a closest-number question the number. The extras:
+ * ['type' => 'true_false' | 'closest_number', 'tolerance' => 10, 'image' => 'flag-japan.svg', 'fact' => 'arabic|english']. A row without extras is the multiple-choice
+ * question it always was. An image is one of our own drawings in database/seeders/data/images, copied to the pictures disk under seed/.
  */
 class ContentSeeder extends Seeder
 {
     use ReportsToConsole;
 
     /**
-     * @return array{categories: array<string, array{ar: string, en: string, icon: string, parent?: string}>, questions: array<string, list<array{0: string, 1: string, 2: string, 3: list<string>}>>}
+     * @return array{categories: array<string, array{ar: string, en: string, icon: string, parent?: string}>, questions: array<string, list<array<int, mixed>>>}
      */
     public static function data(): array
     {
@@ -39,6 +47,14 @@ class ContentSeeder extends Seeder
         foreach ($files as $file) {
             $slug = basename($file, '.php');
             $data['questions'][$slug] = [...($data['questions'][$slug] ?? []), ...require $file];
+        }
+
+        $packs = glob(__DIR__.'/data/packs/*.php') ?: [];
+        sort($packs);
+        foreach ($packs as $pack) {
+            foreach (require $pack as $slug => $rows) {
+                $data['questions'][$slug] = [...($data['questions'][$slug] ?? []), ...$rows];
+            }
         }
 
         return $data;
@@ -71,13 +87,14 @@ class ContentSeeder extends Seeder
             foreach ($data['questions'] as $slug => $questions) {
                 $category = $categories[$slug] ?? Category::query()->where('slug', $slug)->firstOrFail();
 
-                foreach ($questions as $index => [$difficulty, $ar, $en, $options]) {
+                foreach ($questions as $index => $row) {
+                    [$difficulty, $ar, $en, $answer] = $row;
                     $key = SeedKey::for($en);
                     if (isset($known[$key])) {
                         continue;
                     }
 
-                    $this->createQuestion($category, $index, Difficulty::from($difficulty), $ar, $en, $options, $key);
+                    $this->createQuestion($category, $index, Difficulty::from($difficulty), $ar, $en, $answer, $key, $row[4] ?? []);
                     $known[$key] = true;
                     $added++;
                 }
@@ -155,17 +172,48 @@ class ContentSeeder extends Seeder
     }
 
     /**
-     * @param  list<string>  $options  the correct option first, then three wrong ones ("arabic|english", or one string for both)
+     * @param  list<string>|bool|int|float  $answer  four options, the correct one first ("arabic|english", or one string for both); true or false; or the number
+     * @param  array{type?: string, tolerance?: int|float, image?: string, fact?: string|array{ar: string, en: string}}  $extra
      */
-    private function createQuestion(Category $category, int $index, Difficulty $difficulty, string $ar, string $en, array $options, string $key): void
+    private function createQuestion(Category $category, int $index, Difficulty $difficulty, string $ar, string $en, array|bool|int|float $answer, string $key, array $extra = []): void
     {
+        $type = QuestionType::from($extra['type'] ?? QuestionType::MultipleChoice->value);
+
         $question = $category->questions()->make([
             'text' => ['ar' => $ar, 'en' => $en],
             'difficulty' => $difficulty,
+            'type' => $type,
+            'answer_number' => $type === QuestionType::ClosestNumber ? (float) $answer : null,
+            'tolerance' => $type === QuestionType::ClosestNumber ? ($extra['tolerance'] ?? null) : null,
+            'explanation' => isset($extra['fact']) ? $this->pair($extra['fact']) : null,
+            'image_path' => isset($extra['image']) ? app(QuestionImage::class)->storeShipped($extra['image']) : null,
             'is_active' => true,
         ]);
         $question->forceFill(['seed_key' => $key])->save();
 
+        if ($type === QuestionType::TrueFalse) {
+            $question->syncTrueFalse((bool) $answer);
+        } elseif ($type === QuestionType::MultipleChoice && is_array($answer)) {
+            $this->createOptions($question, $index, $answer);
+        }
+    }
+
+    /**
+     * "arabic|english" (or an {ar, en} pair already) as an {ar, en} pair.
+     *
+     * @param  string|array{ar: string, en: string}  $text
+     * @return array{ar: string, en: string}
+     */
+    private function pair(string|array $text): array
+    {
+        [$ar, $en] = is_array($text) ? [$text['ar'], $text['en']] : explode('|', $text, 2);
+
+        return ['ar' => $ar, 'en' => $en];
+    }
+
+    /** @param list<string> $options the correct option first, then the wrong ones */
+    private function createOptions(Question $question, int $index, array $options): void
+    {
         // Spread the right answer over the four positions (by the question's place in its category) so it is not always first.
         $correctAt = ($index * 3 + 1) % 4;
         $options = array_map(fn (string $option) => str_contains($option, '|') ? explode('|', $option, 2) : [$option, $option], $options);

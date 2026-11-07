@@ -5,6 +5,14 @@
  *
  * Each question is [difficulty, arabic, english, [the correct option, then three wrong ones]]. An option is "arabic|english", or one string
  * when both languages read the same (numbers, symbols, Latin words). The seeder shuffles where the right answer sits; the order here does not matter.
+ *
+ * Phase 13: a row may carry a fifth element with extras, and its fourth element then depends on the kind of question. Nothing below needs it: a row of four
+ * elements is the multiple-choice question it always was.
+ *   true/false       ['easy', 'ar', 'en', true, ['type' => 'true_false', 'fact' => 'arabic|english']]               (the answer is true or false)
+ *   closest number   ['medium', 'ar', 'en', 1969, ['type' => 'closest_number', 'tolerance' => 10, 'fact' => '...']]   (the answer is the number; a tolerance left out is
+ *                    25% of it, at least 1, which suits a count but not a year)
+ *   picture          ['easy', 'ar', 'en', [four options], ['image' => 'flag-japan.svg', 'fact' => '...']]           (any kind may have an image: our own drawing in data/images)
+ * 'fact' is the optional fun fact shown with the answer, "arabic|english". The questions of this kind are in data/packs/*.php (a pack is [category slug => rows]).
  * This file holds the first 50 per original category (20 easy, 20 medium, 10 hard); data/questions/<slug>.php adds the rest, and the targets per
  * category and subcategory are in config/lamma.php ("content"), checked by `php artisan lamma:questions-report`.
  *

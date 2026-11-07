@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\Difficulty;
+use App\Enums\QuestionType;
+use App\Game\QuestionImage;
 use App\Game\QuestionPool;
 use App\Game\RoomSettings;
 use App\Models\Admin;
@@ -14,6 +16,7 @@ use Database\Seeders\ContentSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevSeeder;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Storage;
 
 /** The shipped content, as the seeder reads it: data/questions.php plus one file per category in data/questions/. */
 function contentData(): array
@@ -27,6 +30,24 @@ function contentData(): array
 function splitOptions(array $options): array
 {
     return array_map(fn (string $option) => str_contains($option, '|') ? explode('|', $option, 2) : [$option, $option], $options);
+}
+
+/** The kind of a row of the content data: its extras (a fifth element) name it, and a plain row is the multiple-choice question it always was. */
+function rowType(array $row): string
+{
+    return $row[4]['type'] ?? 'multiple_choice';
+}
+
+/** The options of a multiple-choice row as [ar, en] pairs; none for the other kinds, whose fourth element is a true/false or a number. */
+function rowPairs(array $row): array
+{
+    return rowType($row) === 'multiple_choice' ? splitOptions($row[3]) : [];
+}
+
+/** The fun fact of a row as [ar, en], or null. */
+function rowFact(array $row): ?array
+{
+    return isset($row[4]['fact']) ? explode('|', $row[4]['fact'], 2) : null;
 }
 
 function inProduction(): void
@@ -90,27 +111,53 @@ describe('the content file', function () {
         expect($count)->toBeGreaterThanOrEqual(10);
     })->with(fn () => collect(array_keys(contentData()['categories']))->crossJoin(['easy', 'medium', 'hard'])->all());
 
-    it('gives every question four options, a text in both languages, and an existing difficulty', function () {
+    it('gives every question a text in both languages, an existing difficulty and what its kind needs: four options, true or false, or a number', function () {
         foreach (contentData()['questions'] as $slug => $questions) {
-            foreach ($questions as $index => [$difficulty, $ar, $en, $options]) {
+            foreach ($questions as $index => $row) {
+                [$difficulty, $ar, $en, $answer] = $row;
+                $type = rowType($row);
                 $where = "{$slug} #{$index}: {$en}";
 
                 expect(Difficulty::tryFrom($difficulty))->not->toBeNull($where);
                 expect(trim($ar))->not->toBe('', $where)->and(trim($en))->not->toBe('', $where);
                 expect(preg_match('/\p{Arabic}/u', $ar))->toBe(1, $where.' (Arabic text)');
                 expect(preg_match('/[A-Za-z]/', $en))->toBe(1, $where.' (English text)');
-                expect($options)->toHaveCount(4, $where);
+                expect(QuestionType::tryFrom($type))->not->toBeNull($where.' (a known type)');
 
-                $pairs = splitOptions($options);
-                foreach ($pairs as [$optionAr, $optionEn]) {
-                    expect(trim($optionAr))->not->toBe('', $where)->and(trim($optionEn))->not->toBe('', $where);
+                if ($type === 'multiple_choice') {
+                    expect($answer)->toBeArray($where)->toHaveCount(4, $where);
+                    $pairs = splitOptions($answer);
+                    foreach ($pairs as [$optionAr, $optionEn]) {
+                        expect(trim($optionAr))->not->toBe('', $where)->and(trim($optionEn))->not->toBe('', $where);
+                    }
+                    foreach ($answer as $option) {
+                        expect(substr_count($option, '|'))->toBeLessThanOrEqual(1, $where.' (one | per option)');
+                    }
+                    // Four different answers, in each language.
+                    expect(count(array_unique(array_map(fn ($pair) => mb_strtolower(trim($pair[0])), $pairs))))->toBe(4, $where.' (distinct Arabic options)');
+                    expect(count(array_unique(array_map(fn ($pair) => mb_strtolower(trim($pair[1])), $pairs))))->toBe(4, $where.' (distinct English options)');
+                } elseif ($type === 'true_false') {
+                    expect($answer)->toBeBool($where.' (true or false)');
+                } else {
+                    expect(is_int($answer) || is_float($answer))->toBeTrue($where.' (a number)');
+                    expect(abs((float) $answer))->toBeLessThanOrEqual(1_000_000_000_000);
                 }
-                foreach ($options as $option) {
-                    expect(substr_count($option, '|'))->toBeLessThanOrEqual(1, $where.' (one | per option)');
+
+                // The extras: only these, and each one well-formed.
+                $extras = $row[4] ?? [];
+                expect(array_diff(array_keys($extras), ['type', 'tolerance', 'image', 'fact']))->toBe([], $where.' (known extras only)');
+                if (isset($extras['tolerance'])) {
+                    expect($type)->toBe('closest_number', $where.' (a tolerance is for a number)')->and($extras['tolerance'])->toBeGreaterThan(0);
                 }
-                // Four different answers, in each language.
-                expect(count(array_unique(array_map(fn ($pair) => mb_strtolower(trim($pair[0])), $pairs))))->toBe(4, $where.' (distinct Arabic options)');
-                expect(count(array_unique(array_map(fn ($pair) => mb_strtolower(trim($pair[1])), $pairs))))->toBe(4, $where.' (distinct English options)');
+                if (isset($extras['fact'])) {
+                    expect(substr_count($extras['fact'], '|'))->toBe(1, $where.' (a fact is "arabic|english")');
+                    [$factAr, $factEn] = rowFact($row);
+                    expect(preg_match('/\p{Arabic}/u', $factAr))->toBe(1, $where.' (Arabic fact)')->and(preg_match('/[A-Za-z]/', $factEn))->toBe(1, $where.' (English fact)')
+                        ->and(mb_strlen($factAr))->toBeLessThanOrEqual(300)->and(mb_strlen($factEn))->toBeLessThanOrEqual(300);
+                }
+                if (isset($extras['image'])) {
+                    expect(is_file(database_path('seeders/data/images/'.$extras['image'])))->toBeTrue($where.' (the picture file exists)');
+                }
             }
         }
     });
@@ -125,10 +172,12 @@ describe('the content file', function () {
 
     it('has no garbled text: no word mixing Arabic and Latin letters, no Persian letters, no double spaces, no Arabic in English', function () {
         foreach (contentData()['questions'] as $slug => $questions) {
-            foreach ($questions as $index => [, $ar, $en, $options]) {
-                $pairs = splitOptions($options);
-                $arabic = [$ar, ...array_column($pairs, 0)];
-                $english = [$en, ...array_column($pairs, 1)];
+            foreach ($questions as $index => $row) {
+                [, $ar, $en] = $row;
+                $pairs = rowPairs($row);
+                $fact = rowFact($row);
+                $arabic = [$ar, ...array_column($pairs, 0), ...($fact ? [$fact[0]] : [])];
+                $english = [$en, ...array_column($pairs, 1), ...($fact ? [$fact[1]] : [])];
 
                 foreach ($arabic as $text) {
                     foreach (preg_split('/[\s().,;:\[\]«»"\-\/–؟،]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) as $word) {
@@ -173,28 +222,33 @@ describe('the content file', function () {
 });
 
 describe('seeding the content', function () {
-    it('stores every question with four options, exactly one of them correct, in both languages', function () {
+    it('stores every question complete for its kind and in both languages: four options with one right, True and False, or a number and no options', function () {
         (new ContentSeeder)->run();
 
-        $total = collect(contentData()['questions'])->flatten(1)->count();
-        expect(Category::count())->toBe(count(contentData()['categories']))->and(Question::count())->toBe($total)->and(QuestionOption::count())->toBe($total * 4);
+        $rows = collect(contentData()['questions'])->flatten(1);
+        $ofType = fn (string $type) => $rows->filter(fn (array $row) => rowType($row) === $type)->count();
+        expect(Category::count())->toBe(count(contentData()['categories']))->and(Question::count())->toBe($rows->count())
+            ->and(QuestionOption::count())->toBe($ofType('multiple_choice') * 4 + $ofType('true_false') * 2);
 
-        $questions = Question::with('options')->get();
-        foreach ($questions as $question) {
-            expect($question->options)->toHaveCount(4);
-            expect($question->options->where('is_correct', true))->toHaveCount(1);
+        foreach (Question::with('options')->get() as $question) {
+            expect($question->problems())->toBe([], 'question '.$question->getTranslation('text', 'en'));
             expect($question->getTranslation('text', 'ar'))->not->toBe('')->and($question->getTranslation('text', 'en'))->not->toBe('');
             foreach ($question->options as $option) {
                 expect($option->getTranslation('text', 'ar'))->not->toBe('')->and($option->getTranslation('text', 'en'))->not->toBe('');
             }
-            expect($question->options->pluck('sort_order')->all())->toBe([1, 2, 3, 4]);
+            expect($question->options->where('is_correct', true))->toHaveCount($question->type === QuestionType::ClosestNumber ? 0 : 1);
+            expect($question->options->pluck('sort_order')->all())->toBe(match ($question->type) {
+                QuestionType::MultipleChoice => [1, 2, 3, 4],
+                QuestionType::TrueFalse => [1, 2],
+                QuestionType::ClosestNumber => [],
+            });
         }
     });
 
     it('puts the right answer in every position, not always the first', function () {
         (new ContentSeeder)->run();
 
-        $positions = Question::with('options')->get()->map(fn ($q) => $q->options->search(fn ($o) => $o->is_correct))->countBy();
+        $positions = Question::with('options')->where('type', QuestionType::MultipleChoice->value)->get()->map(fn ($q) => $q->options->search(fn ($o) => $o->is_correct))->countBy();
 
         expect($positions->keys()->sort()->values()->all())->toBe([0, 1, 2, 3]);
         foreach ($positions as $count) {
@@ -256,6 +310,103 @@ describe('seeding the content', function () {
         $topLevel = array_keys(array_filter(contentData()['categories'], fn (array $category) => ! isset($category['parent'])));
         expect(Category::topLevel()->orderBy('sort_order')->pluck('slug')->all())->toBe($topLevel)
             ->and(Category::where('is_active', false)->count())->toBe(0);
+    });
+});
+
+describe('the variety pack: true/false, closest-number and picture questions', function () {
+    $ofType = fn (string $type) => collect(contentData()['questions'])->flatten(1)->filter(fn (array $row) => rowType($row) === $type);
+    $pictures = fn () => collect(contentData()['questions'])->flatten(1)->filter(fn (array $row) => isset($row[4]['image']));
+
+    it('ships at least 12 true/false, 10 closest-number and 8 picture questions', function () use ($ofType, $pictures) {
+        expect($ofType('true_false')->count())->toBeGreaterThanOrEqual(12)->and($ofType('closest_number')->count())->toBeGreaterThanOrEqual(10)->and($pictures()->count())->toBeGreaterThanOrEqual(8);
+    });
+
+    it('has a fun fact for most of them, and a tolerance for every year', function () use ($ofType) {
+        $withFacts = collect(contentData()['questions'])->flatten(1)->filter(fn (array $row) => rowType($row) !== 'multiple_choice')->filter(fn (array $row) => rowFact($row) !== null);
+
+        expect($withFacts->count())->toBeGreaterThanOrEqual(20);
+        foreach ($ofType('closest_number') as $row) {
+            // A tolerance of a quarter of the number suits a count; a year needs its own, small one.
+            if (str_contains(strtolower($row[2]), 'which year')) {
+                expect($row[4]['tolerance'] ?? null)->not->toBeNull($row[2])->and($row[4]['tolerance'])->toBeLessThanOrEqual(25);
+            }
+        }
+    });
+
+    it('is drawn by us: every picture is a small SVG with no script, no link and no font file, and every one is used', function () use ($pictures) {
+        $used = $pictures()->map(fn (array $row) => $row[4]['image'])->unique();
+        $files = collect(glob(database_path('seeders/data/images/*')))->map(fn ($file) => basename($file));
+
+        expect($files->sort()->values()->all())->toBe($used->sort()->values()->all());
+        foreach ($files as $file) {
+            $svg = file_get_contents(database_path("seeders/data/images/{$file}"));
+
+            expect($file)->toEndWith('.svg')->and(strlen($svg))->toBeLessThan(20 * 1024)->and($svg)->toStartWith('<svg xmlns="http://www.w3.org/2000/svg"')->toContain('viewBox="0 0 400 300"')
+                ->and(preg_match('/<script|<foreignObject|<image|<use|<style|<!ENTITY|<!DOCTYPE|javascript:|data:|\bon[a-z]+\s*=|href\s*=|@import|url\(/i', $svg))->toBe(0, $file);
+            expect(simplexml_load_string($svg))->not->toBeFalse($file.' is well-formed XML');
+        }
+    });
+
+    it('seeds them: the right types, the pictures on the pictures disk, a tolerance on every number', function () {
+        (new ContentSeeder)->run();
+
+        $byType = Question::query()->get()->groupBy(fn (Question $question) => $question->type->value);
+        expect($byType['true_false']->count())->toBeGreaterThanOrEqual(12)->and($byType['closest_number']->count())->toBeGreaterThanOrEqual(10);
+        foreach ($byType['closest_number'] as $number) {
+            expect($number->answer_number)->not->toBeNull()->and($number->tolerance)->toBeGreaterThan(0);
+        }
+
+        $withPicture = Question::query()->whereNotNull('image_path')->get();
+        expect($withPicture->count())->toBeGreaterThanOrEqual(8);
+        foreach ($withPicture as $question) {
+            expect($question->image_path)->toStartWith('seed/')->toEndWith('.svg')->and(Storage::disk(QuestionImage::DISK)->exists($question->image_path))->toBeTrue()
+                ->and($question->imageUrl())->toEndWith(basename($question->image_path));
+        }
+    });
+
+    it('is safe to run again: nothing is added twice, nothing an admin changed is changed back', function () {
+        (new ContentSeeder)->run();
+        $counts = [Question::count(), QuestionOption::count(), count(Storage::disk(QuestionImage::DISK)->allFiles())];
+        $flag = Question::where('type', QuestionType::TrueFalse->value)->first();
+        $flag->update(['is_active' => false]);
+        $edited = Question::where('type', QuestionType::ClosestNumber->value)->first();
+        $edited->update(['answer_number' => 12345, 'tolerance' => 3]);
+
+        (new ContentSeeder)->run();
+
+        expect([Question::count(), QuestionOption::count(), count(Storage::disk(QuestionImage::DISK)->allFiles())])->toBe($counts)
+            ->and($flag->fresh()->is_active)->toBeFalse()->and($edited->fresh()->answer_number)->toBe(12345.0)->and($edited->fresh()->tolerance)->toBe(3.0);
+    });
+
+    it('can play: a game on a category the pack touches draws all three kinds', function () {
+        (new ContentSeeder)->run();
+        $pool = app(QuestionPool::class);
+
+        foreach (Category::query()->topLevel()->get() as $category) {
+            $types = Question::query()->playable(['ar', 'en'])->whereIn('category_id', $pool->categories([$category->id]))->get()->pluck('type.value')->unique();
+            expect($types->count())->toBeGreaterThanOrEqual(1);
+        }
+        $all = Question::query()->playable(['ar', 'en'])->get()->pluck('type.value')->unique()->sort()->values()->all();
+        expect($all)->toBe(['closest_number', 'multiple_choice', 'true_false']);
+    });
+
+    it('reads a row with a fifth element, and a row without one, from a given set of data', function () {
+        (new ContentSeeder)->withData([
+            'categories' => ['maths' => ['ar' => 'رياضيات', 'en' => 'Maths', 'icon' => 'x']],
+            'questions' => ['maths' => [
+                ['easy', 'سؤال قديم؟', 'An old kind?', ['أ|A', 'ب|B', 'ج|C', 'د|D']],
+                ['easy', 'صح؟', 'Is it so?', false, ['type' => 'true_false', 'fact' => 'نعم|Yes']],
+                ['medium', 'كم؟', 'How many?', 12, ['type' => 'closest_number']],
+                ['medium', 'كم سنة؟', 'Which year?', 1990, ['type' => 'closest_number', 'tolerance' => 4]],
+                ['hard', 'ما هذا؟', 'What is it?', ['أ|A', 'ب|B', 'ج|C', 'د|D'], ['image' => 'shape-hexagon.svg']],
+            ]],
+        ])->run();
+
+        $questions = Question::with('options')->orderBy('id')->get();
+        expect($questions->pluck('type.value')->all())->toBe(['multiple_choice', 'true_false', 'closest_number', 'closest_number', 'multiple_choice'])
+            ->and($questions[1]->options->firstWhere('is_correct', true)->getTranslation('text', 'en'))->toBe('False')->and($questions[1]->getTranslation('explanation', 'ar'))->toBe('نعم')
+            ->and($questions[2]->tolerance)->toBe(3.0)->and($questions[3]->tolerance)->toBe(4.0)->and($questions[4]->image_path)->toBe('seed/shape-hexagon.svg')
+            ->and($questions->every(fn (Question $question) => $question->problems() === []))->toBeTrue();
     });
 });
 
