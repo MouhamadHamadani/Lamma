@@ -30,6 +30,12 @@ return [
         'waiting_seconds' => 90,
     ],
 
+    // The landing page. `show_free_line`: the line under "Host a game" that says hosting and playing are free for now (the words are in lang/*.json). Turn it
+    // off with LAMMA_LANDING_FREE_LINE=false when that stops being true.
+    'landing' => [
+        'show_free_line' => (bool) env('LAMMA_LANDING_FREE_LINE', true),
+    ],
+
     // Vote mode (App\Game\CategoryVote): how long a category vote stays open, and how long its result shows before the next question. Seconds.
     'vote_seconds' => 15,
     'vote_result_seconds' => 3,

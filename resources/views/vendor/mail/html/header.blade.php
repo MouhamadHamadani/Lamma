@@ -3,7 +3,7 @@
 <tr>
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
-<img src="{{ asset('brand/lamma-app-icon.png') }}" class="logo" width="56" height="56" alt="">
+<img src="{{ asset('brand/lamma-app-icon.png') }}" class="logo" width="56" height="56" alt="{{ config('app.name') }}">
 <span class="wordmark">{{ app()->getLocale() === 'ar' ? 'لمّة' : (trim($slot) ?: 'Lamma') }}</span>
 </a>
 </td>

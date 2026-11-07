@@ -57,7 +57,7 @@
         <header class="relative z-50 flex h-16 shrink-0 items-center justify-between">
             <div class="flex items-center gap-2">
                 @unless ($state)
-                    <x-lamma.logo size="sm" class="me-1 max-[379px]:[&>span]:hidden" />
+                    <x-lamma.logo size="sm" class="me-1 max-[379px]:[&>span]:sr-only" />
                 @endunless
                 <x-lamma.sound-toggle :phone="true" />
                 <x-lamma.haptics-toggle />

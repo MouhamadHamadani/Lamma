@@ -9,7 +9,7 @@
 @else
 <div class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
     <header class="flex h-16 shrink-0 items-center justify-between">
-        <a href="{{ route('home') }}"><x-lamma.logo size="sm" class="max-[379px]:[&>span]:hidden" /></a>
+        <a href="{{ route('home') }}"><x-lamma.logo size="sm" class="max-[379px]:[&>span]:sr-only" /></a>
         <div class="flex items-center gap-2">
             @if ($inLobby)
                 <x-lamma.sound-toggle :phone="true" />

@@ -1,6 +1,9 @@
 {{-- Public landing page. Reference: docs/design/screens/landing-desktop.html (>= 1024px) and landing-phone-*.html (below). --}}
 @php
-    $hostUrl = auth()->check() ? route('rooms.create') : route('login');
+    // A guest is sent to log in by the page itself and comes back to room creation afterwards (and a new sign-up is counted as a host's).
+    $hostUrl = route('rooms.create');
+    $demoUrl = route('demo');
+    $showFree = (bool) config('lamma.landing.show_free_line');
     $joinUrl = route('join');
     $nav = [['#how', __('How it works')], ['#hosts', __('For hosts')]];
     if ($categories->isNotEmpty()) {
@@ -23,7 +26,7 @@
     <header x-data="{ open: false }" class="relative mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-5 lg:h-22 lg:px-[clamp(40px,8.33vw,120px)]">
         <a href="{{ route('home') }}"><x-lamma.logo /></a>
 
-        <nav class="hidden gap-9 font-medium text-ink-muted lg:flex">
+        <nav class="hidden gap-9 font-medium text-ink-muted lg:flex" aria-label="{{ __('Main menu') }}">
             @foreach ($nav as [$href, $label])
                 <a href="{{ $href }}" class="hover:text-coral-700">{{ $label }}</a>
             @endforeach
@@ -51,7 +54,8 @@
             </button>
         </div>
 
-        <div id="mobile-menu" x-show="open" x-cloak x-on:click.outside="open = false" class="absolute inset-x-5 top-full z-20 flex flex-col rounded-card border-2 border-line bg-white p-3 shadow-soft lg:hidden">
+        <template x-if="open">
+        <nav id="mobile-menu" aria-label="{{ __('Main menu') }}" x-on:click.outside="open = false" class="absolute inset-x-5 top-full z-20 flex flex-col rounded-card border-2 border-line bg-white p-3 shadow-soft lg:hidden">
             @foreach ($nav as [$href, $label])
                 <a href="{{ $href }}" x-on:click="open = false" class="flex h-12 items-center rounded-input px-3 font-semibold hover:bg-tint-navy">{{ $label }}</a>
             @endforeach
@@ -63,7 +67,8 @@
                     <a href="{{ route('register') }}" class="flex h-12 items-center rounded-input px-3 font-semibold hover:bg-tint-navy">{{ __('Sign up') }}</a>
                 @endif
             @endauth
-        </div>
+        </nav>
+        </template>
     </header>
 
     <main>
@@ -114,9 +119,19 @@
                     <span class="h-px grow bg-line"></span>{{ __('or') }}<span class="h-px grow bg-line"></span>
                 </div>
 
-                <div class="order-4 flex items-center gap-5 lg:order-2">
-                    <x-lamma.button :href="$hostUrl" icon="play" class="w-full lg:w-auto lg:min-h-[60px] lg:text-lg">{{ __('Host a game') }}</x-lamma.button>
-                    <a href="#how" class="hidden items-center gap-2 text-[17px] font-semibold hover:text-coral-700 lg:flex">
+                <div class="order-4 flex flex-col gap-3 lg:order-2 lg:gap-4">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:gap-4">
+                        <x-lamma.button :href="$hostUrl" icon="play" class="w-full sm:w-auto lg:min-h-[60px] lg:text-lg" data-test="host-button">{{ __('Host a game') }}</x-lamma.button>
+                        <x-lamma.button :href="$demoUrl" variant="outline" class="w-full sm:w-auto lg:min-h-[60px] lg:text-lg" data-test="demo-button">{{ __('Try a demo') }}</x-lamma.button>
+                    </div>
+                    @if ($showFree)
+                        <p class="text-sm font-semibold text-ink-muted lg:text-[15px]" data-test="free-line">{{ __('Hosting and playing are free for now.') }}</p>
+                    @endif
+                    {{-- With a recorded clip (public/media/how-it-works.mp4) this opens it in a dialog; without one, it scrolls to the three steps. --}}
+                    <a
+                        href="#how" class="hidden items-center gap-2 self-start text-[17px] font-semibold hover:text-coral-700 lg:flex" data-test="how-link"
+                        @if ($howVideo) x-data x-on:click.prevent="$dispatch('open-dialog', { name: 'how-video' })" @endif
+                    >
                         {{ __('See how it works') }}
                         <x-lamma.icon name="arrow-right" :size="18" :stroke="2.2" class="rtl:-scale-x-100" />
                     </a>
@@ -161,10 +176,14 @@
                     <span class="font-display text-[15px] font-extrabold tracking-[2px] md:text-[17px] md:tracking-[3px]">K7MP</span>
                 </span>
 
-                @foreach ([['en', 'start-[330px] top-[250px] -rotate-5 rtl:rotate-5', 'Sara · EN'], ['ar', 'start-[460px] top-[200px] rotate-6 rtl:-rotate-6', 'علي · ع']] as [$loc, $pos, $who])
-                    <div @if ($loc === 'ar') dir="rtl" lang="ar" @endif class="{{ $pos }} absolute hidden h-[300px] w-[150px] rounded-[28px] bg-navy p-2 md:block {{ $floatShadow }}">
+                @foreach ([['en', 'start-[330px] top-[250px] -rotate-5 rtl:rotate-5', 'Sara', 'EN'], ['ar', 'start-[460px] top-[200px] rotate-6 rtl:-rotate-6', 'علي', 'ع']] as [$loc, $pos, $who, $badge])
+                    {{-- Each phone is in its own player's language whatever the page language is: that is the point, so it is marked as such. --}}
+                    <div lang="{{ $loc }}" dir="{{ $loc === 'ar' ? 'rtl' : 'ltr' }}" class="{{ $pos }} absolute hidden h-[300px] w-[150px] rounded-[28px] bg-navy p-2 md:block {{ $floatShadow }}">
                         <div class="flex h-full flex-col gap-[7px] rounded-[21px] bg-white px-2.5 pb-2.5 pt-4">
-                            <div class="flex justify-between px-0.5 pb-1 text-[10px] font-bold text-ink-muted"><span>{{ $who }}</span><span dir="ltr">0:12</span></div>
+                            <div class="flex items-center justify-between gap-2 px-0.5 pb-1 text-[10px] font-bold text-ink-muted">
+                                <span class="flex min-w-0 items-center gap-1.5"><span class="truncate">{{ $who }}</span><span class="rounded-md bg-tint-navy px-1.5 py-px text-[9px] text-navy">{{ $badge }}</span></span>
+                                <span dir="ltr">0:12</span>
+                            </div>
                             @foreach ($planets as $i => $planet)
                                 <div @class([$faces[$i], 'flex h-11 items-center gap-[7px] rounded-[10px] px-2.5 text-xs', 'font-bold shadow-[0_0_0_3px_var(--color-navy)]' => $loc === 'en' && $i === 1, 'font-semibold' => ! ($loc === 'en' && $i === 1)])>
                                     <x-lamma.shape :index="$i" :size="12" />{{ $t($planet, $loc) }}
@@ -197,7 +216,7 @@
 
                 <div class="flex grow flex-col gap-3.5 lg:gap-[18px]">
                     @foreach (['en', 'ar'] as $loc)
-                        <div @if ($loc === 'ar') dir="rtl" lang="ar" @endif class="flex flex-col gap-3.5 rounded-[18px] bg-white p-4 shadow-soft lg:rounded-[24px] lg:px-7 lg:py-[26px]">
+                        <div lang="{{ $loc }}" dir="{{ $loc === 'ar' ? 'rtl' : 'ltr' }}" class="flex flex-col gap-3.5 rounded-[18px] bg-white p-4 shadow-soft lg:rounded-[24px] lg:px-7 lg:py-[26px]">
                             <div class="flex justify-between text-[13px] font-bold text-ink-muted"><span>{{ config("locales.supported.$loc.short") }}</span><span>{{ $t('Question 3', $loc) }}</span></div>
                             <p class="font-display text-lg font-bold lg:text-[26px]">{{ $t('Which planet is known as the Red Planet?', $loc) }}</p>
                             <div class="flex gap-1.5 lg:gap-2">
@@ -299,6 +318,9 @@
                         <x-lamma.button variant="sun" :href="$hostUrl" class="lg:min-h-[60px]">{{ __('Host a game') }}</x-lamma.button>
                         <x-lamma.button variant="outline" on-dark :href="$joinUrl" class="lg:min-h-[60px]">{{ __('Join a room') }}</x-lamma.button>
                     </div>
+                    @if ($showFree)
+                        <p class="text-sm font-semibold text-ink-on-dark">{{ __('Hosting and playing are free for now.') }}</p>
+                    @endif
                 </div>
 
                 {{-- Decorative podium: 2nd, 1st (crown), 3rd --}}
@@ -325,7 +347,7 @@
     <footer class="mx-auto max-w-[1440px] px-5 lg:px-[clamp(40px,8.33vw,120px)]">
         <div class="flex flex-col gap-[18px] border-t border-line py-6 lg:h-[140px] lg:flex-row lg:items-center lg:justify-between lg:pb-5 lg:pt-0">
             <x-lamma.logo size="sm" />
-            <nav class="flex flex-wrap gap-x-[22px] gap-y-2 font-medium text-ink-muted lg:gap-x-8">
+            <nav class="flex flex-wrap gap-x-[22px] gap-y-2 font-medium text-ink-muted lg:gap-x-8" aria-label="{{ __('Footer menu') }}">
                 <a href="#how" class="hover:text-coral-700">{{ __('How it works') }}</a>
                 @if ($categories->isNotEmpty())
                     <a href="#categories" class="hover:text-coral-700">{{ __('Categories') }}</a>
@@ -343,6 +365,18 @@
             <span class="text-[13px] text-ink-subtle lg:text-sm">&copy; {{ now()->year }} Lamma · <span lang="ar">لمّة</span></span>
         </div>
     </footer>
+
+    @if ($howVideo)
+        <x-lamma.dialog name="how-video" :title="__('How it works')" class="max-w-3xl!" x-on:close="$el.querySelector('video')?.pause()">
+            <video controls playsinline preload="none" class="aspect-video w-full rounded-input bg-navy" @if ($howVideo['poster']) poster="{{ $howVideo['poster'] }}" @endif data-test="how-video">
+                <source src="{{ $howVideo['src'] }}" type="video/mp4">
+                @foreach ($howVideo['captions'] as $track)
+                    <track kind="captions" src="{{ $track['src'] }}" srclang="{{ $track['lang'] }}" label="{{ $track['label'] }}" @if ($track['lang'] === app()->getLocale()) default @endif>
+                @endforeach
+            </video>
+            <form method="dialog"><x-lamma.button variant="outline" type="submit" class="w-full">{{ __('Close') }}</x-lamma.button></form>
+        </x-lamma.dialog>
+    @endif
 
     <x-lamma.consent-banner floating />
 </x-layouts::lamma>

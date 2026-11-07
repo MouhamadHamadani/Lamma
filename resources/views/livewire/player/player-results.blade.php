@@ -20,7 +20,7 @@
     @endif
 
     <header class="relative flex h-16 shrink-0 items-center justify-between">
-        <x-lamma.logo size="sm" class="max-[379px]:[&>span]:hidden" />
+        <x-lamma.logo size="sm" class="max-[379px]:[&>span]:sr-only" />
         <div class="flex items-center gap-2">
             <x-lamma.sound-toggle :phone="true" />
             <x-lamma.haptics-toggle />
