@@ -3,7 +3,7 @@
 @php
     $input = 'w-full rounded-btn border-2 bg-white px-[18px] text-navy placeholder:text-ink-subtle';
 @endphp
-<form wire:submit="join" class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-7" novalidate>
+<form wire:submit="join" class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-7" novalidate x-init="window.lammaTrack('join_page_viewed', {}, 'join-page')">
     <header class="flex h-16 shrink-0 items-center justify-between">
         <a href="{{ route('home') }}"><x-lamma.logo size="sm" /></a>
         <x-lamma.language-switcher />

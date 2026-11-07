@@ -96,3 +96,21 @@ it('is silent when analytics is off', function () {
         ->assertScript("!document.querySelector('[data-test=consent-banner]')")
         ->assertScript('typeof window.lammaTrack === "function"');
 });
+
+it('sends the funnel\'s join_page_viewed only after the visitor has accepted, with no parameters, and once per browser session', function () {
+    $joinViews = "(window.dataLayer || []).filter((entry) => entry[0] === 'event' && entry[1] === 'join_page_viewed')";
+
+    // Asked first: the view is dropped, and accepting does not bring it back (only events the server flashed for the next page are replayed).
+    $page = visit('/join')->withLocale('en')->resize(390, 844)->wait(1);
+    $page->assertScript("{$joinViews}.length === 0");
+    $page->click('[data-test=consent-accept]')->wait(1)->assertScript("{$joinViews}.length === 0");
+
+    // Remembered: the next view is reported, with nothing in it (no code, no name).
+    $page->script('location.reload()');
+    $page->wait(1.5)->assertScript("{$joinViews}.length === 1 && Object.keys({$joinViews}[0][2]).length === 0")
+        ->assertScript('!/K7MP|nickname|code/.test(JSON.stringify(Array.from(window.dataLayer, (entry) => Array.from(entry))))');
+
+    // Once per session: another view in the same session is not counted again.
+    $page->script('location.reload()');
+    $page->wait(1.5)->assertScript("{$joinViews}.length === 0")->assertNoJavaScriptErrors();
+});

@@ -37,6 +37,40 @@ class GameStats
     }
 
     /**
+     * The funnel of the last $days days (today included), computed from the database: rooms created, games started, games played to the end, how many of those
+     * were played again, and the average number of people in a started game. Demo games and bots are NOT in these figures: a demo has its own (what is left of
+     * the last two hours' rooms plus what lamma:prune tallied: App\Game\DemoStats).
+     *
+     * @return array{created: int, started: int, finished: int, rematched: int, rematch_rate: int|null, average_players: float|null, demo: array{started: int, finished: int, converted: int}}
+     */
+    public function funnel(int $days = 30): array
+    {
+        $since = now()->subDays($days - 1)->startOfDay();
+        $rooms = fn () => Room::query()->real()->where('created_at', '>=', $since);
+
+        $started = $rooms()->whereNotNull('started_at')->count();
+        $finished = $rooms()->completed()->count();
+        $rematched = $rooms()->completed()->whereNotNull('next_room_id')->count();
+        $players = RoomPlayer::query()->where('is_bot', false)->whereIn('room_id', $rooms()->whereNotNull('started_at')->select('rooms.id'))->count();
+
+        return [
+            'created' => $rooms()->count(),
+            'started' => $started,
+            'finished' => $finished,
+            'rematched' => $rematched,
+            'rematch_rate' => self::share($rematched, $finished),
+            'average_players' => $started > 0 ? round($players / $started, 1) : null,
+            'demo' => app(DemoStats::class)->summary($days),
+        ];
+    }
+
+    /** $part as a whole percentage of $whole, or null when there is nothing to compare with. */
+    public static function share(int $part, int $whole): ?int
+    {
+        return $whole > 0 ? (int) round($part / $whole * 100) : null;
+    }
+
+    /**
      * Categories by how many of their questions were asked in rooms, most first. `room_questions_count` is on each. With $rollUp (the
      * default) a subcategory's questions count for its parent, so the list is of top-level categories; without it the list is of the
      * subcategories alone.

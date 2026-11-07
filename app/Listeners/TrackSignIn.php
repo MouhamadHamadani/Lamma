@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Game\PlayerIdentity;
 use App\Support\Analytics;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
@@ -19,5 +20,15 @@ class TrackSignIn
         }
 
         Analytics::flash($event instanceof Registered ? 'sign_up' : 'login');
+
+        // Someone who signed up in order to host: the page they were heading for was room creation ("Host a game"), or this browser had just hosted a demo.
+        if ($event instanceof Registered && $this->cameToHost()) {
+            Analytics::flash('host_signup');
+        }
+    }
+
+    private function cameToHost(): bool
+    {
+        return str_starts_with((string) session('url.intended'), route('rooms.create')) || app(PlayerIdentity::class)->demoHostToken() !== null;
     }
 }
