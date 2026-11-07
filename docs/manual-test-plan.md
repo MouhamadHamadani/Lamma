@@ -5,7 +5,7 @@ differs from "Expect". For how to start the servers and put phones on the laptop
 [realtime-testing.md](realtime-testing.md); this file assumes that works. Section 17 is the same game on the **live domain**,
 after a deploy ([deployment.md](deployment.md)), section 18 is the **selfie** step on real phones (the one thing the automated tests cannot do: a real front camera), and
 section 19 is **sound and motion**: what needs your ears and a real device ([sound-and-motion.md](sound-and-motion.md) lists every sound and animation).
-Section 20 is **Vote mode**, the second game mode: the phones vote on the category of the next questions.
+Section 20 is **Vote mode**, the second game mode: the phones vote on the category of the next questions. Section 22 is the **new question types**: true/false, pictures, closest number and the fun fact.
 
 ## What the automated tests already prove
 
@@ -364,6 +364,29 @@ The same laptop and phones. Start a Classic game with the defaults and watch the
 | ☐ | **The end.** The phone's results say *Saved to your profile* and the game is in `/me/games`. **Play again** on the big screen: your phone follows to the new lobby like the others. | HostPhoneTest *phone* |
 | ☐ | **The host's phone as a guest.** Log out on the phone and join a new room as a guest: it works, with a Save your score card; logging in there as the host saves it. | HostPhoneTest, ClaimGuestResultsTest *phone* |
 
+## 22. True/false, pictures, closest number and the fun fact (Phase 13)
+
+The same laptop and phones. The shipped content has the new kinds (12 true/false, 10 closest-number and 8 picture questions), so a Mixed game of 20 questions on All categories will meet most of
+them; to see one on purpose, add a question in the admin (**Questions > New**, pick the type) and play a game of just its category. Check Arabic on one phone and English on another.
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **True or false.** The big screen says *True or false?* and shows two big tiles, **True** (coral triangle, A) and **False** (teal circle, B), with «صحيح» / «خطأ» beside them in Both. A phone shows two tall tiles in its own language. One tap locks the answer. The reveal marks the right tile and scores like any answer (speed bonus included). | QuestionTypeScreensTest, QuestionTypesTest *browser* *phone* |
+| ☐ | **A picture.** Open a picture question (a flag, a clock). The picture is **above the options** on the big screen and in the phone's question card, nothing scrolls at 1280x720, and every tap target on the phone is still 72 px or more (on a 640 px-tall phone the page may scroll a little). A screen reader says "Picture for this question", never what it shows. Turn the Wi-Fi off for the picture only (or break its file): the frame disappears, the question is still playable. | QuestionTypeScreensTest, QuestionTypesTest *browser* *phone* |
+| ☐ | **Closest number: the guess.** The big screen has no tiles: *Type your guess on your phone* and the players' avatars, each getting a check as they guess, **N of M guessed**. On a phone you get a number box with a decimal keypad and a **Lock in my guess** button that is locked until you type a digit. Type **abc**: nothing to press. Type digits in Arabic (٠-٩) on an Arabic keyboard: it works and the locked card shows Western digits. Type **1,969** and **1969.0**: both are read. | ClosestNumberTest, GuessNumberTest, QuestionTypesTest *browser* *phone* |
+| ☐ | **One go.** After locking, the card says **Guess locked in** with your number; you cannot change it, and a second tap does nothing. Reload the phone: it is still locked. Reload mid-typing on another phone: nothing is wiped by the 4 s refresh while you type. | ClosestNumberTest, QuestionTypeScreensTest *phone* |
+| ☐ | **The number is a secret until the reveal.** While the question is open, look at the host's page source and the phone's: nobody's number and not the right answer anywhere (try a distinctive one, such as 7351). | QuestionTypePayloadTest |
+| ☐ | **Closest number: the reveal.** Everyone's guess is an avatar on a **number line**, the right number marked under it with a check, and a **ranked list** (nearest first, **Closest** badge, **Off by N** or **Exact**, +points). The closest guess gets **+50** on top; two equal distances share it. A phone shows **Spot on!**, **Close!** or **Not quite!**, "100 + 50 closest", the correct answer and your guess. There is no speed bonus. | ClosestNumberTest, QuestionTypeScreensTest *phone* |
+| ☐ | **Scoring by hand.** A number with tolerance 10: exact = 100, 3 away = 70, 5 away = 50, 10 or more away = 0. On the last question everything doubles (the +50 too). | ClosestNumberTest |
+| ☐ | **Early reveal.** When every connected player has answered a question of any type (a number too), it reveals at once; a player who left is not waited for. | ClosestNumberTest, MixedTypesSimulationTest |
+| ☐ | **The fun fact.** Under the correct answer on the big screen (one or two lines; the Arabic line under the English one in Both) and in a card on the phone, only after the reveal. A question without one shows nothing. The 5-second pause and Next question work as before. | QuestionTypeScreensTest |
+| ☐ | **Vote mode and Classic both.** Play a Vote game with a pool whose categories contain all three kinds: every kind is asked, voted batches still work, the last question doubles. | MixedTypesSimulationTest |
+| ☐ | **Admin: the form.** Questions > New: the **Type** selector shows the right fields (four options; True/False as one choice; the number and tolerance), a **Picture** upload with a preview, and Arabic / English **fun fact** tabs. Upload a GIF, a text file renamed `.jpg` and a 5 MB photo: each is refused with a plain message. Upload a normal JPEG: the preview shows and, once saved, the file in `storage/app/public/questions` is a `.webp`. | QuestionTypesAdminTest, QuestionImageTest |
+| ☐ | **Admin: the list.** A Type column and filter, a Picture filter, thumbnails, a **Complete** column (hover a red one for the reason) and an **Incomplete** filter. Switch a question's type in the edit form: the options appear or go as they should. | QuestionTypesAdminTest |
+| ☐ | **Admin: the import.** Download the **CSV template**: it has one example of each type. Import it with a picture chosen in the second box. A row with a missing picture, a bad number or a bad type is reported with its row number and the rest are imported. | QuestionImportTypesTest |
+| ☐ | **Statistics.** After a few games: the **Questions most often answered wrong** widget shows each question's type, and a number question counts as right when the guess scored; the question list's % correct agrees. | QuestionStatsTypesTest |
+| ☐ | **Deploy.** `php artisan migrate` (one migration), `php artisan db:seed --class=ContentSeeder --force` (adds the 30 new questions and copies the 8 drawings to `storage/app/public/questions/seed`), `php artisan storage:link` if missing. `lamma:doctor` has a **Question pictures** row: PASS. | DoctorTest |
+
 ## Sign-off
 
 | Area | Result | Notes |
@@ -389,5 +412,6 @@ The same laptop and phones. Start a Classic game with the defaults and watch the
 | 19 Sound and motion | | |
 | 20 Vote mode | | |
 | 21 Speed bonus, double final, host's phone | | |
+| 22 True/false, pictures, closest number | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

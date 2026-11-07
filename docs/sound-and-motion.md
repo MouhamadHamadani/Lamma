@@ -102,3 +102,10 @@ pages.
 accessibility problems, no scrolling on the host), once with reduced motion (no running transform animation, no confetti canvas), and plays a whole game
 with the sound store recording what plays. `docs/manual-test-plan.md` has the "Sound and motion" section for real phones (sound unlock, haptics, mute
 persistence, the iOS silent switch, the reduced-motion setting): the things that need ears and a real device.
+
+## Phase 13: question types
+
+No new sound names. A closest-number question's **Lock in my guess** button plays `lock-in` and the tap buzz, like a tile; the host's answered tick (`tap`) plays for every guess; the reveal uses `reveal`
+(and `rank-up`) as before. New motion, all `transform` and `opacity` behind `motion-safe:` with a fade under reduced motion: the pins on the reveal's number line and the answer's marker use
+`drop-in` (90 ms apart), the ranked guesses use `row-in` (60 ms apart), the phone's locked number card uses `settle`. They run once: the screens' Livewire refreshes cannot replay them because the
+sounds are `$store.sound.once` cues and the number line is only drawn after the reveal.
