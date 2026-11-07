@@ -1,6 +1,8 @@
 {{-- References: docs/design/screens/player-3-question.html (+ -ar), player-4-answered.html, player-5-correct.html. Designed at 390x844, a phone-width
      column on bigger screens. Everything is the player's own language. State comes from the database (GameView) on every render, refreshed by the
      broadcast events and a 4 s poll, so a reconnect or a reload lands on the right screen. Nothing here says which option is correct until the reveal. --}}
+@use('App\Enums\QuestionType')
+@use('App\Game\GuessNumber')
 @use('App\Game\Scoreboard')
 @use('App\Support\Isolate')
 @php
@@ -8,15 +10,24 @@
     $position = $state?->position();
     $chosen = $answer ? $state->options->firstWhere('id', $answer->question_option_id) : null;
     $correctOption = $state?->correctOptionId ? $state->options->firstWhere('id', $state->correctOptionId) : null;
+    // Phase 13: the kind of question, its picture, the number (closest number: typed, not tapped; known only after the reveal), the fun fact (after the reveal too).
+    $number = (bool) $state?->isNumber();
+    $trueFalse = $state?->type() === QuestionType::TrueFalse;
+    $picture = $state?->question->imageUrl();
+    $fact = $state?->factFor($lang);
+    $correctNumber = $number && $state->correctNumber !== null ? GuessNumber::format($state->correctNumber) : null;
+    $myGuess = $answer?->number_value !== null ? GuessNumber::format((float) $answer->number_value) : null;
+    $exact = $number && $answer?->number_value !== null && $state->correctNumber !== null && abs((float) $answer->number_value - $state->correctNumber) < 0.00005;
+    $correctText = $number ? (string) $correctNumber : ($correctOption ? $tr($correctOption, 'text') : '');
     $gained = $answer?->points ?? 0;
     $rankHtml = $row ? '<bdi dir="ltr">'.e(Scoreboard::ordinal($row['rank'])).'</bdi>' : '';
     $pointsHtml = '<bdi dir="ltr">'.e((string) ($row['total'] ?? $me->score)).'</bdi>';
     $announce = match ($phase) {
-        'question' => __('Question :n of :total', ['n' => $position, 'total' => $state?->total]),
-        'answered' => __('Answer locked in'),
-        'correct' => $streak >= 3 ? __('Correct, plus :points points, :count in a row', ['points' => $gained, 'count' => $streak]) : __('Correct, plus :points points', ['points' => $gained]),
-        'wrong' => __('Not quite, the answer was :answer', ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
-        'timeout' => __("Time's up, the answer was :answer", ['answer' => $correctOption ? $tr($correctOption, 'text') : '']),
+        'question' => __('Question :n of :total', ['n' => $position, 'total' => $state?->total]).($trueFalse ? '. '.__('True or false?') : ($number ? '. '.__('Type your guess below.') : '')),
+        'answered' => $number ? __('Guess locked in') : __('Answer locked in'),
+        'correct' => ($streak >= 3 ? __('Correct, plus :points points, :count in a row', ['points' => $gained, 'count' => $streak]) : __('Correct, plus :points points', ['points' => $gained])).($number ? '. '.__('The answer was :answer', ['answer' => $correctText]) : ''),
+        'wrong' => __('Not quite, the answer was :answer', ['answer' => $correctText]),
+        'timeout' => __("Time's up, the answer was :answer", ['answer' => $correctText]),
         'vote' => $vote->wasExtended() ? __('Vote extended') : __('Vote started'),
         'voted' => __('Vote locked in'),
         'vote-result' => __(':category won', ['category' => $vote?->winner()?->getTranslation('name', $lang, false) ?? '']),
@@ -24,6 +35,9 @@
     };
     if ($state?->doubled && in_array($phase, ['question', 'correct'], true)) {
         $announce .= '. '.__('Double points');
+    }
+    if ($fact && in_array($phase, ['correct', 'wrong', 'timeout'], true)) {
+        $announce .= '. '.$fact['text'];
     }
     $seconds = $room->settings->secondsPerQuestion;
 @endphp
@@ -166,22 +180,42 @@
                             <x-lamma.double-chip />
                         @endif
                     </div>
+                    @if ($trueFalse)
+                        <span class="text-[13px] font-bold text-coral-700" data-test="question-kind">{{ __('True or false?') }}</span>
+                    @endif
                     <h1 lang="{{ $lang }}" class="text-balance font-display text-[25px] font-extrabold leading-tight" data-test="question-text">{{ $tr($state->question, 'text') }}</h1>
+                    @if ($picture)
+                        {{-- Above the options. It shrinks with the screen's height, never the tiles: they keep their 72px tap targets. --}}
+                        <x-lamma.question-image :src="$picture" class="mt-1 h-[clamp(88px,19dvh,200px)] w-full [@media(max-height:700px)]:h-[clamp(72px,14dvh,120px)]" />
+                    @endif
                 </div>
 
-                <div class="flex flex-col gap-3" data-test="answers">
-                    @foreach ($state->options as $index => $option)
-                        <x-lamma.answer
-                            size="phone" :index="$index" :lang="$lang" :text="$tr($option, 'text')"
-                            wire:click="answer({{ $option->id }})" wire:loading.attr="disabled" wire:target="answer"
-                            x-on:click="$store.sound.play('lock-in'); $store.sound.buzz('tap')"
-                            class="motion-safe:animate-slide-in motion-reduce:animate-fade-in" style="animation-delay: {{ $index * 60 }}ms" data-option="{{ $option->id }}"
-                        />
-                    @endforeach
-                </div>
+                @if ($number)
+                    {{-- Closest number: type it. The form is wire:ignore (a refresh never wipes what is half typed); a typed non-number is refused below and can be fixed. --}}
+                    <div class="flex flex-col gap-3" data-test="answers">
+                        <x-lamma.number-input :label="__('Your guess')" :button="__('Lock in my guess')" />
+                        @if ($guessError)
+                            <p class="flex items-center gap-1.5 text-[15px] font-semibold text-coral-700" role="alert" data-test="guess-error"><x-lamma.icon name="alert" :size="18" />{{ $guessError }}</p>
+                        @endif
+                    </div>
 
-                <div class="grow"></div>
-                <p class="text-center text-sm text-ink-subtle">{{ __("Tap one answer. You can't change it after.") }}</p>
+                    <div class="grow"></div>
+                    <p class="text-center text-sm text-ink-subtle">{{ __("The closest guess wins a bonus. You can't change it after.") }}</p>
+                @else
+                    <div class="flex flex-col gap-3" data-test="answers">
+                        @foreach ($state->options as $index => $option)
+                            <x-lamma.answer
+                                size="phone" :index="$index" :lang="$lang" :text="$tr($option, 'text')" :tall="$trueFalse"
+                                wire:click="answer({{ $option->id }})" wire:loading.attr="disabled" wire:target="answer"
+                                x-on:click="$store.sound.play('lock-in'); $store.sound.buzz('tap')"
+                                class="motion-safe:animate-slide-in motion-reduce:animate-fade-in" style="animation-delay: {{ $index * 60 }}ms" data-option="{{ $option->id }}"
+                            />
+                        @endforeach
+                    </div>
+
+                    <div class="grow"></div>
+                    <p class="text-center text-sm text-ink-subtle">{{ __("Tap one answer. You can't change it after.") }}</p>
+                @endif
             </main>
 
         @elseif ($phase === 'answered')
@@ -190,8 +224,17 @@
                 <x-lamma.timer-bar :ends-at="$state->roomQuestion->ends_at" :seconds="$seconds" data-test="timer" />
 
                 <div class="flex grow flex-col items-center justify-center gap-[22px] text-center">
-                    <span class="text-sm font-bold text-coral-700">{{ __('Answer locked in') }}</span>
-                    <x-lamma.answer size="phone" state="locked" :index="(int) $state->indexOf($answer->question_option_id)" :lang="$lang" :text="$chosen ? $tr($chosen, 'text') : ''" class="motion-safe:animate-settle motion-reduce:animate-fade-in" data-test="locked-answer" />
+                    <span class="text-sm font-bold text-coral-700">{{ $number ? __('Guess locked in') : __('Answer locked in') }}</span>
+                    @if ($number)
+                        {{-- The number as the server read it (an Arabic-digit guess shows in Western digits), on the same tilted sticker the locked tile uses. --}}
+                        <div class="flex min-h-[190px] w-[260px] -rotate-3 flex-col items-center justify-center gap-2 rounded-card border-3 border-navy bg-sun px-4 py-5 text-center shadow-sticker-lg motion-safe:animate-settle motion-reduce:animate-fade-in" data-test="locked-answer">
+                            <x-lamma.icon name="target" :size="36" :stroke="2.2" />
+                            <span class="text-sm font-bold">{{ __('Your guess') }}</span>
+                            <bdi dir="ltr" class="max-w-full break-all font-display text-[44px] font-extrabold leading-none" data-test="locked-number">{{ $myGuess }}</bdi>
+                        </div>
+                    @else
+                        <x-lamma.answer size="phone" state="locked" :index="(int) $state->indexOf($answer->question_option_id)" :lang="$lang" :text="$chosen ? $tr($chosen, 'text') : ''" class="motion-safe:animate-settle motion-reduce:animate-fade-in" data-test="locked-answer" />
+                    @endif
                     <span aria-hidden="true" class="flex gap-2">
                         @foreach (['bg-coral', 'bg-sun', 'bg-teal'] as $n => $color)
                             <span class="size-3 rounded-full {{ $color }} motion-safe:animate-dots" style="animation-delay: {{ $n * 150 }}ms"></span>
@@ -199,11 +242,11 @@
                     </span>
                     <div class="flex flex-col gap-1.5">
                         <h1 class="font-display text-[28px] font-extrabold">{{ __('Waiting for the others…') }}</h1>
-                        <p class="text-base text-ink-muted" aria-live="polite" data-test="answered-count">{{ __(':answered of :total answered', ['answered' => $state->answered, 'total' => $state->expected]) }}</p>
+                        <p class="text-base text-ink-muted" aria-live="polite" data-test="answered-count">{{ $number ? __(':answered of :total guessed', ['answered' => $state->answered, 'total' => $state->expected]) : __(':answered of :total answered', ['answered' => $state->answered, 'total' => $state->expected]) }}</p>
                     </div>
                 </div>
 
-                <p class="text-center text-sm text-ink-subtle">{{ __('The answer shows when time is up or everyone has answered.') }}</p>
+                <p class="text-center text-sm text-ink-subtle">{{ $number ? __('The answer shows when time is up or everyone has guessed.') : __('The answer shows when time is up or everyone has answered.') }}</p>
             </main>
 
         @elseif (in_array($phase, ['correct', 'wrong', 'timeout'], true))
@@ -233,7 +276,7 @@
                 </span>
 
                 <h1 class="font-display text-[56px] font-extrabold leading-none motion-safe:animate-fade-up" data-test="result-title">
-                    {{ ['correct' => __('Correct!'), 'wrong' => __('Not quite!'), 'timeout' => __("Time's up!")][$phase] }}
+                    {{ ['correct' => $number ? ($exact ? __('Spot on!') : __('Close!')) : __('Correct!'), 'wrong' => __('Not quite!'), 'timeout' => __("Time's up!")][$phase] }}
                 </h1>
 
                 <div class="flex flex-wrap items-center justify-center gap-3">
@@ -254,7 +297,14 @@
                 {{-- How the +N was made up. An answer from before the speed bonus (a game running across the deploy) has no breakdown. --}}
                 @if ($phase === 'correct' && $answer->speed_bonus !== null)
                     <div class="flex flex-col items-center gap-1.5 text-[15px] font-bold" data-test="points-breakdown">
-                        <p>{!! __(':base + :bonus speed', ['base' => Isolate::ltr($answer->base_points), 'bonus' => Isolate::ltr($answer->speed_bonus)]) !!}</p>
+                        @if ($number)
+                            {{-- No speed bonus on a number; the extra is for the closest guess. --}}
+                            @if ($answer->closest_bonus)
+                                <p>{!! __(':base + :bonus closest', ['base' => Isolate::ltr($answer->base_points), 'bonus' => Isolate::ltr($answer->closest_bonus)]) !!}</p>
+                            @endif
+                        @else
+                            <p>{!! __(':base + :bonus speed', ['base' => Isolate::ltr($answer->base_points), 'bonus' => Isolate::ltr($answer->speed_bonus)]) !!}</p>
+                        @endif
                         @if ($answer->multiplier > 1)
                             <p class="flex items-center gap-2"><x-lamma.double-chip />{{ __('final question') }}</p>
                         @endif
@@ -267,7 +317,21 @@
 
                 <div class="grow"></div>
 
-                @if ($correctOption)
+                @if ($number && $correctNumber !== null)
+                    <div class="flex w-full items-center gap-3.5 rounded-tile border-2 border-line bg-cream px-[18px] py-4 text-start" data-test="correct-answer">
+                        <span class="flex size-11 shrink-0 items-center justify-center rounded-xl border-3 border-navy bg-teal"><x-lamma.icon name="target" :size="22" /></span>
+                        <span class="flex min-w-0 grow flex-col">
+                            <span class="text-[13px] font-bold text-ink-subtle">{{ __('Correct answer') }}</span>
+                            <bdi dir="ltr" class="font-display text-[22px] font-extrabold leading-tight" data-test="correct-number">{{ $correctNumber }}</bdi>
+                        </span>
+                        @if ($myGuess !== null)
+                            <span class="flex shrink-0 flex-col text-end">
+                                <span class="text-[13px] font-bold text-ink-subtle">{{ __('Your guess') }}</span>
+                                <bdi dir="ltr" class="font-display text-[22px] font-extrabold leading-tight" data-test="my-guess">{{ $myGuess }}</bdi>
+                            </span>
+                        @endif
+                    </div>
+                @elseif ($correctOption)
                     @php $correctIndex = (int) $state->indexOf($correctOption->id); @endphp
                     <div class="flex w-full items-center gap-3.5 rounded-tile border-2 border-line bg-cream px-[18px] py-4 text-start" data-test="correct-answer">
                         <span class="flex size-11 shrink-0 items-center justify-center rounded-xl border-3 border-navy {{ ['bg-coral', 'bg-teal', 'bg-sun', 'bg-navy text-cream'][$correctIndex % 4] }}">
@@ -278,6 +342,10 @@
                             <span lang="{{ $lang }}" class="font-display text-[22px] font-extrabold leading-tight">{{ $tr($correctOption, 'text') }}</span>
                         </span>
                     </div>
+                @endif
+
+                @if ($fact)
+                    <x-lamma.fun-fact :text="$fact['text']" :lang="$fact['lang']" size="phone" class="w-full" />
                 @endif
 
                 <p class="text-[15px] font-bold">{{ $state->isLast() ? __('Final results coming up…') : __('Next question coming up…') }}</p>

@@ -239,14 +239,20 @@ function guess(RoomPlayer $player, string|int|float $typed): PlayerAnswer
     return app(GameEngine::class)->submitAnswer($player, $typed);
 }
 
+/** 64 letters and digits: a guest token. */
+function typedToken(): string
+{
+    return 'ty'.str_repeat('x', 62);
+}
+
 /**
  * A lobby whose game has exactly these question types, in this order: each one gets the next difficulty (easy, medium, hard, then hard again), and a Mixed game
- * climbs easy to hard, so question 1 is the first type. A closest-number question is 1969 with a tolerance of 10 (the one every test below uses); a
+ * climbs easy to hard, so question 1 is the first type. A closest-number question is 1969 with a tolerance of 10 unless said otherwise; a
  * true/false one is True; every other kind has four options, the first correct.
  *
  * @param  list<string>  $types  QuestionType values
  */
-function typedRoom(array $types = ['multiple_choice', 'true_false', 'closest_number'], int $players = 3, array $settings = [], ?User $host = null, bool $withImage = false): Room
+function typedRoom(array $types = ['multiple_choice', 'true_false', 'closest_number'], int $players = 3, array $settings = [], ?User $host = null, bool $withImage = false, float $number = 1969, float $tolerance = 10): Room
 {
     $category = Category::factory()->create();
     $levels = [Difficulty::Easy, Difficulty::Medium, Difficulty::Hard];
@@ -255,7 +261,7 @@ function typedRoom(array $types = ['multiple_choice', 'true_false', 'closest_num
         $factory = Question::factory()->state(['category_id' => $category->id, 'difficulty' => $levels[min($index, 2)]])->withFact();
         $factory = match (QuestionType::from($type)) {
             QuestionType::TrueFalse => $factory->trueFalse(),
-            QuestionType::ClosestNumber => $factory->closestNumber(1969, 10),
+            QuestionType::ClosestNumber => $factory->closestNumber($number, $tolerance),
             QuestionType::MultipleChoice => $factory->withOptions(),
         };
         $factory->when($withImage, fn ($f) => $f->withImage('picture-'.$index.'.webp'))->create();

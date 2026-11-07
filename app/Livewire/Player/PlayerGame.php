@@ -26,6 +26,10 @@ class PlayerGame extends Component
     #[Locked]
     public Room $room;
 
+    /** Closest number: why the last typed guess was refused (it was not a number). Cleared on the next try and whenever the question is over. */
+    #[Locked]
+    public ?string $guessError = null;
+
     public function mount(Room $room): void
     {
         $this->room = $room;
@@ -77,6 +81,25 @@ class PlayerGame extends Component
     }
 
     /**
+     * Closest number: lock in a typed guess. $value is exactly what the player typed; the server reads it (App\Game\GuessNumber), so Arabic digits and separators work.
+     * One go, like a tap on a tile: a late, repeated or out-of-turn guess is refused by the engine and the screen shows the game as it is. Only a typed non-number is
+     * answered, with a message, and does NOT lock anything: the player can fix it and try again.
+     */
+    public function guess(GameEngine $engine, PlayerIdentity $identity, string $value): void
+    {
+        $player = $identity->playerIn($this->room) ?? abort(403);
+        $this->guessError = null;
+
+        try {
+            $engine->submitAnswer($player, $value);
+        } catch (AnswerRejected $rejected) {
+            if ($rejected->reason === AnswerRejected::INVALID_NUMBER) {
+                $this->guessError = __('That is not a number. Try digits, like 1969.');
+            }
+        }
+    }
+
+    /**
      * Vote mode: vote for the category of the next questions. One tap and it is final, like an answer; a late, repeated or out-of-turn tap is
      * refused by the engine and the screen shows the vote as it is.
      */
@@ -111,6 +134,11 @@ class PlayerGame extends Component
             default => 'timeout',
         };
 
+        // A message about a typed guess belongs to the question it was typed on.
+        if ($phase !== 'question') {
+            $this->guessError = null;
+        }
+
         return view('livewire.player.player-game', [
             'me' => $me->fresh() ?? $me,
             // Before question 1 (after the host pressed Start game) the 3 - 2 - 1 - Go! countdown shows; it ends at countdown_ends_at.
@@ -122,6 +150,7 @@ class PlayerGame extends Component
             // Only this player's own vote ever reaches the phone.
             'myVote' => $vote?->voteOf($me),
             'phase' => $phase,
+            'guessError' => $this->guessError,
             'answer' => $answer,
             'lang' => $me->locale,
             'icon' => $state ? CategoryStyle::icon($state->category->slug) : null,
