@@ -132,7 +132,7 @@ describe('lamma:doctor', function () {
         [$code, $rows] = doctor();
 
         expect($code)->toBe(0)->and($rows['Official brand and sound files'][0])->toBe('WARN')
-            ->and($rows['Official brand and sound files'][1])->toContain('14 file(s) are still the placeholders')->toContain('brand/lamma-icon.svg')->toContain('sounds/tick.wav');
+            ->and($rows['Official brand and sound files'][1])->toContain('15 file(s) are still the placeholders')->toContain('brand/lamma-icon.svg')->toContain('brand/og-image.png')->toContain('sounds/tick.wav');
         fclose($socket);
     });
 
@@ -142,7 +142,7 @@ describe('lamma:doctor', function () {
 
         [, $rows] = doctor();
 
-        expect($rows['Official brand and sound files'][1])->toContain('13 file(s)')->not->toContain('brand/lamma-icon.svg');
+        expect($rows['Official brand and sound files'][1])->toContain('14 file(s)')->not->toContain('brand/lamma-icon.svg');
         fclose($socket);
     });
 

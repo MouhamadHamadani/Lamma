@@ -1,5 +1,5 @@
 {{-- Shell for the Lamma screens (landing, host, player): cream page, navy text, lang/dir from the current locale. --}}
-@props(['title' => null, 'realtime' => false])
+@props(['title' => null, 'realtime' => false, 'share' => false, 'shareDescription' => null])
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}" dir="{{ config('locales.supported.'.app()->getLocale().'.dir', 'ltr') }}" @if ($realtime) data-realtime @endif>
     <head>

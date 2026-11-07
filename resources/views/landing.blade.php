@@ -21,7 +21,7 @@
     $gutter = 'mx-auto w-full max-w-[1440px] px-5 lg:px-[clamp(40px,8.33vw,120px)]';
     $floatShadow = 'shadow-[0_18px_40px_color-mix(in_srgb,var(--color-navy)_18%,transparent)]';
 @endphp
-<x-layouts::lamma :title="__('The quiz night for everyone')">
+<x-layouts::lamma :title="__('The quiz night for everyone')" :share="true">
     {{-- HEADER --}}
     <header x-data="{ open: false }" class="relative mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-5 lg:h-22 lg:px-[clamp(40px,8.33vw,120px)]">
         <a href="{{ route('home') }}"><x-lamma.logo /></a>

@@ -145,6 +145,8 @@ class JoinRoom extends Component
             $this->photoUrl = null;
         }
 
-        return view('livewire.player.join-room', ['photosOn' => $photosOn])->title(__('Join a game'));
+        // A link to the join page is pasted into chats: it carries the share tags (head.blade.php). The room code is in the query string, never in them.
+        return view('livewire.player.join-room', ['photosOn' => $photosOn])->title(__('Join a game'))
+            ->layoutData(['share' => true, 'shareDescription' => __('Type the code shown on the big screen.')]);
     }
 }

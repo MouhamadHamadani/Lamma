@@ -7,7 +7,7 @@
         ['bg-sun', 'trophy', __('Play 4 quick questions against two bots'), __('Same game, same screens, same sounds. It takes about two minutes.')],
     ];
 @endphp
-<x-layouts::lamma :title="__('Try a demo')">
+<x-layouts::lamma :title="__('Try a demo')" :share="true" :share-description="__('No account needed. Open this on a laptop or TV, then scan the code with your phone.')">
     <div class="mx-auto flex min-h-dvh w-full max-w-[1200px] flex-col px-5 pb-10 lg:px-10">
         <header class="flex h-[72px] shrink-0 items-center justify-between lg:h-22">
             <a href="{{ route('home') }}"><x-lamma.logo /></a>

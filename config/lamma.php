@@ -74,6 +74,8 @@ return [
         'brand/lamma-logo-horizontal-dark.svg' => '9cfcddd3e5f7f37efd5ad0a58b60ea26ae3148a779dd253d66a3fef7b6e14824',
         'brand/lamma-logo-horizontal.svg' => 'f95b8b8aa9eb7bce53d504c10cb586a4a3ad91b2b9b5eaee68e26a28f8e586e2',
         'brand/lamma-logo-stacked-dark.svg' => '8cf3e19fc29dce9e9de4db9b205916220eb7f77f9db6bf1571fd23aaa7439477',
+        // The picture a pasted link shows (og:image, 1200x630): built from the placeholder logo; its source is docs/design/og-image-source.html.
+        'brand/og-image.png' => '5de513517f6aa9956ff99320ebccd0667b1e5f70378855cdf12f1b9e2fdb0d4a',
         'brand/lamma-logo-stacked.svg' => '99e1a6c204d31fe3c420d8dcb045013d9b52d83f1a291f9fa7d498e14b7c9879',
         'favicon.svg' => '8b5a625560006a04ab4f77021d7fe3d50210447c222f26265056ea2032114d31',
         'favicon.ico' => '30148cc794b27536f089054040818effa8edea70398a7948e0cd2ac417d4198d',
