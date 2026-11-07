@@ -129,7 +129,7 @@ describe('time: the deadline and the grace period', function () {
     it('trusts the server clock, never the client: there is no client time to send', function () {
         $parameters = (new ReflectionMethod(GameEngine::class, 'submitAnswer'))->getParameters();
 
-        expect(array_map(fn ($p) => $p->getName(), $parameters))->toBe(['player', 'optionId']);
+        expect(array_map(fn ($p) => $p->getName(), $parameters))->toBe(['player', 'answer']); // the option tapped or the number typed: never a time
     });
 
     it('does not reveal on time alone before the grace period is over', function () {

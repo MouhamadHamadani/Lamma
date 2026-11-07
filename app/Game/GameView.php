@@ -7,6 +7,8 @@ use App\Enums\VoteOutcome;
 use App\Models\Category;
 use App\Models\Question;
 use App\Models\Room;
+use App\Models\RoomPlayer;
+use App\Models\RoomQuestion;
 
 /**
  * What a screen shows during a game, read from the database every time: the current question, its options in display order,
@@ -47,7 +49,37 @@ class GameView
             finished: $room->status === RoomStatus::Finished,
             streaks: $revealed ? $this->scoreboard->streaks($room, $roomQuestion) : [],
             doubled: $this->scoring->isDoubled($room, $roomQuestion),
+            correctNumber: $revealed && $question->type->takesNumber() ? (float) $question->answer_number : null,
+            guesses: $revealed && $question->type->takesNumber() ? $this->guesses($room, $roomQuestion) : [],
         );
+    }
+
+    /**
+     * Closest number, after the reveal: every guess with its owner, how far it was and what it scored, nearest first (the earlier guess first on a tie).
+     *
+     * @return list<array{player: RoomPlayer, value: float, distance: float, points: int, closest: bool}>
+     */
+    private function guesses(Room $room, RoomQuestion $roomQuestion): array
+    {
+        $players = $room->players()->get()->keyBy('id');
+        $answer = (float) $roomQuestion->question->answer_number;
+
+        $guesses = [];
+        foreach ($roomQuestion->answers()->whereNotNull('number_value')->orderBy('answered_at')->orderBy('id')->get() as $given) {
+            if (($player = $players->get($given->room_player_id)) === null) {
+                continue;
+            }
+            $guesses[] = [
+                'player' => $player,
+                'value' => (float) $given->number_value,
+                'distance' => $this->scoring->distance((float) $given->number_value, $answer),
+                'points' => $given->points,
+                'closest' => ($given->closest_bonus ?? 0) > 0,
+            ];
+        }
+        usort($guesses, fn (array $a, array $b) => $a['distance'] <=> $b['distance']); // (stable: the earlier guess stays first on a tie)
+
+        return $guesses;
     }
 
     /**

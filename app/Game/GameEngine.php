@@ -110,8 +110,8 @@ class GameEngine
                         $locked->roomQuestions()->create([
                             'question_id' => $question->id,
                             'position' => $index + 1,
-                            // Shuffled once, here: every screen shows the same A, B, C, D for the whole game.
-                            'option_order' => $question->options->pluck('id')->shuffle()->values()->all(),
+                            // Fixed once, here (a multiple-choice question is shuffled, True comes before False): every screen shows the same A, B, C, D for the whole game.
+                            'option_order' => $question->newOptionOrder(),
                         ]);
                     }
                 }
@@ -171,14 +171,16 @@ class GameEngine
     }
 
     /**
-     * A player locks in an answer. Accepted only while the question is open and no later than ends_at plus the grace, once per
-     * player (the unique index decides a race). Points are decided now (ScoringService) but added to the score at the reveal.
+     * A player locks in an answer: the id of the option they tapped (multiple choice, true/false) or the number they typed (closest number, as typed:
+     * GuessNumber reads it). Accepted only while the question is open and no later than ends_at plus the grace, once per
+     * player (the unique index decides a race). Points are decided now (ScoringService) but added to the score at the reveal; the
+     * extra for the closest guess is the exception, it can only be given at the reveal.
      *
      * @throws AnswerRejected
      */
-    public function submitAnswer(RoomPlayer $player, int $optionId): PlayerAnswer
+    public function submitAnswer(RoomPlayer $player, int|string|float $answer): PlayerAnswer
     {
-        [$room, $question, $answer] = DB::transaction(function () use ($player, $optionId) {
+        [$room, $question, $given] = DB::transaction(function () use ($player, $answer) {
             // Locking the room row serializes this with a reveal running at the same moment.
             $room = Room::query()->whereKey($player->room_id)->lockForUpdate()->firstOrFail();
 
@@ -189,7 +191,12 @@ class GameEngine
             if (now() > $question->ends_at->addMilliseconds(self::ANSWER_GRACE_MS)) {
                 throw new AnswerRejected(AnswerRejected::LATE);
             }
-            if (! in_array($optionId, $question->option_order ?? [], true)) {
+
+            $asked = $question->question;
+            $number = null;
+            if ($asked->type->takesNumber()) {
+                $number = GuessNumber::parse($answer) ?? throw new AnswerRejected(AnswerRejected::INVALID_NUMBER);
+            } elseif (! is_int($answer) || ! in_array($answer, $question->option_order ?? [], true)) {
                 throw new AnswerRejected(AnswerRejected::INVALID_OPTION);
             }
             if ($question->answers()->where('room_player_id', $player->id)->exists()) {
@@ -197,13 +204,21 @@ class GameEngine
             }
 
             $now = now();
-            $correct = (bool) QuestionOption::query()->whereKey($optionId)->value('is_correct');
-            $points = $this->scoring->pointsFor($correct, $now, $question->started_at, $question->ends_at, $this->scoring->isDoubled($room, $question));
+            $doubled = $this->scoring->isDoubled($room, $question);
+            if ($number !== null) {
+                $points = $this->scoring->closestPoints($number, (float) $asked->answer_number, (float) $asked->tolerance, $doubled);
+                $correct = $points->base > 0; // within the tolerance
+                $chosen = ['question_option_id' => null, 'number_value' => $number];
+            } else {
+                $correct = (bool) QuestionOption::query()->whereKey($answer)->value('is_correct');
+                $points = $this->scoring->pointsFor($correct, $now, $question->started_at, $question->ends_at, $doubled);
+                $chosen = ['question_option_id' => $answer];
+            }
 
             try {
-                $answer = $question->answers()->create([
+                $given = $question->answers()->create([
+                    ...$chosen,
                     'room_player_id' => $player->id,
-                    'question_option_id' => $optionId,
                     'answered_at' => $now,
                     'is_correct' => $correct,
                     'points' => $points->total,
@@ -215,7 +230,7 @@ class GameEngine
                 throw new AnswerRejected(AnswerRejected::ALREADY_ANSWERED);
             }
 
-            return [$room, $question, $answer];
+            return [$room, $question, $given];
         });
 
         ['answered' => $answered, 'expected' => $expected] = $this->progress($room, $question);
@@ -224,7 +239,7 @@ class GameEngine
         // Everyone connected has answered: no reason to wait for the timer.
         $this->reveal($room, $question->position);
 
-        return $answer;
+        return $given;
     }
 
     /**
@@ -248,6 +263,10 @@ class GameEngine
 
             $question->update(['revealed_at' => now()]);
             $this->seen->record($fresh, $question->question_id);
+            // Closest number: only now are all the guesses in, so only now can the closest one get its extra.
+            if ($question->question->type->takesNumber()) {
+                $this->scoring->awardClosestBonus($question, $question->question);
+            }
             foreach ($question->answers()->where('points', '>', 0)->get() as $answer) {
                 RoomPlayer::query()->whereKey($answer->room_player_id)->increment('score', $answer->points);
             }

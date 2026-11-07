@@ -2,6 +2,7 @@
 
 namespace App\Game;
 
+use App\Enums\QuestionType;
 use App\Models\Category;
 use App\Models\PlayerAnswer;
 use App\Models\Question;
@@ -21,6 +22,8 @@ final class GameState
      * @param  array<int, int>  $previousPositions  player id => 0-based position before this round's points
      * @param  array<int, int>  $streaks  player id => right answers in a row up to this question; empty until revealed
      * @param  bool  $doubled  this question counts double (ScoringService::isDoubled): the screens show the x2 chip
+     * @param  float|null  $correctNumber  closest number: the correct value; null until the reveal (and for the other types)
+     * @param  list<array{player: RoomPlayer, value: float, distance: float, points: int, closest: bool}>  $guesses  closest number: every guess, nearest first; empty until the reveal
      */
     public function __construct(
         public readonly RoomQuestion $roomQuestion,
@@ -38,7 +41,30 @@ final class GameState
         public readonly bool $finished,
         public readonly array $streaks = [],
         public readonly bool $doubled = false,
+        public readonly ?float $correctNumber = null,
+        public readonly array $guesses = [],
     ) {}
+
+    public function type(): QuestionType
+    {
+        return $this->question->type;
+    }
+
+    /** Closest number: answered by typing, so there are no tiles. */
+    public function isNumber(): bool
+    {
+        return $this->question->type->takesNumber();
+    }
+
+    /** The fun fact in one language, once the answer is out (never before: it could give the answer away); null when the question has none. */
+    public function fact(string $locale): ?string
+    {
+        if (! $this->isRevealed()) {
+            return null;
+        }
+
+        return filled($fact = $this->question->getTranslation('explanation', $locale, false)) ? $fact : null;
+    }
 
     public function position(): int
     {

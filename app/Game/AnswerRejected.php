@@ -15,6 +15,9 @@ class AnswerRejected extends RuntimeException
 
     public const INVALID_OPTION = 'invalid_option';
 
+    /** Closest number: what was typed is not a number. */
+    public const INVALID_NUMBER = 'invalid_number';
+
     public const NOT_A_PLAYER = 'not_a_player';
 
     public function __construct(public readonly string $reason)
