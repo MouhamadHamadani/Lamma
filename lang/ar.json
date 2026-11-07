@@ -463,5 +463,8 @@
     "Pick :count or more so every vote has a real choice.": "اختر :count أو أكثر ليكون في كل تصويت خيار حقيقي.",
     "Vote extended": "تم تمديد التصويت",
     "Add :seconds seconds to the vote": "أضف :seconds ثوانٍ إلى التصويت",
-    "Want to play too? Join from your phone with this code.": "تريد اللعب أيضًا؟ انضم من هاتفك بهذا الرمز."
+    "Want to play too? Join from your phone with this code.": "تريد اللعب أيضًا؟ انضم من هاتفك بهذا الرمز.",
+    "Multiple choice": "اختيار من متعدد",
+    "True or false": "صح أم خطأ",
+    "Closest number": "أقرب رقم"
 }

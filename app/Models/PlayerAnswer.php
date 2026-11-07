@@ -13,17 +13,19 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $room_question_id
  * @property int $room_player_id
- * @property int|null $question_option_id
+ * @property int|null $question_option_id Multiple choice and true/false: the option tapped. Null for a closest-number guess
+ * @property float|null $number_value Closest number: the guess, as the server read it (App\Game\GuessNumber)
  * @property Carbon $answered_at Millisecond precision
  * @property bool $is_correct
  * @property int $points the total: (base_points + speed_bonus) x multiplier
  * @property int|null $base_points null on answers from before the speed bonus, like the next two
  * @property int|null $speed_bonus
+ * @property int|null $closest_bonus Closest number: the +50 for the closest guess, decided at the reveal
  * @property int|null $multiplier
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['room_question_id', 'room_player_id', 'question_option_id', 'answered_at', 'is_correct', 'points', 'base_points', 'speed_bonus', 'multiplier'])]
+#[Fillable(['room_question_id', 'room_player_id', 'question_option_id', 'number_value', 'answered_at', 'is_correct', 'points', 'base_points', 'speed_bonus', 'closest_bonus', 'multiplier'])]
 class PlayerAnswer extends Model
 {
     /** @use HasFactory<PlayerAnswerFactory> */
@@ -39,6 +41,8 @@ class PlayerAnswer extends Model
             'points' => 'integer',
             'base_points' => 'integer',
             'speed_bonus' => 'integer',
+            'closest_bonus' => 'integer',
+            'number_value' => 'float',
             'multiplier' => 'integer',
         ];
     }

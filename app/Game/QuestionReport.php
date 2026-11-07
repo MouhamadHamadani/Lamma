@@ -23,7 +23,7 @@ class QuestionReport
     public function rows(): array
     {
         $found = [];
-        $query = Question::query()->active()->translatedIn(QuestionPool::LOCALES)
+        $query = Question::query()->active()->playable(QuestionPool::LOCALES)
             ->select('category_id', 'difficulty', DB::raw('count(*) as total'))->groupBy('category_id', 'difficulty');
         foreach ($query->get() as $row) {
             $found[$row->category_id][$row->difficulty->value] = (int) $row->getAttribute('total');

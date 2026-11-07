@@ -1,10 +1,12 @@
 <?php
 
 use App\Enums\Difficulty;
+use App\Enums\QuestionType;
 use App\Enums\RoomStatus;
 use App\Game\CategoryVote;
 use App\Game\GameEngine;
 use App\Game\PlayerPhoto;
+use App\Game\QuestionImage;
 use App\Game\RoomSettings;
 use App\Game\Transition;
 use App\Models\Category;
@@ -39,6 +41,9 @@ pest()->extend(TestCase::class)
 
 // Selfies never touch the real folder in a test.
 pest()->beforeEach(fn () => Storage::fake(PlayerPhoto::DISK))->in('Feature', 'Browser');
+
+// Nor do the pictures of picture questions.
+pest()->beforeEach(fn () => Storage::fake(QuestionImage::DISK))->in('Feature', 'Browser');
 
 // Browser tests (tests/Browser, run with `vendor/bin/pest tests/Browser`) load the BUILT assets, never a developer's running Vite dev server.
 pest()->beforeEach(fn () => Vite::useHotFile(storage_path('framework/no-hot-file')))->in('Browser');
@@ -214,10 +219,49 @@ function optionOf(RoomQuestion $roomQuestion, bool $correct = true): int
         ->first(fn ($option) => $option->is_correct === $correct)->id;
 }
 
-/** A player answers right (true) or wrong (false). */
+/**
+ * A player answers right (true) or wrong (false). A closest-number question is answered with its exact value (right) or a number ten tolerances away (wrong).
+ */
 function answer(RoomPlayer $player, RoomQuestion $roomQuestion, bool $correct = true): PlayerAnswer
 {
+    $question = $roomQuestion->question;
+
+    if ($question->type->takesNumber()) {
+        return app(GameEngine::class)->submitAnswer($player, $correct ? (float) $question->answer_number : (float) $question->answer_number + 10 * (float) $question->tolerance);
+    }
+
     return app(GameEngine::class)->submitAnswer($player, optionOf($roomQuestion, $correct));
+}
+
+/** A player guesses this number (as typed) on a closest-number question. */
+function guess(RoomPlayer $player, string|int|float $typed): PlayerAnswer
+{
+    return app(GameEngine::class)->submitAnswer($player, $typed);
+}
+
+/**
+ * A lobby whose game has exactly these question types, in this order: each one gets the next difficulty (easy, medium, hard, then hard again), and a Mixed game
+ * climbs easy to hard, so question 1 is the first type. A closest-number question is 1969 with a tolerance of 10 (the one every test below uses); a
+ * true/false one is True; every other kind has four options, the first correct.
+ *
+ * @param  list<string>  $types  QuestionType values
+ */
+function typedRoom(array $types = ['multiple_choice', 'true_false', 'closest_number'], int $players = 3, array $settings = [], ?User $host = null, bool $withImage = false): Room
+{
+    $category = Category::factory()->create();
+    $levels = [Difficulty::Easy, Difficulty::Medium, Difficulty::Hard];
+
+    foreach (array_values($types) as $index => $type) {
+        $factory = Question::factory()->state(['category_id' => $category->id, 'difficulty' => $levels[min($index, 2)]])->withFact();
+        $factory = match (QuestionType::from($type)) {
+            QuestionType::TrueFalse => $factory->trueFalse(),
+            QuestionType::ClosestNumber => $factory->closestNumber(1969, 10),
+            QuestionType::MultipleChoice => $factory->withOptions(),
+        };
+        $factory->when($withImage, fn ($f) => $f->withImage('picture-'.$index.'.webp'))->create();
+    }
+
+    return gameRoom($players, count($types), $settings, $host, $category);
 }
 
 function at(string $time): void

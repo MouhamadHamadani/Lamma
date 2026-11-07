@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\Difficulty;
+use App\Enums\QuestionType;
 use App\Models\Category;
 use App\Models\Question;
 use App\Models\QuestionOption;
@@ -25,6 +26,7 @@ class QuestionFactory extends Factory
                 'en' => rtrim(fake()->unique()->sentence(6), '.').'?',
             ],
             'difficulty' => fake()->randomElement(Difficulty::cases()),
+            'type' => QuestionType::MultipleChoice,
             'image_path' => null,
             'is_active' => true,
         ];
@@ -41,6 +43,31 @@ class QuestionFactory extends Factory
                 ]);
             }
         });
+    }
+
+    /** A true/false question: True and False, in that order; $answer is the correct one. */
+    public function trueFalse(bool $answer = true): static
+    {
+        return $this->state(['type' => QuestionType::TrueFalse])
+            ->afterCreating(fn (Question $question) => $question->syncTrueFalse($answer));
+    }
+
+    /** A closest-number question. A null tolerance is the default one (a quarter of the answer, at least 1). */
+    public function closestNumber(float $answer = 1969, ?float $tolerance = null): static
+    {
+        return $this->state(['type' => QuestionType::ClosestNumber, 'answer_number' => $answer, 'tolerance' => $tolerance]);
+    }
+
+    /** A picture question: this image path (a file on the question_images disk, or just a name for tests that never load it). */
+    public function withImage(string $path = 'picture.webp'): static
+    {
+        return $this->state(['image_path' => $path]);
+    }
+
+    /** A fun fact shown with the answer. */
+    public function withFact(string $en = 'A fun fact.', string $ar = 'معلومة طريفة.'): static
+    {
+        return $this->state(['explanation' => ['ar' => $ar, 'en' => $en]]);
     }
 
     public function inactive(): static

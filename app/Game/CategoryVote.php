@@ -238,8 +238,8 @@ class CategoryVote
             $room->roomQuestions()->create([
                 'question_id' => $question->id,
                 'position' => $position + $index + 1,
-                // Shuffled once, here, like a Classic game's: every screen shows the same A, B, C, D.
-                'option_order' => $question->options->pluck('id')->shuffle()->values()->all(),
+                // Fixed once, here, like a Classic game's: every screen shows the same A, B, C, D.
+                'option_order' => $question->newOptionOrder(),
             ]);
         }
 

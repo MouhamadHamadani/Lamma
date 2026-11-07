@@ -7,7 +7,7 @@ use App\Models\Question;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Which questions a game may use. Every game uses only questions fully translated in BOTH Arabic and English,
+ * Which questions a game may use. Every game uses only questions fully translated in BOTH Arabic and English and complete for their type (Question::scopePlayable),
  * whatever the host-screen language is, because players pick their own language.
  *
  * The room stores category ids, top-level and/or subcategory. This is the one place that turns them into questions: a top-level id
@@ -23,7 +23,7 @@ class QuestionPool
     {
         return Question::query()
             ->active()
-            ->translatedIn(self::LOCALES)
+            ->playable(self::LOCALES)
             ->whereIn('category_id', $this->categories($settings->categoryIds))
             ->when($settings->difficulty, fn (Builder $query, $difficulty) => $query->where('difficulty', $difficulty));
     }

@@ -59,6 +59,16 @@ return [
             'report' => false,
         ],
 
+        // The pictures of picture questions (App\Game\QuestionImage). A root-relative URL, like the selfies', so a phone on the LAN loads them from the page's own host.
+        'question_images' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/questions'),
+            'url' => '/storage/questions',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
