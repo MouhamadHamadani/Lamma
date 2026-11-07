@@ -5,7 +5,7 @@
         $planets = [['Venus', 'الزهرة'], ['Mars', 'المريخ'], ['Jupiter', 'المشتري'], ['Saturn', 'زحل']];
         $endsAt = now()->addSeconds(12);
         $endsSoon = now()->addSeconds(4);
-        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'leaf', 'compass', 'sparkles', 'home', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key', 'camera'];
+        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'leaf', 'compass', 'sparkles', 'home', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key', 'camera', 'target'];
     @endphp
 
     <main class="mx-auto max-w-[1600px] space-y-20 p-8">
@@ -139,6 +139,58 @@
                             <x-lamma.answer size="phone" :index="1" :text="$ar ? $planets[1][1] : $planets[1][0]" state="correct" />
                         </div>
                         <x-lamma.answer size="phone" :index="1" :text="$ar ? $planets[1][1] : $planets[1][0]" state="locked" />
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Question types · true/false tiles (host, phone) · a tile under a picture · the picture frame · the fun fact (host, phone)</h3>
+                    @php
+                        $trueFalse = [[$ar ? 'صحيح' : 'True'], [$ar ? 'خطأ' : 'False']];
+                        $drawing = 'data:image/svg+xml;utf8,'.rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="cornsilk"/><polygon points="305,150 252,241 148,241 95,150 148,59 252,59" fill="gold" stroke="midnightblue" stroke-width="8" stroke-linejoin="round"/></svg>');
+                    @endphp
+                    <div class="grid max-w-[900px] grid-cols-2 gap-6">
+                        @foreach ($trueFalse as $i => [$label])
+                            <x-lamma.answer :index="$i" :text="$label" :text-alt="$ar ? null : ($i === 0 ? 'صحيح' : 'خطأ')" :tall="true" :state="$i === 0 ? 'correct' : 'faded'" />
+                        @endforeach
+                        @foreach ($trueFalse as $i => [$label])
+                            <x-lamma.answer :index="$i" :text="$label" :tall="true" />
+                        @endforeach
+                        @foreach ($trueFalse as $i => [$label])
+                            <x-lamma.answer :index="$i" :text="$label" :compact="true" />
+                        @endforeach
+                    </div>
+                    <div class="flex flex-wrap items-start gap-10">
+                        <div class="w-[350px] space-y-3">
+                            @foreach ($trueFalse as $i => [$label])
+                                <x-lamma.answer size="phone" :index="$i" :text="$label" :tall="true" />
+                            @endforeach
+                        </div>
+                        <x-lamma.question-image :src="$drawing" class="aspect-[4/3] h-[180px]" />
+                        <div class="flex w-[420px] flex-col gap-4">
+                            <x-lamma.fun-fact :text="$ar ? 'يصبّ النيل في البحر الأبيض المتوسط.' : 'The Nile flows into the Mediterranean Sea.'" :lang="$loc" :alt="$ar ? null : 'يصبّ النيل في البحر الأبيض المتوسط.'" />
+                            <x-lamma.fun-fact :text="$ar ? 'يصبّ النيل في البحر الأبيض المتوسط.' : 'The Nile flows into the Mediterranean Sea.'" :lang="$loc" size="phone" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Closest number · the phone's number box (type a digit to unlock) · the number line · the ranked guesses</h3>
+                    @php
+                        $crowd = collect([['Sara', 'سارة', 1966], ['Ali', 'علي', 1969], ['Maya', 'مايا', 1972], ['Omar', 'عمر', 1960], ['Lina', 'لينا', 1900]])->map(function (array $row, int $index) use ($ar) {
+                            $player = new App\Models\RoomPlayer(['nickname' => $ar ? $row[1] : $row[0]]);
+                            $player->id = $index + 1;
+
+                            return ['player' => $player, 'value' => (float) $row[2], 'distance' => abs($row[2] - 1969), 'points' => max(0, 100 - abs($row[2] - 1969) * 10) + ($row[2] === 1969 ? 50 : 0), 'closest' => $row[2] === 1969];
+                        })->sortBy('distance')->values()->all();
+                    @endphp
+                    <div class="flex flex-wrap items-start gap-10">
+                        <div class="w-[350px]">
+                            <x-lamma.number-input :label="__('Your guess')" :button="__('Lock in my guess')" />
+                        </div>
+                        <div class="flex min-w-[560px] flex-1 flex-col gap-4">
+                            <x-lamma.number-line :correct="1969" :guesses="$crowd" :colors="[1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4]" />
+                            <x-lamma.guess-list :guesses="$crowd" :colors="[1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4]" :limit="4" />
+                        </div>
                     </div>
                 </div>
 

@@ -110,6 +110,27 @@ final class GameState
         return $this->players->filter(fn (RoomPlayer $player) => $this->answers->get($player->id)?->question_option_id === $optionId)->values();
     }
 
+    /**
+     * The fun fact as a screen shows it: the line in the screen's main language (the other language's when only that one was written) and, on the big screen in
+     * Both, the Arabic line under it. Null before the reveal and when the question has no fact.
+     *
+     * @return array{text: string, lang: string, alt: string|null}|null
+     */
+    public function factFor(string $main, bool $both = false): ?array
+    {
+        $other = $main === 'ar' ? 'en' : 'ar';
+        $text = $this->fact($main);
+        $lang = $main;
+        if ($text === null && ($text = $this->fact($other)) !== null) {
+            $lang = $other;
+        }
+        if ($text === null) {
+            return null;
+        }
+
+        return ['text' => $text, 'lang' => $lang, 'alt' => $both && $lang === 'en' ? $this->fact('ar') : null];
+    }
+
     /** Right answers in a row for this player, counting this question (0 until the reveal). */
     public function streakOf(RoomPlayer $player): int
     {

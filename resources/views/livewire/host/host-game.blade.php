@@ -1,6 +1,8 @@
 {{-- References: docs/design/screens/host-4-question.html (a question is open) and host-5-reveal.html (the answer). The screen is the database's
      current state (GameView), refreshed by the broadcast events and a 2 s poll; a timer set for the moment the next thing is due calls tick().
      Both = English main line with the Arabic line under it; one language otherwise. Nothing here scrolls (heights clamp to the screen). --}}
+@use('App\Enums\QuestionType')
+@use('App\Game\GuessNumber')
 @php
     $gutter = 'px-[clamp(20px,3.9vw,56px)]';
     $tr = fn ($model, string $attribute, string $lang) => $model->getTranslation($attribute, $lang, false);
@@ -10,6 +12,11 @@
     $seconds = $room->settings->secondsPerQuestion;
     $nowMs = now()->getTimestampMs();
     $correctOption = $state?->correctOptionId ? $state->options->firstWhere('id', $state->correctOptionId) : null;
+    // Phase 13: the kind of question, its picture (the same before and after the reveal), and the fun fact (null until the reveal).
+    $number = (bool) $state?->isNumber();
+    $trueFalse = $state?->type() === QuestionType::TrueFalse;
+    $picture = $state?->question->imageUrl();
+    $fact = $state?->factFor($main, $both);
     // Some row climbed this round: one "rank up" sound, a moment after the rows start sliding.
     $movedUp = $revealed && collect($state->ranking)->contains(fn (array $row) => ($row['rank_change'] ?? 0) > 0);
     $winner = $vote?->winner();
@@ -17,11 +24,17 @@
         $state === null => '',
         $vote !== null && $vote->isOpen() => $vote->wasExtended() ? __('Vote extended') : __('Vote started'),
         $vote !== null => __(':category won', ['category' => $winner?->getTranslation('name', $main, false) ?? '']),
-        $revealed => __('The correct answer is :answer', ['answer' => $correctOption ? $tr($correctOption, 'text', $main) : '']),
+        $revealed => __('The correct answer is :answer', ['answer' => $number ? GuessNumber::format((float) $state->correctNumber) : ($correctOption ? $tr($correctOption, 'text', $main) : '')]),
         default => __('Question :n of :total', ['n' => $position, 'total' => $state->total]),
     };
     if ($state?->doubled) {
         $announce .= '. '.__('Double points');
+    }
+    if ($state && ! $revealed && ! $vote) {
+        $announce .= $trueFalse ? '. '.__('True or false?') : ($number ? '. '.__('Type your guess on your phone') : '');
+    }
+    if ($state && $revealed && ! $vote && $fact) {
+        $announce .= '. '.$fact['text'];
     }
 @endphp
 <div>
@@ -197,17 +210,25 @@
         </main>
 
     @elseif (! $revealed)
-        {{-- host-4: the question, the four answers, who has answered. --}}
+        {{-- host-4: the question, the four answers, who has answered. Phase 13: a true/false question has two big tiles; a picture sits beside the title (above the
+             options) and the tiles shrink before anything scrolls; a closest-number question has no tiles, only a waiting panel with who has guessed. --}}
         <main
             wire:key="q-{{ $position }}-open"
             x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.once('q{{ $position }}-start', () => $store.sound.play('question-start'))"
             class="flex min-h-0 grow flex-col gap-[clamp(16px,4dvh,36px)] pb-[clamp(16px,4dvh,36px)] pt-[clamp(20px,4.4dvh,40px)] {{ $gutter }}"
         >
-            <div class="flex items-center gap-10">
+            <div class="flex items-center gap-[clamp(20px,3vw,40px)]">
+                @if ($picture)
+                    <x-lamma.question-image :src="$picture" class="aspect-[4/3] h-[clamp(96px,23dvh,230px)] shrink-0 motion-safe:animate-fade-up" />
+                @endif
                 <div class="flex min-w-0 grow flex-col gap-2.5 motion-safe:animate-fade-up">
-                    <h1 lang="{{ $main }}" class="text-balance font-display text-[clamp(30px,4.2vw,60px)] font-extrabold leading-[1.1]" data-test="question-text">{{ $tr($state->question, 'text', $main) }}</h1>
+                    @if ($trueFalse)
+                        {{-- The keys are listed for the lang files: __('True or false?') --}}
+                        <p lang="{{ $main }}" class="text-[clamp(15px,1.4vw,20px)] font-bold text-coral-700" data-test="question-kind">{{ __('True or false?', [], $main) }}@if ($both) <span lang="ar" dir="rtl" class="ms-3 text-ink-muted">{{ __('True or false?', [], 'ar') }}</span>@endif</p>
+                    @endif
+                    <h1 lang="{{ $main }}" @class(['text-balance font-display font-extrabold leading-[1.1]', 'text-[clamp(30px,4.2vw,60px)]' => ! $picture, 'text-[clamp(24px,3.2vw,46px)]' => $picture]) data-test="question-text">{{ $tr($state->question, 'text', $main) }}</h1>
                     @if ($both)
-                        <p lang="ar" dir="rtl" class="text-balance text-end font-display text-[clamp(22px,2.7vw,38px)] font-bold leading-tight text-ink-muted" data-test="question-text-alt">{{ $tr($state->question, 'text', 'ar') }}</p>
+                        <p lang="ar" dir="rtl" @class(['text-balance text-end font-display font-bold leading-tight text-ink-muted', 'text-[clamp(22px,2.7vw,38px)]' => ! $picture, 'text-[clamp(19px,2.2vw,30px)]' => $picture]) data-test="question-text-alt">{{ $tr($state->question, 'text', 'ar') }}</p>
                     @endif
                 </div>
                 {{-- On the ring's corner, outside the layout: the last question must fit exactly as the others do. --}}
@@ -219,23 +240,47 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-6" data-test="answers">
-                @foreach ($state->options as $index => $option)
-                    <x-lamma.answer :index="$index" :lang="$main" :text="$tr($option, 'text', $main)" :text-alt="$both ? $tr($option, 'text', 'ar') : null" data-option="{{ $option->id }}" />
-                @endforeach
-            </div>
+            @if ($number)
+                {{-- Closest number: nothing to tap on the big screen. Everyone types a number on their phone; here, who has. --}}
+                <div class="flex min-h-0 grow flex-col items-center justify-center gap-[clamp(10px,2.6dvh,24px)] rounded-card border-2 border-dashed border-line-strong bg-white/60 px-6 py-4 text-center" data-test="number-wait">
+                    <span class="flex size-[clamp(48px,8dvh,72px)] items-center justify-center rounded-full border-3 border-navy bg-sun shadow-sticker-sm"><x-lamma.icon name="target" :size="32" :stroke="2.2" /></span>
+                    <div class="flex flex-col gap-1">
+                        {{-- The keys are listed for the lang files: __('Type your guess on your phone'), __('The closest guess wins a bonus.') --}}
+                        <h2 lang="{{ $main }}" class="font-display text-[clamp(24px,2.8vw,40px)] font-extrabold leading-tight" data-test="number-hint">{{ __('Type your guess on your phone', [], $main) }}</h2>
+                        @if ($both)
+                            <p lang="ar" dir="rtl" class="font-display text-[clamp(18px,2vw,28px)] font-bold leading-tight text-ink-muted">{{ __('Type your guess on your phone', [], 'ar') }}</p>
+                        @endif
+                        <p lang="{{ $main }}" class="text-[clamp(15px,1.4vw,20px)] font-semibold text-ink-muted">{{ __('The closest guess wins a bonus.', [], $main) }}@if ($both) <span lang="ar" dir="rtl" class="ms-3">{{ __('The closest guess wins a bonus.', [], 'ar') }}</span>@endif</p>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-3" data-test="answered-avatars">
+                        @foreach ($state->players->take(14) as $player)
+                            @php $done = $state->answerOf($player) !== null; @endphp
+                            <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="56" :photo="$player->avatarUrl()" :checked="$done" class="{{ $done ? '' : 'opacity-40' }}" wire:key="who-{{ $player->id }}" />
+                        @endforeach
+                    </div>
+                    <span class="font-display text-2xl font-bold" aria-live="polite" data-test="answered-count">{{ __(':answered of :total guessed', ['answered' => $state->answered, 'total' => $state->expected]) }}</span>
+                </div>
+            @else
+                <div class="grid grid-cols-2 gap-6" data-test="answers">
+                    @foreach ($state->options as $index => $option)
+                        <x-lamma.answer :index="$index" :lang="$main" :text="$tr($option, 'text', $main)" :text-alt="$both ? $tr($option, 'text', 'ar') : null" :tall="$trueFalse" :compact="(bool) $picture" data-option="{{ $option->id }}" />
+                    @endforeach
+                </div>
 
-            <div class="grow"></div>
+                <div class="grow"></div>
+            @endif
 
             <footer class="flex items-center justify-between gap-6">
                 <div class="flex min-w-0 items-center gap-4">
-                    <div class="flex gap-2" data-test="answered-avatars">
-                        @foreach ($state->players->take(14) as $player)
-                            @php $done = $state->answerOf($player) !== null; @endphp
-                            <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="44" :photo="$player->avatarUrl()" :checked="$done" class="{{ $done ? '' : 'opacity-40' }}" wire:key="who-{{ $player->id }}" />
-                        @endforeach
-                    </div>
-                    <span class="font-display text-2xl font-bold" aria-live="polite" data-test="answered-count">{{ __(':answered of :total answered', ['answered' => $state->answered, 'total' => $state->expected]) }}</span>
+                    @unless ($number)
+                        <div class="flex gap-2" data-test="answered-avatars">
+                            @foreach ($state->players->take(14) as $player)
+                                @php $done = $state->answerOf($player) !== null; @endphp
+                                <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="44" :photo="$player->avatarUrl()" :checked="$done" class="{{ $done ? '' : 'opacity-40' }}" wire:key="who-{{ $player->id }}" />
+                            @endforeach
+                        </div>
+                        <span class="font-display text-2xl font-bold" aria-live="polite" data-test="answered-count">{{ __(':answered of :total answered', ['answered' => $state->answered, 'total' => $state->expected]) }}</span>
+                    @endunless
                 </div>
 
                 <button type="button" wire:click="skipTimer({{ $position }})" class="flex min-h-11 items-center gap-2 text-base font-bold text-ink-muted hover:text-navy" data-test="skip-timer">
@@ -246,48 +291,65 @@
         </main>
 
     @else
-        {{-- host-5: the answer, who picked what, the scoreboard, and the pause before the next question. --}}
+        {{-- host-5: the answer, who picked what, the scoreboard, and the pause before the next question. Phase 13: the fun fact under the answer; a closest-number question
+             shows a number line and the ranked guesses where the tiles would be. --}}
         @php $endMs = $nowMs + $dueInMs; @endphp
         <main
             wire:key="q-{{ $position }}-reveal"
             x-init="setTimeout(() => $wire.tick(), {{ $dueInMs + 150 }}); $store.sound.once('q{{ $position }}-reveal', () => { $store.sound.play('reveal'); @if ($movedUp) setTimeout(() => $store.sound.play('rank-up'), 700); @endif })"
             class="flex min-h-0 grow gap-9 pb-[clamp(16px,4dvh,40px)] pt-[clamp(16px,4dvh,36px)] {{ $gutter }}"
         >
-            <div class="flex min-w-0 grow flex-col gap-[clamp(14px,3.1dvh,28px)]">
-                <div class="flex flex-col gap-2">
-                    <h1 lang="{{ $main }}" class="text-balance font-display text-[clamp(26px,3.2vw,46px)] font-extrabold leading-[1.1]" data-test="question-text">{{ $tr($state->question, 'text', $main) }}</h1>
-                    @if ($both)
-                        <p lang="ar" dir="rtl" class="text-balance text-end font-display text-[clamp(20px,2.1vw,30px)] font-bold leading-tight text-ink-muted">{{ $tr($state->question, 'text', 'ar') }}</p>
+            <div @class(['flex min-w-0 grow flex-col', 'gap-[clamp(14px,3.1dvh,28px)]' => ! $number, 'gap-[clamp(10px,2.2dvh,20px)]' => $number])>
+                <div class="flex shrink-0 items-center gap-[clamp(16px,2.4vw,32px)]">
+                    @if ($picture)
+                        <x-lamma.question-image :src="$picture" class="aspect-[4/3] h-[clamp(72px,14dvh,150px)] shrink-0" />
                     @endif
+                    <div class="flex min-w-0 grow flex-col gap-2">
+                        <h1 lang="{{ $main }}" @class(['text-balance font-display font-extrabold leading-[1.1]', 'text-[clamp(26px,3.2vw,46px)]' => ! $number, 'text-[clamp(22px,2.6vw,38px)]' => $number]) data-test="question-text">{{ $tr($state->question, 'text', $main) }}</h1>
+                        @if ($both)
+                            <p lang="ar" dir="rtl" @class(['text-balance text-end font-display font-bold leading-tight text-ink-muted', 'text-[clamp(20px,2.1vw,30px)]' => ! $number, 'text-[clamp(18px,1.8vw,26px)]' => $number]) >{{ $tr($state->question, 'text', 'ar') }}</p>
+                        @endif
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-x-[22px] gap-y-7 pt-3" data-test="answers">
-                    @foreach ($state->options as $index => $option)
-                        @php $correct = $option->id === $state->correctOptionId; $picked = $state->pickedBy($option->id); @endphp
-                        <x-lamma.answer
-                            :index="$index" :lang="$main" :text="$tr($option, 'text', $main)" :text-alt="$both ? $tr($option, 'text', 'ar') : null"
-                            :state="$correct ? 'correct' : 'faded'" data-option="{{ $option->id }}" data-correct="{{ $correct ? 'true' : 'false' }}"
-                        >
-                            @if ($picked->isNotEmpty())
-                                <x-slot:pickers>
-                                    {{-- A crowd overlaps; past four it becomes a count, so the tile never runs out of room. --}}
-                                    @foreach ($picked->take(4) as $player)
-                                        <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="36" :photo="$player->avatarUrl()" />
-                                    @endforeach
-                                    @if ($picked->count() > 4)
-                                        <span dir="ltr" class="flex size-9 shrink-0 items-center justify-center rounded-full border-3 border-navy bg-white text-[13px] font-extrabold text-navy">+{{ $picked->count() - 4 }}</span>
-                                    @endif
-                                </x-slot:pickers>
-                            @endif
-                        </x-lamma.answer>
-                    @endforeach
-                </div>
+                @if ($number)
+                    <div class="flex shrink-0 flex-col gap-[clamp(8px,1.8dvh,18px)]" data-test="guesses">
+                        <x-lamma.number-line :correct="$state->correctNumber" :guesses="$state->guesses" :colors="$colors" class="h-[clamp(104px,20dvh,200px)] shrink-0" />
+                        <x-lamma.guess-list :guesses="$state->guesses" :colors="$colors" :limit="$fact ? 2 : 3" />
+                    </div>
+                @else
+                    <div class="grid grid-cols-2 gap-x-[22px] gap-y-7 pt-3" data-test="answers">
+                        @foreach ($state->options as $index => $option)
+                            @php $correct = $option->id === $state->correctOptionId; $picked = $state->pickedBy($option->id); $cap = $trueFalse && $picture ? 2 : 4; @endphp
+                            <x-lamma.answer
+                                :index="$index" :lang="$main" :text="$tr($option, 'text', $main)" :text-alt="$both ? $tr($option, 'text', 'ar') : null"
+                                :state="$correct ? 'correct' : 'faded'" :tall="$trueFalse" :compact="(bool) $picture" data-option="{{ $option->id }}" data-correct="{{ $correct ? 'true' : 'false' }}"
+                            >
+                                @if ($picked->isNotEmpty())
+                                    <x-slot:pickers>
+                                        {{-- A crowd overlaps; past four it becomes a count, so the tile never runs out of room. --}}
+                                        @foreach ($picked->take($cap) as $player)
+                                            <x-lamma.avatar :name="$player->nickname" :color="$colors[$player->id]" :size="36" :photo="$player->avatarUrl()" />
+                                        @endforeach
+                                        @if ($picked->count() > $cap)
+                                            <span dir="ltr" class="flex size-9 shrink-0 items-center justify-center rounded-full border-3 border-navy bg-white text-[13px] font-extrabold text-navy">+{{ $picked->count() - $cap }}</span>
+                                        @endif
+                                    </x-slot:pickers>
+                                @endif
+                            </x-lamma.answer>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($fact)
+                    <x-lamma.fun-fact :text="$fact['text']" :lang="$fact['lang']" :alt="$fact['alt']" class="shrink-0" />
+                @endif
 
                 <div class="grow"></div>
 
                 <p class="flex items-center gap-3 font-display text-2xl font-bold" data-test="correct-count">
                     <span class="flex size-10 items-center justify-center rounded-full border-3 border-navy bg-teal"><x-lamma.icon name="check" :size="20" :stroke="3" /></span>
-                    {{ __(':correct of :total got it right', ['correct' => $state->correctCount(), 'total' => $state->expected]) }}
+                    {{ $number ? __(':correct of :total were close enough', ['correct' => $state->correctCount(), 'total' => $state->expected]) : __(':correct of :total got it right', ['correct' => $state->correctCount(), 'total' => $state->expected]) }}
                     @if ($state->doubled)
                         <x-lamma.double-chip size="lg" />
                     @endif
