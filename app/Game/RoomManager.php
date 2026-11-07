@@ -110,7 +110,7 @@ class RoomManager
                     'room_id' => $new->id,
                     'user_id' => $player->user_id,
                     'guest_token' => $player->guest_token,
-                    'nickname' => $player->nickname,
+                    'nickname' => $player->getRawOriginal('nickname'),
                     'locale' => $player->locale,
                     'score' => 0,
                     'is_ready' => false,

@@ -35,7 +35,8 @@ class PlayersRelationManager extends RelationManager
             ->recordTitleAttribute('nickname')
             ->columns([
                 ImageColumn::make('avatar_path')->label('Photo')->disk(PlayerPhoto::DISK)->visibility('public')->circular()->imageSize(56),
-                TextColumn::make('nickname')->searchable(),
+                // What was typed, even when screens show "Player" in its place (App\Game\NicknameFilter).
+                TextColumn::make('nickname')->getStateUsing(fn (RoomPlayer $record) => $record->getRawOriginal('nickname'))->searchable(),
                 TextColumn::make('locale')->badge(),
                 TextColumn::make('score')->numeric()->sortable(),
                 IconColumn::make('is_ready')->boolean()->label('Ready'),

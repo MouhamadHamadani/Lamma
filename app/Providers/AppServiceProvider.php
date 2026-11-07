@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Game\NicknameFilter;
 use App\Game\RoomPresence;
 use App\Models\Room;
 use App\Support\ErrorPage;
@@ -26,7 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // One filter per process: it compiles the blocklist once and remembers its verdicts.
+        $this->app->singleton(NicknameFilter::class);
     }
 
     /**

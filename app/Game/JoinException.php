@@ -26,4 +26,10 @@ class JoinException extends RuntimeException
     {
         return new self('nickname', __('That nickname is taken in this room'));
     }
+
+    /** Never says which word: the same sentence for every nickname the filter refuses (App\Game\NicknameFilter). */
+    public static function nicknameBlocked(): self
+    {
+        return new self('nickname', __('Please choose another nickname.'));
+    }
 }

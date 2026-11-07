@@ -24,20 +24,23 @@ class RoomRoster
     /** How long a disconnected player stays in the lobby before they are dropped. */
     public const GRACE_SECONDS = 30;
 
-    public function __construct(private readonly PlayerPhoto $photos) {}
+    public function __construct(private readonly PlayerPhoto $photos, private readonly NicknameFilter $filter) {}
 
     /**
      * A player changes their nickname in the lobby. The same rules as joining: 2 to 20 characters, unique in the room ignoring case. Returns
      * whether anything changed; the others are told.
      *
-     * @throws JoinException when the name is taken
+     * @throws JoinException when the name is taken, or is one we do not allow
      */
     public function rename(RoomPlayer $player, string $nickname): bool
     {
         $room = $player->room;
         $nickname = Str::squish($nickname);
-        if ($room->status !== RoomStatus::Lobby || $nickname === $player->nickname) {
+        if ($room->status !== RoomStatus::Lobby || $nickname === $player->getRawOriginal('nickname')) {
             return false;
+        }
+        if ($this->filter->isBlocked($nickname)) {
+            throw JoinException::nicknameBlocked();
         }
         if ($room->hasNickname($nickname, $player->id)) {
             throw JoinException::nicknameTaken();

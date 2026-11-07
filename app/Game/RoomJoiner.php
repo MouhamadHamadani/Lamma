@@ -15,7 +15,7 @@ use Throwable;
 /** Puts a participant (logged-in user or guest) into a room's lobby, or finds the row they already have. */
 class RoomJoiner
 {
-    public function __construct(private readonly PlayerIdentity $identity, private readonly PlayerPhoto $photos) {}
+    public function __construct(private readonly PlayerIdentity $identity, private readonly PlayerPhoto $photos, private readonly ?NicknameFilter $filter = null) {}
 
     /**
      * $photo is the selfie taken on the join page, if the room has photos on. It is an extra: whatever goes wrong with it, the player still joins.
@@ -38,6 +38,9 @@ class RoomJoiner
         };
 
         $nickname = Str::squish($nickname);
+        if (($this->filter ?? app(NicknameFilter::class))->isBlocked($nickname)) {
+            throw JoinException::nicknameBlocked();
+        }
         if ($room->hasNickname($nickname)) {
             throw JoinException::nicknameTaken();
         }

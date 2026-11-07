@@ -36,6 +36,9 @@ return [
         'show_free_line' => (bool) env('LAMMA_LANDING_FREE_LINE', true),
     ],
 
+    // Nicknames we do not allow (App\Game\NicknameFilter). The list lives in its own file, with a header that says how to extend it.
+    'blocked_words' => require __DIR__.'/../resources/blocklist/nicknames.php',
+
     // Vote mode (App\Game\CategoryVote): how long a category vote stays open, and how long its result shows before the next question. Seconds.
     'vote_seconds' => 15,
     'vote_result_seconds' => 3,

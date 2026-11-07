@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Game\NicknameFilter;
 use App\Game\PlayerPhoto;
 use Database\Factories\RoomPlayerFactory;
 use Illuminate\Auth\Authenticatable;
@@ -9,6 +10,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -80,6 +82,17 @@ class RoomPlayer extends Model implements AuthenticatableContract
     public function scopeConnected(Builder $query): void
     {
         $query->whereNull('left_at');
+    }
+
+    /**
+     * The nickname as a SCREEN shows it: a name the filter refuses (the list may have grown since the player joined, or the name is older than the filter)
+     * is shown as "Player" on every screen and in every broadcast. The stored name is untouched (getRawOriginal): the unique index, a rematch and the admin use that.
+     *
+     * @return Attribute<string, string>
+     */
+    protected function nickname(): Attribute
+    {
+        return Attribute::make(get: fn (string $value) => app(NicknameFilter::class)->isBlocked($value) ? __('Player') : $value);
     }
 
     /** The URL of the selfie, or null without one. The path is random and unguessable; there is no listing route. */
