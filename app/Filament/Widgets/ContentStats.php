@@ -24,8 +24,8 @@ class ContentStats extends StatsOverviewWidget
                 ->description("{$translated} fully translated")
                 ->color($translated === $questions ? 'success' : 'warning'),
             Stat::make('Users', User::count()),
-            Stat::make('Rooms', Room::count())
-                ->description(Room::where('game_mode', GameMode::Vote)->count().' in Vote mode'),
+            Stat::make('Rooms', Room::real()->count())
+                ->description(Room::real()->where('game_mode', GameMode::Vote)->count().' in Vote mode'),
         ];
     }
 }

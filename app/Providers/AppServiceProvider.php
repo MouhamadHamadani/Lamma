@@ -70,10 +70,12 @@ class AppServiceProvider extends ServiceProvider
         DevCommands::artisan('schedule:work', 'schedule');
     }
 
-    /** Guests are not Users: the "player" guard turns the lamma_guest cookie into their RoomPlayer for channel auth. */
+    /** Guests are not Users: the "player" guard turns the lamma_guest cookie into their RoomPlayer for channel auth, the "demo" guard the host cookie into a DemoHost. */
     protected function configureGuards(): void
     {
         Auth::viaRequest('player', fn (Request $request) => app(RoomPresence::class)->guestPlayerFor($request->input('channel_name')));
+        // The host of a demo room has no account either: the host cookie of the room named by the channel makes them its DemoHost.
+        Auth::viaRequest('demo', fn (Request $request) => app(RoomPresence::class)->demoHostFor($request->input('channel_name')));
     }
 
     /**

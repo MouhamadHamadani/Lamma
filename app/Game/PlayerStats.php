@@ -84,6 +84,6 @@ class PlayerStats
      */
     private function saved(User $user): Builder
     {
-        return RoomPlayer::query()->savedToAccount()->where('room_players.user_id', $user->id)->whereHas('room', fn ($room) => $room->completed());
+        return RoomPlayer::query()->savedToAccount()->where('room_players.user_id', $user->id)->whereHas('room', fn ($room) => $room->real()->completed());
     }
 }

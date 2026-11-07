@@ -31,6 +31,8 @@ class ClaimGuestResults
             $guestRows = RoomPlayer::query()
                 ->whereNull('user_id')
                 ->where('guest_token', $token)
+                ->where('is_bot', false)
+                ->whereHas('room', fn ($room) => $room->real())
                 ->where('created_at', '>=', now()->subHours((int) config('lamma.guest_claim_hours')))
                 ->lockForUpdate()
                 ->get();

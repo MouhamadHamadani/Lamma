@@ -150,11 +150,12 @@ describe('the events', function () {
             ->toBe(['name' => 'room_created', 'params' => ['difficulty' => 'hard', 'question_count' => 10, 'categories_count' => 2]])
             ->and(Analytics::event('subcategory_selected', ['parent_category' => 'sports', 'subcategory' => ['x']]))->toBe(['name' => 'subcategory_selected', 'params' => ['parent_category' => 'sports']])
             ->and(Analytics::event('language_switched', ['to' => str_repeat('x', 41)]))->toBe(['name' => 'language_switched', 'params' => []])
-            ->and(Analytics::event('play_again_clicked', ['anything' => 1]))->toBe(['name' => 'play_again_clicked', 'params' => []]);
+            ->and(Analytics::event('rematch_clicked', ['anything' => 1]))->toBe(['name' => 'rematch_clicked', 'params' => []])
+            ->and(Analytics::event('play_again_clicked'))->toBeNull(); // renamed in Phase 14
     });
 
     it('lists exactly the events of the spec', function () {
-        expect(array_keys(Analytics::EVENTS))->toBe(['room_created', 'subcategory_selected', 'game_started', 'player_joined', 'game_finished', 'play_again_clicked', 'language_switched', 'sign_up', 'login']);
+        expect(array_keys(Analytics::EVENTS))->toBe(['room_created', 'subcategory_selected', 'game_started', 'player_joined', 'game_finished', 'rematch_clicked', 'demo_started', 'demo_finished', 'host_signup', 'share_clicked', 'join_page_viewed', 'language_switched', 'sign_up', 'login']);
     });
 
     it('survive a redirect in the session and reach the next page once', function () {
@@ -264,7 +265,7 @@ describe('the screens that report them', function () {
         Livewire::actingAs($room->host)->test(HostLobby::class, ['room' => $room])->call('start')->assertNotDispatched('analytics');
     });
 
-    it('results: game_finished once, with counts and a rounded duration, and play_again_clicked after the redirect', function () {
+    it('results: game_finished once, with counts and a rounded duration, and rematch_clicked after the redirect', function () {
         analyticsOn();
         $room = finishedGame(['Ali' => 300, 'Sara' => 200], questions: 3);
         $room->update(['started_at' => now()->subSeconds(247), 'finished_at' => now()]);
@@ -277,7 +278,7 @@ describe('the screens that report them', function () {
             ->and($call[0])->not->toContain($room->code)->and($call[0])->not->toContain('nickname')->and($call[0])->not->toContain('Ali');
 
         $page->call('playAgain');
-        expect(flashed())->toBe([['name' => 'play_again_clicked', 'params' => []]]);
+        expect(flashed())->toBe([['name' => 'rematch_clicked', 'params' => []]]);
     });
 });
 

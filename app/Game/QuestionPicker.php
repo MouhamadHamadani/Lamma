@@ -121,6 +121,10 @@ class QuestionPicker
     /** @return list<int> question ids asked in this host's last RECENT_ROOMS rooms that actually had questions */
     public function recentlyAsked(Room $room): array
     {
+        if ($room->host_id === null) {
+            return [];
+        }
+
         $rooms = Room::query()
             ->where('host_id', $room->host_id)
             ->where('id', '<', $room->id)

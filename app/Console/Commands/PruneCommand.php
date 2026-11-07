@@ -9,12 +9,13 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 
 #[Signature('lamma:prune')]
-#[Description('Close abandoned lobbies, delete expired player photos and forget the guest tokens and sightings that can no longer be claimed')]
+#[Description('Close abandoned lobbies, delete expired demo rooms and player photos and forget the guest tokens and sightings that can no longer be claimed')]
 class PruneCommand extends Command
 {
     public function handle(Housekeeping $housekeeping): int
     {
         $lobbies = $housekeeping->closeAbandonedLobbies();
+        $demos = $housekeeping->deleteExpiredDemos();
         $tokens = $housekeeping->clearExpiredGuestTokens();
         $sightings = $housekeeping->forgetGuestSightings();
         $photos = $housekeeping->prunePhotos();
@@ -24,6 +25,7 @@ class PruneCommand extends Command
         Cache::forever(config('lamma.heartbeat_key'), now()->timestamp);
 
         $this->info("Closed {$lobbies} abandoned lobbies, cleared {$tokens} expired guest tokens.");
+        $this->info("Deleted {$demos} expired demo rooms.");
         $this->info("Forgot {$sightings} guest sightings.");
         $this->info("Deleted {$photos} expired player photos and {$uploads} abandoned uploads.");
 

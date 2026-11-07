@@ -18,7 +18,7 @@ class SeenQuestions
     public function record(Room $room, int $questionId): void
     {
         $now = now();
-        $rows = $room->players()->get(['user_id', 'guest_token'])
+        $rows = $room->players()->where('is_bot', false)->get(['user_id', 'guest_token'])
             ->filter(fn (RoomPlayer $player) => $player->user_id !== null || $player->guest_token !== null)
             ->map(fn (RoomPlayer $player) => [
                 'question_id' => $questionId,

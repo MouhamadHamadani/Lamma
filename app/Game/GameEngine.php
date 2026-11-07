@@ -57,6 +57,7 @@ class GameEngine
         private readonly ScoringService $scoring,
         private readonly SeenQuestions $seen,
         private readonly CategoryVote $votes,
+        private readonly Bots $bots,
     ) {}
 
     /**
@@ -67,7 +68,7 @@ class GameEngine
      *
      * @throws GameStartException
      */
-    public function start(Room $room, User $by): Room
+    public function start(Room $room, User|DemoHost $by): Room
     {
         $lock = Cache::lock("room:{$room->id}:start", 10);
         if (! $lock->get()) {
@@ -78,7 +79,7 @@ class GameEngine
             $started = DB::transaction(function () use ($room, $by) {
                 $locked = Room::query()->whereKey($room->id)->lockForUpdate()->firstOrFail();
 
-                if ($locked->host_id !== $by->id) {
+                if (! $locked->isHostedBy($by)) {
                     throw GameStartException::notHost();
                 }
                 if ($locked->status !== RoomStatus::Lobby) {
@@ -86,7 +87,8 @@ class GameEngine
                 }
 
                 $connected = $locked->players()->connected()->get();
-                if ($connected->isEmpty()) {
+                // A demo needs a real person: the two bots are always connected and ready, and a game of bots alone is no demo.
+                if ($connected->isEmpty() || ($locked->is_demo && $connected->where('is_bot', false)->isEmpty())) {
                     throw GameStartException::noPlayers();
                 }
                 if ($connected->contains(fn ($player) => ! $player->is_ready)) {
@@ -505,6 +507,8 @@ class GameEngine
     {
         QuestionStarted::broadcast($room, $question)->toOthers();
         RevealQuestion::dispatch($room->id, $question->position)->delay($this->revealDueAt($question));
+        // A demo's bots answer at their own moments (App\Jobs\BotAnswer).
+        $this->bots->plan($room, $question);
     }
 
     /** Tell everyone the vote is open and schedule its close. Called after the transaction has committed. */

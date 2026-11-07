@@ -48,6 +48,11 @@ class HostResults extends Component
     {
         $this->authorize('host', $this->room);
 
+        // A demo cannot be played again: its end screen offers an account or a friend's game instead.
+        if ($this->room->is_demo) {
+            return null;
+        }
+
         try {
             $new = $rooms->playAgain($this->room, $identity->user() ?? abort(403));
         } catch (NotEnoughQuestions $e) {
@@ -56,7 +61,7 @@ class HostResults extends Component
             return null;
         }
 
-        Analytics::flash('play_again_clicked');
+        Analytics::flash('rematch_clicked');
 
         return $this->redirectRoute('host.lobby', ['room' => $new->code], navigate: false);
     }
@@ -69,9 +74,12 @@ class HostResults extends Component
         return view('livewire.host.host-results', [
             'both' => $this->room->settings->hostScreenLocale === HostScreenLocale::Both,
             'questionCount' => $this->room->roomQuestions()->count(),
-            // Reported once, by the browser, when the results first appear (what GA hears: App\Support\Analytics).
+            'isDemo' => $this->room->is_demo,
+            // Reported once, by the browser, when the results first appear (what GA hears: App\Support\Analytics). A demo reports demo_finished instead, with nothing.
             'finished' => Analytics::event('game_finished', [
                 'player_count' => $this->room->players()->count(),
+                'player_bucket' => Analytics::playerBucket($this->room->players()->where('is_bot', false)->count()),
+                'mode' => $this->room->game_mode->value,
                 'question_count' => $this->room->roomQuestions()->count(),
                 'duration_seconds' => $this->room->started_at && $this->room->finished_at ? (int) round($this->room->started_at->diffInSeconds($this->room->finished_at, true) / 10) * 10 : null,
             ])['params'] ?? [],

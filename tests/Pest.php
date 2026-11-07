@@ -3,7 +3,9 @@
 use App\Enums\Difficulty;
 use App\Enums\QuestionType;
 use App\Enums\RoomStatus;
+use App\Game\Bots;
 use App\Game\CategoryVote;
+use App\Game\DemoHost;
 use App\Game\GameEngine;
 use App\Game\PlayerPhoto;
 use App\Game\QuestionImage;
@@ -19,9 +21,12 @@ use App\Models\RoomQuestion;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Vite;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /*
@@ -268,6 +273,55 @@ function typedRoom(array $types = ['multiple_choice', 'true_false', 'closest_num
     }
 
     return gameRoom($players, count($types), $settings, $host, $category);
+}
+
+// ---- The no-signup demo (Phase 14) ----
+
+const DEMO_TOKEN = 'd1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1';
+const OTHER_DEMO_TOKEN = 'e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2';
+
+/** The two categories every demo draws from, with enough playable questions for a game of four. */
+function demoContent(int $each = 8): void
+{
+    categoryWithQuestions($each, category: ['slug' => 'arab-world']);
+    categoryWithQuestions($each, category: ['slug' => 'general-knowledge']);
+}
+
+/** A demo room the way `lamma:demo` makes one, but built from gameRoom() so a test can pick its length: one real player, ready, and the two bots. */
+function demoGame(int $humans = 1, int $questions = 3, string $token = DEMO_TOKEN): Room
+{
+    $room = gameRoom($humans, $questions);
+    $room->update(['is_demo' => true, 'host_id' => null, 'host_token_hash' => hash('sha256', $token)]);
+    app(Bots::class)->seed($room);
+
+    return $room->fresh();
+}
+
+/** Start a demo game as its host and return question 1 (open). */
+function startDemo(Room $room): RoomQuestion
+{
+    $engine = app(GameEngine::class);
+    $engine->start($room, new DemoHost($room->id));
+    $engine->startQuestion($room->fresh(), force: true);
+
+    return $room->fresh()->currentQuestion();
+}
+
+function demoRequest(Room $room, ?string $token): Request
+{
+    $cookies = $token === null ? [] : ['lamma_demo_host' => $token];
+    $request = Request::create('/broadcasting/auth', 'POST', ['channel_name' => "presence-room.{$room->code}"], $cookies);
+    app()->instance('request', $request);
+
+    return $request;
+}
+
+/** A Livewire test of a host component as the browser that holds this demo token. */
+function demoHostPage(string $component, Room $room, ?string $token = DEMO_TOKEN): Testable
+{
+    $test = $token === null ? Livewire::test($component, ['room' => $room]) : Livewire::withCookie('lamma_demo_host', $token)->test($component, ['room' => $room]);
+
+    return $test;
 }
 
 function at(string $time): void

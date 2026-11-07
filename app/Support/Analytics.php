@@ -29,12 +29,28 @@ final class Analytics
         'subcategory_selected' => ['parent_category', 'subcategory'],
         'game_started' => ['player_count', 'question_count', 'difficulty', 'language'],
         'player_joined' => ['language'],
-        'game_finished' => ['player_count', 'question_count', 'duration_seconds'],
-        'play_again_clicked' => [],
+        'game_finished' => ['player_count', 'player_bucket', 'mode', 'question_count', 'duration_seconds'],
+        'rematch_clicked' => [],
+        'demo_started' => [],
+        'demo_finished' => [],
+        'host_signup' => [],
+        'share_clicked' => ['surface', 'method'],
+        'join_page_viewed' => [],
         'language_switched' => ['to'],
         'sign_up' => [],
         'login' => [],
     ];
+
+    /** A player count as a bucket, so GA hears a size and not an exact number: 1, 2-4, 5-8 or 9+. */
+    public static function playerBucket(int $players): string
+    {
+        return match (true) {
+            $players <= 1 => '1',
+            $players <= 4 => '2-4',
+            $players <= 8 => '5-8',
+            default => '9+',
+        };
+    }
 
     /** The configured ID when it is well formed, otherwise null. */
     public static function id(): ?string

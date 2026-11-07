@@ -8,6 +8,7 @@ use App\Game\GameStats;
 use App\Game\QuestionImage;
 use App\Models\Category;
 use App\Models\Question;
+use App\Models\Room;
 use App\Support\CategoryOptions;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -34,9 +35,10 @@ class QuestionsTable
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['category.parent', 'options'])->withCount([
                 // Asked in a room (it was shown), and what players answered: for "Times played" and "% correct".
-                'roomQuestions as times_played' => fn (Builder $asked) => $asked->whereNotNull('room_questions.started_at'),
-                'answers as answers_count',
-                'answers as correct_answers_count' => fn (Builder $answers) => $answers->where('player_answers.is_correct', true),
+                // Demo games (and so the bots) are in none of it.
+                'roomQuestions as times_played' => fn (Builder $asked) => $asked->whereNotNull('room_questions.started_at')->whereIn('room_questions.room_id', Room::real()->select('rooms.id')),
+                'answers as answers_count' => fn (Builder $answers) => $answers->whereIn('room_questions.room_id', Room::real()->select('rooms.id')),
+                'answers as correct_answers_count' => fn (Builder $answers) => $answers->where('player_answers.is_correct', true)->whereIn('room_questions.room_id', Room::real()->select('rooms.id')),
             ]))
             ->columns([
                 // The picture, if any, as a small thumbnail (a closed-over SVG or WebP of ours).

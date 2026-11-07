@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DemoController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\SaveScoreController;
@@ -19,8 +20,13 @@ if (app()->environment('local')) {
 
 Route::livewire('rooms/create', CreateRoom::class)->middleware('auth')->name('rooms.create');
 Route::livewire('join', JoinRoom::class)->name('join');
-// The host screen: only the room's host. The phone screen: only the room's participants (user or guest token).
-Route::livewire('host/{room}', HostLobby::class)->middleware(['auth', 'can:host,room'])->name('host.lobby');
+// The no-signup demo: the one place a host needs no account (App\Game\DemoRoom).
+Route::get('demo', [DemoController::class, 'show'])->name('demo');
+Route::post('demo', [DemoController::class, 'start'])->name('demo.start');
+
+// The host screen: only the room's host (a real room: a logged-in account; a demo room: the browser with its host cookie, see EnsureRoomHost). The phone
+// screen: only the room's participants (user or guest token).
+Route::livewire('host/{room}', HostLobby::class)->middleware('room.host')->name('host.lobby');
 Route::livewire('play/{room}', PlayerLobby::class)->middleware('room.player')->name('play');
 // "Save your score" on the results screen: log in or sign up, then come back to the results page (SaveScoreController).
 Route::get('play/{room}/save/{action}', SaveScoreController::class)->whereIn('action', ['login', 'register'])->middleware('room.player')->name('play.save');

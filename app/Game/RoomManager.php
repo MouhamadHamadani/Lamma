@@ -27,10 +27,13 @@ class RoomManager
     /**
      * A new lobby for the host. A host has at most one room in lobby or playing, so any earlier one is closed first. With $vote the room is a
      * Vote-mode room (its categories come from $vote, not from the settings): every pool category must supply a batch and the pool the whole game.
+     * A demo room (App\Game\DemoRoom) has no host account ($host null) and brings its own columns in $extra (is_demo, host_token_hash).
+     *
+     * @param  array<string, mixed>  $extra
      *
      * @throws NotEnoughQuestions
      */
-    public function create(User $host, RoomSettings $settings, ?VoteSettings $vote = null): Room
+    public function create(?User $host, RoomSettings $settings, ?VoteSettings $vote = null, array $extra = []): Room
     {
         $available = $vote ? $this->votes->poolTotal($settings, $vote) : $this->questions->available($settings);
         if ($available < $settings->questionCount) {
@@ -40,15 +43,18 @@ class RoomManager
             throw new NotEnoughQuestions(min($short), min($vote->every, $settings->questionCount));
         }
 
-        return DB::transaction(function () use ($host, $settings, $vote) {
-            Room::query()->where('host_id', $host->id)->active()->get()->each($this->close(...));
+        return DB::transaction(function () use ($host, $settings, $vote, $extra) {
+            if ($host !== null) {
+                Room::query()->where('host_id', $host->id)->active()->get()->each($this->close(...));
+            }
 
             // The unique index is the final guard against two rooms drawing the same code at once.
             for ($attempt = 1; ; $attempt++) {
                 try {
                     $room = Room::create([
                         'code' => $this->codes->generate(),
-                        'host_id' => $host->id,
+                        ...$extra,
+                        'host_id' => $host?->id,
                         'status' => RoomStatus::Lobby,
                         'game_mode' => $vote ? GameMode::Vote : GameMode::Classic,
                         'vote_every' => $vote?->every,
@@ -73,10 +79,14 @@ class RoomManager
      * so asking twice returns the same room, and a phone that missed the broadcast still finds it.
      *
      * @throws AuthorizationException when $by is not the host
+     * @throws LogicException for a demo game (it cannot be played again) or a game that is not finished
      * @throws NotEnoughQuestions when the settings no longer have enough playable questions
      */
     public function playAgain(Room $old, User $by): Room
     {
+        if ($old->is_demo) {
+            throw new LogicException('A demo game cannot be played again.');
+        }
         if ($old->host_id !== $by->id) {
             throw new AuthorizationException('Only the host can start another round.');
         }

@@ -25,7 +25,7 @@ class GameStats
     public function gamesPerDay(int $days = 30): array
     {
         $first = now()->subDays($days - 1)->startOfDay();
-        $perDay = Room::completed()->where('finished_at', '>=', $first)->pluck('finished_at')->countBy(fn ($finishedAt) => $finishedAt->toDateString());
+        $perDay = Room::real()->completed()->where('finished_at', '>=', $first)->pluck('finished_at')->countBy(fn ($finishedAt) => $finishedAt->toDateString());
 
         $games = [];
         for ($day = 0; $day < $days; $day++) {
@@ -48,6 +48,8 @@ class GameStats
         $asked = DB::table('room_questions')
             ->join('questions', 'questions.id', '=', 'room_questions.question_id')
             ->join('categories', 'categories.id', '=', 'questions.category_id')
+            ->join('rooms', 'rooms.id', '=', 'room_questions.room_id')
+            ->where('rooms.is_demo', false)
             ->whereNotNull('room_questions.started_at')
             ->whereNull('questions.deleted_at')
             ->when(! $rollUp, fn ($query) => $query->whereNotNull('categories.parent_id'))
@@ -75,10 +77,10 @@ class GameStats
     {
         return Question::query()->withTrashed()->with('category')
             ->withCount([
-                'answers as answers_count',
-                'answers as wrong_count' => fn ($answers) => $answers->where('player_answers.is_correct', false),
+                'answers as answers_count' => fn ($answers) => $answers->whereIn('room_questions.room_id', Room::real()->select('rooms.id')),
+                'answers as wrong_count' => fn ($answers) => $answers->where('player_answers.is_correct', false)->whereIn('room_questions.room_id', Room::real()->select('rooms.id')),
             ])
-            ->whereHas('answers', fn ($answers) => $answers->where('player_answers.is_correct', false))
+            ->whereHas('answers', fn ($answers) => $answers->where('player_answers.is_correct', false)->whereIn('room_questions.room_id', Room::real()->select('rooms.id')))
             ->orderByDesc('wrong_count')
             ->orderBy('questions.id')
             ->limit($limit);
@@ -100,9 +102,9 @@ class GameStats
         $since = now()->subHours(self::ACTIVE_HOURS);
 
         return [
-            'lobby' => Room::query()->where('status', RoomStatus::Lobby)->where('created_at', '>=', $since)->count(),
-            'playing' => Room::query()->where('status', RoomStatus::Playing)->where('created_at', '>=', $since)->count(),
-            'players' => RoomPlayer::query()->connected()->whereIn('room_id', Room::query()->active()->where('created_at', '>=', $since)->select('rooms.id'))->count(),
+            'lobby' => Room::query()->real()->where('status', RoomStatus::Lobby)->where('created_at', '>=', $since)->count(),
+            'playing' => Room::query()->real()->where('status', RoomStatus::Playing)->where('created_at', '>=', $since)->count(),
+            'players' => RoomPlayer::query()->connected()->whereIn('room_id', Room::query()->real()->active()->where('created_at', '>=', $since)->select('rooms.id'))->count(),
         ];
     }
 }

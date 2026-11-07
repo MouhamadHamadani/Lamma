@@ -53,6 +53,11 @@ return [
         'player' => [
             'driver' => 'player',
         ],
+
+        // The host of a demo room: no account, a token in a cookie (see AppServiceProvider). Used by channel auth only.
+        'demo' => [
+            'driver' => 'demo',
+        ],
     ],
 
     /*

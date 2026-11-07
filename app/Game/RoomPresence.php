@@ -36,6 +36,15 @@ class RoomPresence
             return null;
         }
 
+        if ($user instanceof DemoHost && $room->is_demo && $user->roomId === $room->id) {
+            return [
+                'room_player_id' => null,
+                'nickname' => 'Demo',
+                'locale' => $room->settings->hostScreenLocale === HostScreenLocale::Ar ? 'ar' : 'en',
+                'is_host' => true,
+            ];
+        }
+
         if ($user instanceof User && $room->host_id === $user->id) {
             return [
                 'room_player_id' => null,
@@ -57,6 +66,21 @@ class RoomPresence
             'locale' => $player->locale,
             'is_host' => false,
         ] : null;
+    }
+
+    /**
+     * The "demo" guard: whoever holds the host cookie of the demo room named by the channel (channel_name=presence-room.CODE), else nobody.
+     */
+    public function demoHostFor(?string $channelName): ?DemoHost
+    {
+        if (! str_contains((string) $channelName, 'room.')) {
+            return null;
+        }
+
+        $room = Room::query()->where('is_demo', true)->where('code', Str::upper(Str::after((string) $channelName, 'room.')))->first();
+        $host = $room ? $this->identity->hostFor($room) : null;
+
+        return $host instanceof DemoHost ? $host : null;
     }
 
     /**

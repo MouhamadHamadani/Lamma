@@ -11,7 +11,12 @@
     <header class="flex h-22 shrink-0 items-center justify-between gap-4 border-b-2 border-line bg-white px-5 lg:px-14">
         <a href="{{ route('home') }}"><x-lamma.logo /></a>
 
-        <x-lamma.chip tone="sun" size="md">{{ __('Lobby') }}</x-lamma.chip>
+        <div class="flex items-center gap-2.5">
+            <x-lamma.chip tone="sun" size="md">{{ __('Lobby') }}</x-lamma.chip>
+            @if ($isDemo)
+                <x-lamma.chip tone="teal" size="md" data-test="demo-chip">{{ __('Demo') }}</x-lamma.chip>
+            @endif
+        </div>
 
         <div class="flex items-center gap-3">
             <x-lamma.chip size="lg" class="hidden xl:inline-flex">{{ $categoryLabel }}</x-lamma.chip>
@@ -56,10 +61,17 @@
                         <x-lamma.icon name="globe" :size="22" />
                         {{ __('Each player picks Arabic or English when they join.') }}
                     </p>
-                    <p class="flex items-center gap-2.5" data-test="host-can-play">
-                        <x-lamma.icon name="phone" :size="22" />
-                        {{ __('Want to play too? Join from your phone with this code.') }}
-                    </p>
+                    @if ($isDemo)
+                        <p class="flex items-center gap-2.5" data-test="demo-hint">
+                            <x-lamma.icon name="phone" :size="22" />
+                            {{ __('Scan the code with your phone to play. The two bots are ready and waiting.') }}
+                        </p>
+                    @else
+                        <p class="flex items-center gap-2.5" data-test="host-can-play">
+                            <x-lamma.icon name="phone" :size="22" />
+                            {{ __('Want to play too? Join from your phone with this code.') }}
+                        </p>
+                    @endif
                 </div>
             </section>
 
@@ -74,7 +86,9 @@
                     @foreach ($players as $index => $player)
                         <x-lamma.player-row :player="$player" :index="$index" wire:key="player-{{ $player->id }}">
                             <x-slot:actions>
-                                @if ($player->avatar_path)
+                                @if ($player->is_bot)
+                                    {{-- The bots of a demo stay. --}}
+                                @elseif ($player->avatar_path)
                                     {{-- For a picture that should not be on the screen: the player is back to their initial and is told. --}}
                                     <button
                                         type="button" wire:click="removePhoto({{ $player->id }})" data-test="remove-photo" title="{{ __('Remove photo') }}"
@@ -82,19 +96,21 @@
                                         class="flex size-9 shrink-0 items-center justify-center rounded-full text-ink-subtle hover:bg-tint-coral hover:text-coral-700"
                                     ><x-lamma.icon name="camera-off" :size="18" :stroke="2.2" /></button>
                                 @endif
+                                @unless ($player->is_bot)
                                 <button
                                     type="button" wire:click="removePlayer({{ $player->id }})" data-test="remove-player"
                                     aria-label="{{ __('Remove :name', ['name' => $player->nickname]) }}"
                                     class="flex size-9 shrink-0 items-center justify-center rounded-full text-ink-subtle hover:bg-tint-coral hover:text-coral-700"
                                 ><x-lamma.icon name="x" :size="18" :stroke="2.4" /></button>
+                                @endunless
                             </x-slot:actions>
                         </x-lamma.player-row>
                     @endforeach
 
-                    {{-- Always last, even with players. --}}
-                    <li class="flex h-19 items-center justify-center gap-2.5 rounded-[20px] border-2 border-dashed border-line-strong text-base font-semibold text-ink-subtle">
+                    {{-- Always last, even with players. A demo that nobody has joined for a minute and a half says what to do. --}}
+                    <li @class(['flex h-19 items-center justify-center gap-2.5 rounded-[20px] border-2 border-dashed text-base font-semibold', 'border-line-strong text-ink-subtle' => ! $waitingForYou, 'border-navy bg-tint-sun text-navy' => $waitingForYou]) @if ($waitingForYou) data-test="waiting-for-you" role="status" @endif>
                         <x-lamma.icon name="phone" :size="22" />
-                        {{ __('Waiting for more players…') }}
+                        {{ $waitingForYou ? __('Waiting for you? Scan the code') : __('Waiting for more players…') }}
                     </li>
                 </ul>
 
@@ -108,7 +124,7 @@
                 @if ($startError)
                     <x-lamma.error data-test="start-error">{{ $startError }}</x-lamma.error>
                 @endif
-                <p class="text-sm text-ink-subtle">{{ __('Unlocks when everyone taps Ready.') }}</p>
+                <p class="text-sm text-ink-subtle">{{ $isDemo ? __('Unlocks when you have joined from your phone and tapped Ready.') : __('Unlocks when everyone taps Ready.') }}</p>
             </aside>
         </main>
 @endif

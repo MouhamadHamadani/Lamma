@@ -19,6 +19,17 @@ return [
     'photo_uploads_per_minute' => 6,
     'photo_uploads_per_ip_per_minute' => 30,
 
+    // The no-signup demo (App\Game\DemoRoom). The host of a demo has no account: an encrypted, httpOnly cookie holds a random token and the room stores its
+    // sha256. Demo rooms started per IP address per hour, how long a demo room lives before `lamma:prune` closes and deletes it, and how long the host
+    // screen waits for a real player before it says "Waiting for you? Scan the code".
+    'demo' => [
+        'cookie' => 'lamma_demo_host',
+        'cookie_days' => 1,
+        'rooms_per_ip_per_hour' => 5,
+        'lifetime_hours' => 2,
+        'waiting_seconds' => 90,
+    ],
+
     // Vote mode (App\Game\CategoryVote): how long a category vote stays open, and how long its result shows before the next question. Seconds.
     'vote_seconds' => 15,
     'vote_result_seconds' => 3,

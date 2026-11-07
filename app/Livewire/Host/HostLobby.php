@@ -48,7 +48,7 @@ class HostLobby extends Component
 
         // A finished game shows its results (a refresh keeps them); a room closed before the game ran has nothing to show.
         if ($room->status === RoomStatus::Finished && ! $room->isCompleted()) {
-            return $this->redirectRoute('rooms.create');
+            return $this->redirectRoute($room->is_demo ? 'demo' : 'rooms.create');
         }
 
         $this->useRoomLocale();
@@ -155,7 +155,7 @@ class HostLobby extends Component
     {
         $this->authorize('host', $this->room);
 
-        $roster->remove($this->room, $identity->user() ?? abort(403), $playerId);
+        $roster->remove($this->room, $identity->hostFor($this->room) ?? abort(403), $playerId);
     }
 
     /** Take down a photo that should not be on the screen. The player is back to their initial, and told. */
@@ -163,7 +163,7 @@ class HostLobby extends Component
     {
         $this->authorize('host', $this->room);
 
-        $roster->removePhotoAsHost($this->room, $identity->user() ?? abort(403), $playerId);
+        $roster->removePhotoAsHost($this->room, $identity->hostFor($this->room) ?? abort(403), $playerId);
     }
 
     public function start(GameEngine $engine, PlayerIdentity $identity): void
@@ -171,15 +171,17 @@ class HostLobby extends Component
         $this->authorize('host', $this->room);
 
         try {
-            $engine->start($this->room, $identity->user() ?? abort(403));
+            $engine->start($this->room, $identity->hostFor($this->room) ?? abort(403));
             $this->startError = '';
             $settings = $this->room->settings;
-            Analytics::dispatch($this, 'game_started', [
-                'player_count' => $this->room->players()->count(),
-                'question_count' => $settings->questionCount,
-                'difficulty' => $settings->difficulty->value ?? 'mixed',
-                'language' => $settings->hostScreenLocale->value,
-            ]);
+            if (! $this->room->is_demo) {
+                Analytics::dispatch($this, 'game_started', [
+                    'player_count' => $this->room->players()->count(),
+                    'question_count' => $settings->questionCount,
+                    'difficulty' => $settings->difficulty->value ?? 'mixed',
+                    'language' => $settings->hostScreenLocale->value,
+                ]);
+            }
         } catch (GameStartException $e) {
             $this->startError = $e->getMessage();
         }
@@ -193,7 +195,7 @@ class HostLobby extends Component
 
         $rooms->close($this->room);
 
-        return $this->redirectRoute('rooms.create');
+        return $this->redirectRoute($this->room->is_demo ? 'demo' : 'rooms.create');
     }
 
     /** The player id in a presence member (the info the channel auth returned), or null for the host or junk. */
@@ -224,7 +226,9 @@ class HostLobby extends Component
         $connected = $players->whereNull('left_at');
         $readyCount = $connected->where('is_ready', true)->count();
         $inLobby = $this->room->status === RoomStatus::Lobby;
-        $canStart = $inLobby && $connected->isNotEmpty() && $readyCount === $connected->count();
+        $realConnected = $connected->where('is_bot', false)->count();
+        // A demo needs a real person: the two bots are connected and ready from the start.
+        $canStart = $inLobby && $connected->isNotEmpty() && $readyCount === $connected->count() && (! $this->room->is_demo || $realConnected > 0);
         $joinUrl = route('join', ['code' => $this->room->code]);
 
         if ($canStart) {
@@ -243,6 +247,9 @@ class HostLobby extends Component
             'connectedCount' => $connected->count(),
             'readyCount' => $readyCount,
             'canStart' => $canStart,
+            'isDemo' => $this->room->is_demo,
+            // Nobody real has joined a demo after a minute and a half: the screen says what to do, and the bots keep waiting.
+            'waitingForYou' => $this->room->is_demo && $inLobby && $realConnected === 0 && $this->room->created_at !== null && $this->room->created_at->diffInSeconds(now(), true) >= (int) config('lamma.demo.waiting_seconds'),
             'inLobby' => $inLobby,
             'both' => $settings->hostScreenLocale === HostScreenLocale::Both,
             // Vote mode: the game starts with its first category and the players choose the rest.

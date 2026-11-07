@@ -88,9 +88,9 @@ class RoomRoster
      *
      * @throws AuthorizationException
      */
-    public function removePhotoAsHost(Room $room, User $by, int $playerId): bool
+    public function removePhotoAsHost(Room $room, User|DemoHost $by, int $playerId): bool
     {
-        if ($room->host_id !== $by->id) {
+        if (! $room->isHostedBy($by)) {
             throw new AuthorizationException('Only the host can remove a photo.');
         }
 
@@ -161,15 +161,16 @@ class RoomRoster
      *
      * @throws AuthorizationException
      */
-    public function remove(Room $room, User $by, int $playerId): bool
+    public function remove(Room $room, User|DemoHost $by, int $playerId): bool
     {
-        if ($room->host_id !== $by->id) {
+        if (! $room->isHostedBy($by)) {
             throw new AuthorizationException('Only the host can remove a player.');
         }
 
         $player = $room->players()->find($playerId);
 
-        return $player !== null && $this->drop($room, $player);
+        // The bots of a demo stay: the demo is two bots and whoever scans the code.
+        return $player !== null && ! $player->is_bot && $this->drop($room, $player);
     }
 
     /** The player's phone is on the presence channel (again). */
@@ -192,7 +193,8 @@ class RoomRoster
     public function syncPresence(Room $room, array $presentPlayerIds): void
     {
         $room->players()->whereIn('id', $presentPlayerIds)->whereNotNull('left_at')->update(['left_at' => null]);
-        $room->players()->whereNotIn('id', $presentPlayerIds)->whereNull('left_at')->update(['left_at' => now()]);
+        // A bot is never on the channel and is never "gone": it stays connected for the whole demo.
+        $room->players()->where('is_bot', false)->whereNotIn('id', $presentPlayerIds)->whereNull('left_at')->update(['left_at' => now()]);
     }
 
     /** Drop the players who have been gone longer than the grace period. Returns how many. */

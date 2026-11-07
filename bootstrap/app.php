@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureRoomHost;
 use App\Http\Middleware\EnsureRoomParticipant;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -21,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO,
         );
         $middleware->web(append: [SetLocale::class]);
-        $middleware->alias(['room.player' => EnsureRoomParticipant::class]);
+        $middleware->alias(['room.player' => EnsureRoomParticipant::class, 'room.host' => EnsureRoomHost::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

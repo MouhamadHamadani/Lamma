@@ -83,6 +83,7 @@ class PlayerResults extends Component
             // before logging in, claim window over) cannot.
             'saved' => $me->user_id !== null,
             'loggedIn' => $identity->user() !== null,
+            'isDemo' => $this->room->is_demo,
             'colors' => $this->room->players()->orderBy('joined_at')->orderBy('id')->pluck('id')->flip()->all(),
         ]);
     }

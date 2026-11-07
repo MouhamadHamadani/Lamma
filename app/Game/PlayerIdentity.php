@@ -61,6 +61,57 @@ class PlayerIdentity
         return $token;
     }
 
+    /** The token in the demo host cookie, or null when absent or malformed. */
+    public function demoHostToken(): ?string
+    {
+        $token = $this->request->cookie(config('lamma.demo.cookie'));
+
+        return is_string($token) && preg_match('/^[A-Za-z0-9]{'.self::TOKEN_LENGTH.'}$/', $token) ? $token : null;
+    }
+
+    /** The existing demo host token, or a new one queued as the cookie (encrypted, httpOnly, like the guest cookie). One browser hosts several demos with one token. */
+    public function issueDemoHostToken(): string
+    {
+        $token = $this->demoHostToken();
+        if ($token !== null) {
+            return $token;
+        }
+
+        $token = Str::random(self::TOKEN_LENGTH);
+        $name = (string) config('lamma.demo.cookie') ?: 'lamma_demo_host';
+
+        Cookie::queue(cookie(
+            name: $name,
+            value: $token,
+            minutes: (int) config('lamma.demo.cookie_days') * 24 * 60,
+            path: '/',
+            domain: config('session.domain'),
+            secure: config('session.secure') ?? $this->request->isSecure(),
+            httpOnly: true,
+            sameSite: 'lax',
+        ));
+        $this->request->cookies->set($name, $token);
+
+        return $token;
+    }
+
+    /**
+     * Who runs this room's big screen, if this request is theirs: the room's host account, or for a demo room the browser holding its host cookie. Null for
+     * everyone else. Never trust a User alone: a logged-in stranger is not the host of a demo, and a demo cookie opens nothing but its own room.
+     */
+    public function hostFor(Room $room): User|DemoHost|null
+    {
+        if ($room->is_demo) {
+            $token = $this->demoHostToken();
+
+            return $token !== null && $room->host_token_hash !== null && hash_equals($room->host_token_hash, hash('sha256', $token)) ? new DemoHost($room->id) : null;
+        }
+
+        $user = $this->user();
+
+        return $user !== null && $room->host_id === $user->id ? $user : null;
+    }
+
     /** A short, stable key for rate limits: the account, or the device (a hash, never the token itself), or null for a first visit with neither. */
     public function participantKey(): ?string
     {

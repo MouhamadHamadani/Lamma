@@ -17,6 +17,7 @@ class Housekeeping
         private readonly RoomManager $rooms,
         private readonly SeenQuestions $seen,
         private readonly PlayerPhoto $photos,
+        private readonly DemoStats $demos,
     ) {}
 
     /**
@@ -38,6 +39,27 @@ class Housekeeping
             });
 
         return $closed;
+    }
+
+    /**
+     * Close and delete the demo rooms older than lamma.demo.lifetime_hours. Each is tallied into demo_stats first (the dashboard's demo figure), and phones
+     * still on it are told it is closed. Its players, questions, answers and sightings go with it (database cascades).
+     *
+     * @return int how many demo rooms were deleted
+     */
+    public function deleteExpiredDemos(): int
+    {
+        $deleted = 0;
+
+        Room::query()->where('is_demo', true)->where('created_at', '<', now()->subHours((int) config('lamma.demo.lifetime_hours')))
+            ->each(function (Room $room) use (&$deleted) {
+                $this->demos->tally($room);
+                $this->rooms->close($room);
+                $room->delete();
+                $deleted++;
+            });
+
+        return $deleted;
     }
 
     /**

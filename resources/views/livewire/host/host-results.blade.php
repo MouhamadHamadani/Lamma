@@ -24,7 +24,7 @@
         $cues[] = [$nameAt, "\$store.sound.play('win'); lammaConfetti.rain(6000)"];
     }
 @endphp
-<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results" x-init="window.lammaTrack('game_finished', {{ Js::from($finished) }}, 'finished-{{ $room->id }}'); @foreach ($cues as [$ms, $js]) setTimeout(() => { {!! $js !!} }, {{ $ms }}); @endforeach">
+<div class="relative flex h-dvh flex-col overflow-hidden bg-navy text-cream" data-test="host-results" x-init="@if ($isDemo) window.lammaTrack('demo_finished', {}, 'demo-finished-{{ $room->id }}'); @else window.lammaTrack('game_finished', {{ Js::from($finished) }}, 'finished-{{ $room->id }}'); @endif @foreach ($cues as [$ms, $js]) setTimeout(() => { {!! $js !!} }, {{ $ms }}); @endforeach">
     @if ($winners)
         <x-lamma.confetti :count="12" />
     @endif
@@ -49,11 +49,17 @@
             @if (count($winners) > 2)
                 <p class="text-xl font-semibold" data-test="tied-names">{!! $names !!}</p>
             @endif
-            <p class="text-[19px] text-ink-on-dark">{{ __('Great game, everyone. Same players, another round?') }}</p>
+            <p class="text-[19px] text-ink-on-dark">{{ $isDemo ? __('That was the demo. Ready for a game with your own friends?') : __('Great game, everyone. Same players, another round?') }}</p>
 
             <div class="flex flex-wrap items-center gap-3.5">
-                <x-lamma.button size="lg" icon="play" :on-dark="true" wire:click="playAgain" wire:loading.attr="disabled" wire:target="playAgain" data-test="play-again">{{ __('Play again') }}</x-lamma.button>
-                <x-lamma.button size="lg" variant="outline" :on-dark="true" :href="route('rooms.create')" data-test="new-game">{{ __('New game') }}</x-lamma.button>
+                @if ($isDemo)
+                    {{-- A demo cannot be played again. --}}
+                    <x-lamma.button size="lg" icon="play" :on-dark="true" :href="route('register')" data-test="host-your-own">{{ __('Host your own game') }}</x-lamma.button>
+                    <x-lamma.button size="lg" variant="outline" :on-dark="true" :href="route('join')" data-test="join-a-friend">{{ __("Join a friend's game") }}</x-lamma.button>
+                @else
+                    <x-lamma.button size="lg" icon="play" :on-dark="true" wire:click="playAgain" wire:loading.attr="disabled" wire:target="playAgain" data-test="play-again">{{ __('Play again') }}</x-lamma.button>
+                    <x-lamma.button size="lg" variant="outline" :on-dark="true" :href="route('rooms.create')" data-test="new-game">{{ __('New game') }}</x-lamma.button>
+                @endif
             </div>
             @if ($error)
                 <p class="text-base font-semibold text-sun" role="alert" data-test="play-again-error">{{ $error }}</p>

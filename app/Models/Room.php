@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\GameMode;
 use App\Enums\RoomStatus;
+use App\Game\DemoHost;
 use App\Game\PlayerPhoto;
 use App\Game\RoomSettings;
 use App\Game\VoteSettings;
@@ -27,6 +28,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $host_id
  * @property RoomStatus $status
  * @property GameMode $game_mode
+ * @property bool $is_demo A no-signup demo room: no host account, two bots (App\Game\DemoRoom)
+ * @property string|null $host_token_hash sha256 of the token in a demo host's cookie; null for a real room
  * @property int|null $vote_every Vote mode: the players vote on the next category after every this many questions
  * @property int|null $first_category_id Vote mode: the category of the first batch
  * @property RoomSettings $settings
@@ -37,7 +40,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['code', 'host_id', 'status', 'game_mode', 'vote_every', 'first_category_id', 'settings', 'next_room_id', 'started_at', 'countdown_ends_at', 'finished_at'])]
+#[Fillable(['code', 'host_id', 'status', 'game_mode', 'is_demo', 'host_token_hash', 'vote_every', 'first_category_id', 'settings', 'next_room_id', 'started_at', 'countdown_ends_at', 'finished_at'])]
 class Room extends Model
 {
     /** @use HasFactory<RoomFactory> */
@@ -62,6 +65,7 @@ class Room extends Model
         return [
             'status' => RoomStatus::class,
             'game_mode' => GameMode::class,
+            'is_demo' => 'boolean',
             'vote_every' => 'integer',
             'first_category_id' => 'integer',
             'settings' => RoomSettings::class,
@@ -94,6 +98,16 @@ class Room extends Model
     }
 
     /**
+     * Real games: demo rooms (no host account, two bots) are left out of every count and statistic.
+     *
+     * @param  Builder<Room>  $query
+     */
+    public function scopeReal(Builder $query): void
+    {
+        $query->where('rooms.is_demo', false);
+    }
+
+    /**
      * Games that ran to the end: finished, with questions, every one of them revealed. A room closed part-way is not one.
      *
      * @param  Builder<Room>  $query
@@ -119,6 +133,12 @@ class Room extends Model
             ->whereRaw('LOWER(nickname) = ?', [mb_strtolower($nickname)])
             ->when($exceptPlayerId, fn ($query) => $query->whereKeyNot($exceptPlayerId))
             ->exists();
+    }
+
+    /** Does this person run the room's big screen? A demo room has no account host: its DemoHost (PlayerIdentity::hostFor) is the one. */
+    public function isHostedBy(User|DemoHost $by): bool
+    {
+        return $by instanceof DemoHost ? $this->is_demo && $by->roomId === $this->id : ! $this->is_demo && $this->host_id === $by->id;
     }
 
     /** @return HasOne<Room, $this> the finished room this one replaced after "Play again" (so this lobby is a rematch), if any */

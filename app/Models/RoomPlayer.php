@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $guest_token
  * @property string $nickname
  * @property string $locale
+ * @property bool $is_bot A demo bot (App\Game\Bots): in no statistic, never claimed, never written to question_seen
  * @property string|null $avatar_path The selfie's file on the player_photos disk (App\Game\PlayerPhoto); per game, never a profile
  * @property Carbon|null $avatar_updated_at
  * @property int $score
@@ -36,7 +37,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['room_id', 'user_id', 'guest_token', 'nickname', 'locale', 'score', 'is_ready', 'joined_at', 'left_at'])]
+#[Fillable(['room_id', 'user_id', 'guest_token', 'nickname', 'locale', 'is_bot', 'score', 'is_ready', 'joined_at', 'left_at'])]
 #[Hidden(['guest_token'])]
 class RoomPlayer extends Model implements AuthenticatableContract
 {
@@ -63,6 +64,7 @@ class RoomPlayer extends Model implements AuthenticatableContract
         return [
             'score' => 'integer',
             'is_ready' => 'boolean',
+            'is_bot' => 'boolean',
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
             'avatar_updated_at' => 'datetime',

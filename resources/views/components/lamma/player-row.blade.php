@@ -22,6 +22,10 @@
             @if ($you)
                 <span class="font-medium text-ink-subtle">{{ __('(you)') }}</span>
             @endif
+            @if (data_get($player, 'is_bot'))
+                {{-- A demo bot says so, so nobody mistakes it for a person. --}}
+                <span class="ms-1 inline-flex h-6 items-center rounded-lg border-2 border-line px-2 align-middle text-xs font-bold text-ink-muted" data-test="bot-tag">{{ __('Bot') }}</span>
+            @endif
         </span>
 
         @if ($showLanguage)

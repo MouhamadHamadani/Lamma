@@ -63,7 +63,19 @@
         </ol>
 
         <div class="w-full" data-test="save-card">
-            @if ($saved)
+            @if ($isDemo)
+                {{-- A demo is not a saved game: it can be neither saved nor played again. --}}
+                <div class="flex flex-col gap-3.5 rounded-tile border-2 border-line bg-white px-[18px] py-4 text-start" data-state="demo">
+                    <div class="flex flex-col gap-1">
+                        <span class="font-display text-lg font-extrabold">{{ __('Liked it?') }}</span>
+                        <p class="text-[15px] text-ink-muted">{{ __("Host your own game, or join a friend's.") }}</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <x-lamma.button :href="route('register')" class="grow" data-test="host-your-own">{{ __('Host your own game') }}</x-lamma.button>
+                        <x-lamma.button :href="route('join')" variant="outline" class="grow" data-test="join-a-friend">{{ __("Join a friend's game") }}</x-lamma.button>
+                    </div>
+                </div>
+            @elseif ($saved)
                 <div class="flex items-center gap-3.5 rounded-tile border-2 border-line bg-tint-teal px-[18px] py-4 text-start" data-state="saved">
                     <span class="flex size-10 shrink-0 items-center justify-center rounded-full border-3 border-navy bg-teal"><x-lamma.icon name="check" :size="20" :stroke="3" /></span>
                     <div class="flex grow flex-col">

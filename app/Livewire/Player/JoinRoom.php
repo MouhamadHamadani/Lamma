@@ -70,7 +70,7 @@ class JoinRoom extends Component
         $photo = $this->photo instanceof TemporaryUploadedFile && $this->photosOn() ? $this->photo : null;
 
         try {
-            $joiner->join($this->code, $this->nickname, $this->language, $photo);
+            $joined = $joiner->join($this->code, $this->nickname, $this->language, $photo);
         } catch (JoinException $e) {
             $this->addError($e->field, $e->getMessage());
 
@@ -78,7 +78,10 @@ class JoinRoom extends Component
         }
 
         $this->discardUpload();
-        Analytics::flash('player_joined', ['language' => $this->language]);
+        // Real games only: a demo is counted by its own events.
+        if (! $joined->room->is_demo) {
+            Analytics::flash('player_joined', ['language' => $this->language]);
+        }
 
         return $this->redirectRoute('play', ['room' => $this->code]);
     }
