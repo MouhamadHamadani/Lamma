@@ -10,7 +10,10 @@ use App\Game\RoomSettings;
 use App\Models\Category;
 use App\Models\Question;
 use App\Models\QuestionOption;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 // (No Event::fake(): it would also fake the model events these tests are about. The broadcast driver is null in tests.)
@@ -299,4 +302,44 @@ describe('the engine and the types it asks', function () {
         expect(startGame($room)->question->type->value)->toBe($type);
         expect(app(GameEngine::class)->progress($room->fresh(), $room->fresh()->currentQuestion()))->toBe(['answered' => 0, 'expected' => 3]);
     })->with(['multiple_choice', 'true_false', 'closest_number']);
+});
+
+describe('the migration', function () {
+    it('rolls back and comes up again: the columns go and return, and a question keeps its text and becomes multiple choice', function () {
+        $question = Question::factory()->withOptions()->create();
+        $columns = fn () => [Schema::hasColumn('questions', 'type'), Schema::hasColumn('questions', 'answer_number'), Schema::hasColumn('questions', 'tolerance'), Schema::hasColumn('questions', 'explanation'),
+            Schema::hasColumn('player_answers', 'number_value'), Schema::hasColumn('player_answers', 'closest_bonus')];
+
+        expect($columns())->toBe([true, true, true, true, true, true]);
+
+        Artisan::call('migrate:rollback', ['--step' => 1]);
+        expect($columns())->toBe([false, false, false, false, false, false])->and(DB::table('questions')->count())->toBe(1);
+
+        Artisan::call('migrate');
+        expect($columns())->toBe([true, true, true, true, true, true])
+            ->and($question->fresh()->type)->toBe(QuestionType::MultipleChoice)->and($question->fresh()->getTranslation('text', 'en'))->toBe($question->getTranslation('text', 'en'))
+            ->and($question->fresh()->options)->toHaveCount(4);
+    });
+});
+
+describe('a picture goes with its question', function () {
+    it('is deleted when the question is deleted for good, and kept when it is only soft-deleted', function () {
+        $path = app(QuestionImage::class)->store(jpegBytes(300, 200));
+        $question = Question::factory()->withImage($path)->create();
+
+        $question->delete();
+        expect(Storage::disk(QuestionImage::DISK)->exists($path))->toBeTrue();
+
+        $question->forceDelete();
+        expect(Storage::disk(QuestionImage::DISK)->exists($path))->toBeFalse();
+    });
+
+    it('never deletes one of the shipped drawings, which other databases share by name', function () {
+        $path = app(QuestionImage::class)->storeShipped('shape-hexagon.svg');
+        $question = Question::factory()->withImage($path)->create();
+
+        $question->forceDelete();
+
+        expect(Storage::disk(QuestionImage::DISK)->exists($path))->toBeTrue();
+    });
 });

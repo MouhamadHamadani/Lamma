@@ -56,6 +56,13 @@ class Question extends Model
                 $question->tolerance = self::defaultTolerance($question->answer_number);
             }
         });
+
+        // A picture an admin uploaded goes with the question when it is deleted for good. The drawings we ship (seed/) are copied again by the seeder and stay.
+        static::forceDeleted(function (Question $question) {
+            if ($question->image_path !== null && ! str_starts_with($question->image_path, 'seed/')) {
+                app(QuestionImage::class)->delete($question->image_path);
+            }
+        });
     }
 
     protected function casts(): array
