@@ -306,7 +306,7 @@ describe('importing questions from a CSV', function () {
 
         Question::query()->delete();
         $template = QuestionImporter::template();
-        expect($template)->toStartWith("\xEF\xBB\xBF")->and(importCsv($template)['imported'])->toBe(1);
+        expect($template)->toStartWith("\xEF\xBB\xBF")->and(importCsv($template)['imported'])->toBe(3); // one example of each type (Phase 13)
     });
 
     it('imports an uploaded file from the questions list and says how it went', function () {

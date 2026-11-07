@@ -262,6 +262,11 @@ tail /var/log/lamma-backup.log
 gunzip -c /var/backups/lamma/lamma-2026-01-31-0230.sql.gz | mysql -u lamma -p lamma
 ```
 
+**Question pictures ARE part of what to keep.** The pictures an admin uploads for picture questions (Phase 13) live in `/var/www/lamma/storage/app/public/questions/` (random `.webp`
+names; the drawings the content seeder ships are in its `seed/` folder and come back with `db:seed --class=ContentSeeder`). `backup.sh` dumps MySQL only, so a restore of the dump
+alone gives questions whose picture file is missing: the picture frame then simply disappears from the screens and the admin list says "The picture file is missing". If you add a
+file-level backup or a disk snapshot, include this folder (and, as below, exclude the player photos).
+
 **Player photos are not backed up, on purpose.** `backup.sh` dumps MySQL only. If you add any file-level backup or snapshot of the server's disk, **exclude
 `/var/www/lamma/storage/app/public/player-photos`** (for example `rsync -a --exclude 'storage/app/public/player-photos' ...`): the photos can be pictures of children, they are
 deleted 24 hours after their game (section 18), and a backup would keep them for as long as the backup lives. A restore brings back players without photos, which is fine: they

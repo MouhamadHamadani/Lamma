@@ -3,17 +3,31 @@
 namespace App\Support;
 
 use App\Enums\Difficulty;
+use App\Enums\QuestionType;
+use App\Game\GuessNumber;
+use App\Game\QuestionImage;
+use App\Game\QuestionImageException;
 use App\Models\Category;
 use App\Models\Question;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use Throwable;
 
 /**
  * Adds questions from a CSV file (Excel: Save As > CSV UTF-8). One row per question, with a header row:
  *
  *   category, difficulty, question_ar, question_en, correct_ar, correct_en, wrong1_ar, wrong1_en, wrong2_ar, wrong2_en, wrong3_ar, wrong3_en
  *   (optional: wrong4_ar, wrong4_en for a fifth option, and active = 0 to import a question switched off)
+ *
+ * Phase 13 adds optional columns. A file with a `type` column needs only category, difficulty, question_ar and question_en in its header, and the options
+ * columns only for its multiple-choice rows; a file without one is read as before (every column of the first line above is needed), so old files keep working.
+ *
+ *   type            multiple_choice (the default when empty), true_false or closest_number
+ *   answer          true_false: true or false (also yes/no, 1/0, صحيح/خطأ); closest_number: the correct number (Arabic digits and separators are read too)
+ *   tolerance       closest_number: how far a guess may be and still score; empty = a quarter of the answer, at least 1
+ *   image           the file name of a picture (a JPEG, PNG or WebP) that was uploaded together with the CSV; any type may have one
+ *   explanation_ar, explanation_en   the fun fact shown with the answer
  *
  * `category` is a top-level category ("Sports"), a subcategory with its parent ("Sports > Football"), or just a subcategory name when that is
  * unambiguous. Each part can be the slug or the name in either language, in any letter case. A row with a problem is skipped and
@@ -26,16 +40,30 @@ final class QuestionImporter
     /** @var list<string> */
     public const REQUIRED = ['category', 'difficulty', 'question_ar', 'question_en', 'correct_ar', 'correct_en', 'wrong1_ar', 'wrong1_en', 'wrong2_ar', 'wrong2_en', 'wrong3_ar', 'wrong3_en'];
 
+    /** @var list<string> What a file with a `type` column always needs. */
+    public const BASE = ['category', 'difficulty', 'question_ar', 'question_en'];
+
+    /** @var list<string> The header of the template. */
+    public const TEMPLATE = [...self::REQUIRED, 'type', 'answer', 'tolerance', 'image', 'explanation_ar', 'explanation_en'];
+
+    private const TRUE_WORDS = ['true', 't', 'yes', 'y', '1', 'صحيح', 'صح', 'نعم'];
+
+    private const FALSE_WORDS = ['false', 'f', 'no', 'n', '0', 'خطأ', 'خطا', 'غلط', 'لا'];
+
     /** @var Collection<int, Category> */
     private Collection $categories;
 
     /** @var array<string, true> English texts already in the database or earlier in the file */
     private array $known = [];
 
+    /** @var array<string, string> the uploaded pictures: lower-case file name => path */
+    private array $images = [];
+
     /**
+     * @param  list<string>  $images  paths of the pictures uploaded with the file; a row names one by its file name
      * @return array{imported: int, skipped: int, errors: list<string>}
      */
-    public function import(string $path): array
+    public function import(string $path, array $images = []): array
     {
         $handle = @fopen($path, 'r');
         if ($handle === false) {
@@ -49,13 +77,17 @@ final class QuestionImporter
 
             $header = fgetcsv($handle, 0, $delimiter, '"', '');
             $columns = is_array($header) ? array_map(fn ($name) => $this->normalizeHeader((string) $name), $header) : [];
-            $missing = array_values(array_diff(self::REQUIRED, $columns));
+            $missing = array_values(array_diff(in_array('type', $columns, true) ? self::BASE : self::REQUIRED, $columns));
             if ($missing !== []) {
                 return ['imported' => 0, 'skipped' => 0, 'errors' => ['The first row must name these columns: '.implode(', ', $missing).'.']];
             }
 
             $this->categories = Category::query()->with('parent')->get();
             $this->known = Question::withTrashed()->get()->mapWithKeys(fn (Question $question) => [$this->key($question->getTranslation('text', 'en', false)) => true])->all();
+            $this->images = [];
+            foreach ($images as $image) {
+                $this->images[mb_strtolower(basename($image))] = $image;
+            }
 
             $imported = $skipped = 0;
             $errors = [];
@@ -103,6 +135,11 @@ final class QuestionImporter
             $problems[] = 'The difficulty must be easy, medium or hard.';
         }
 
+        $type = $this->type($row['type'] ?? '');
+        if ($type === null) {
+            $problems[] = 'The type must be multiple_choice, true_false or closest_number.';
+        }
+
         $text = ['ar' => $row['question_ar'] ?? '', 'en' => $row['question_en'] ?? ''];
         if ($text['ar'] === '' && $text['en'] === '') {
             $problems[] = 'The question needs a text in Arabic or English.';
@@ -110,6 +147,100 @@ final class QuestionImporter
             $problems[] = 'The question text is longer than 500 characters.';
         }
 
+        $options = [];
+        $truth = null;
+        $number = null;
+        $tolerance = null;
+        if ($type === QuestionType::TrueFalse) {
+            $truth = $this->truth($row['answer'] ?? '');
+            if ($truth === null) {
+                $problems[] = 'A true/false question needs answer = true or false.';
+            }
+        } elseif ($type === QuestionType::ClosestNumber) {
+            $number = GuessNumber::parse($row['answer'] ?? '');
+            if ($number === null) {
+                $problems[] = 'A closest-number question needs a number in the answer column.';
+            }
+            if (($row['tolerance'] ?? '') !== '') {
+                $tolerance = GuessNumber::parse($row['tolerance']);
+                if ($tolerance === null || $tolerance <= 0) {
+                    $problems[] = 'The tolerance must be a number above 0.';
+                    $tolerance = null;
+                }
+            }
+        } elseif ($type !== null) {
+            [$options, $optionProblems] = $this->options($row);
+            $problems = [...$problems, ...$optionProblems];
+        }
+
+        $explanation = ['ar' => $row['explanation_ar'] ?? '', 'en' => $row['explanation_en'] ?? ''];
+        if (max(mb_strlen($explanation['ar']), mb_strlen($explanation['en'])) > 300) {
+            $problems[] = 'The fun fact is longer than 300 characters.';
+        }
+
+        $picture = $row['image'] ?? '';
+        if ($picture !== '' && ! isset($this->images[mb_strtolower(basename($picture))])) {
+            $problems[] = "The picture \"{$picture}\" was not uploaded with the file.";
+        }
+
+        $key = $this->key($text['en']);
+        if ($text['en'] !== '' && isset($this->known[$key])) {
+            $problems[] = 'A question with this English text already exists.';
+        }
+
+        if ($problems !== []) {
+            return $problems;
+        }
+
+        // The picture last: a row that is wrong in any other way never stores one.
+        $imagePath = null;
+        if ($picture !== '') {
+            try {
+                $imagePath = app(QuestionImage::class)->store((string) file_get_contents($this->images[mb_strtolower(basename($picture))]));
+            } catch (QuestionImageException $exception) {
+                return ["The picture \"{$picture}\": ".$exception->getMessage()];
+            }
+        }
+
+        /** @var Category $category */
+        try {
+            DB::transaction(function () use ($category, $difficulty, $type, $text, $options, $truth, $number, $tolerance, $explanation, $imagePath, $row) {
+                $question = $category->questions()->create([
+                    'text' => $text,
+                    'difficulty' => $difficulty,
+                    'type' => $type,
+                    'answer_number' => $number,
+                    'tolerance' => $tolerance,
+                    'explanation' => $explanation,
+                    'image_path' => $imagePath,
+                    'is_active' => ! in_array(mb_strtolower($row['active'] ?? ''), ['0', 'no', 'false', 'off', 'inactive'], true),
+                ]);
+                if ($truth !== null) {
+                    $question->syncTrueFalse($truth);
+                }
+                foreach ($options as $position => $option) {
+                    $question->options()->create(['text' => ['ar' => $option['ar'], 'en' => $option['en']], 'is_correct' => $option['correct'], 'sort_order' => $position + 1]);
+                }
+            });
+        } catch (Throwable $exception) {
+            app(QuestionImage::class)->delete($imagePath);
+
+            throw $exception;
+        }
+        $this->known[$key] = true;
+
+        return [];
+    }
+
+    /**
+     * The options of a multiple-choice row: the correct one first, then the wrong ones.
+     *
+     * @param  array<string, string>  $row
+     * @return array{0: list<array{ar: string, en: string, correct: bool}>, 1: list<string>} the options and the problems with them
+     */
+    private function options(array $row): array
+    {
+        $problems = [];
         $options = [['ar' => $row['correct_ar'] ?? '', 'en' => $row['correct_en'] ?? '', 'correct' => true]];
         foreach ([1, 2, 3, 4] as $n) {
             $option = ['ar' => $row["wrong{$n}_ar"] ?? '', 'en' => $row["wrong{$n}_en"] ?? '', 'correct' => false];
@@ -129,29 +260,26 @@ final class QuestionImporter
             }
         }
 
-        $key = $this->key($text['en']);
-        if ($text['en'] !== '' && isset($this->known[$key])) {
-            $problems[] = 'A question with this English text already exists.';
-        }
+        return [$options, $problems];
+    }
 
-        if ($problems !== []) {
-            return $problems;
-        }
+    /** The type a cell names; empty is multiple choice; null when it names none. */
+    private function type(string $value): ?QuestionType
+    {
+        return match (str_replace([' ', '-', '/'], '_', mb_strtolower(trim($value)))) {
+            '', 'multiple_choice', 'choice', 'mc' => QuestionType::MultipleChoice,
+            'true_false', 'truefalse', 'tf', 'boolean' => QuestionType::TrueFalse,
+            'closest_number', 'closest', 'number' => QuestionType::ClosestNumber,
+            default => null,
+        };
+    }
 
-        /** @var Category $category */
-        DB::transaction(function () use ($category, $difficulty, $text, $options, $row) {
-            $question = $category->questions()->create([
-                'text' => $text,
-                'difficulty' => $difficulty,
-                'is_active' => ! in_array(mb_strtolower($row['active'] ?? ''), ['0', 'no', 'false', 'off', 'inactive'], true),
-            ]);
-            foreach ($options as $position => $option) {
-                $question->options()->create(['text' => ['ar' => $option['ar'], 'en' => $option['en']], 'is_correct' => $option['correct'], 'sort_order' => $position + 1]);
-            }
-        });
-        $this->known[$key] = true;
+    /** True or false from a cell, or null when it is neither. */
+    private function truth(string $value): ?bool
+    {
+        $value = mb_strtolower(trim($value));
 
-        return [];
+        return in_array($value, self::TRUE_WORDS, true) ? true : (in_array($value, self::FALSE_WORDS, true) ? false : null);
     }
 
     /** The category a cell names, or the reason it cannot be found. */
@@ -212,12 +340,15 @@ final class QuestionImporter
         return (string) array_key_first($counts);
     }
 
-    /** A ready-to-fill file: the header and one example row. */
+    /** A ready-to-fill file: the header and one example row of each type (a multiple-choice one, a true/false one and a closest-number one). */
     public static function template(): string
     {
+        $blank = array_fill(0, 12, '');
         $rows = [
-            self::REQUIRED,
-            ['Sports > Football', 'easy', 'كم لاعباً في الفريق الواحد؟', 'How many players in a football team on the pitch?', '11', '11', '9', '9', '10', '10', '12', '12'],
+            self::TEMPLATE,
+            ['Sports > Football', 'easy', 'كم لاعباً في الفريق الواحد؟', 'How many players in a football team on the pitch?', '11', '11', '9', '9', '10', '10', '12', '12', 'multiple_choice', '', '', '', '', ''],
+            ['Sports > Football', 'easy', 'تُلعب مباراة كرة القدم بكرة واحدة.', 'A football match is played with one ball on the pitch.', ...array_slice($blank, 4), 'true_false', 'true', '', '', 'تستخدم المباراة كرة واحدة في كل لحظة.', 'Only one ball is in play at a time.'],
+            ['Sports > Football', 'medium', 'كم دقيقة تدوم المباراة الرسمية من دون وقت إضافي؟', 'How many minutes does an official match last, without extra time?', ...array_slice($blank, 4), 'closest_number', '90', '', '', 'شوطان، مدة كل منهما 45 دقيقة.', 'Two halves of 45 minutes.'],
         ];
 
         $handle = fopen('php://temp', 'r+') ?: throw new RuntimeException('No temporary stream.');

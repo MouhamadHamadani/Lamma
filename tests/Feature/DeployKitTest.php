@@ -60,6 +60,20 @@ describe('the nginx site', function () {
         expect($conf)->not->toContain('Permissions-Policy');   // a policy that forbids camera=() would stop the selfie step
     });
 
+    it('serves the question pictures for a year (random names) and the shipped drawings for a month, with no listing', function () {
+        $conf = deployFile('deploy/nginx/lamma.conf');
+
+        $pictures = substr($conf, positionOf($conf, 'location ^~ /storage/questions/ {'));
+        $pictures = substr($pictures, 0, strpos($pictures, '
+    }') + 6);
+        $shipped = substr($conf, positionOf($conf, 'location ^~ /storage/questions/seed/ {'));
+        $shipped = substr($shipped, 0, strpos($shipped, '
+    }') + 6);
+
+        expect($pictures)->toContain('autoindex off;')->toContain('expires 1y;')->toContain('Cache-Control "public, immutable"')->toContain('try_files $uri =404;')
+            ->and($shipped)->toContain('autoindex off;')->toContain('expires 30d;')->not->toContain('immutable');
+    });
+
     it('proxies the Reverb WebSocket on /app and /apps with the upgrade headers and long timeouts', function () {
         $conf = deployFile('deploy/nginx/lamma.conf');
 

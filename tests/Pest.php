@@ -351,6 +351,29 @@ function webpBytes(int $width = 300, int $height = 300): string
     return (string) ob_get_clean();
 }
 
+/** The bytes of a real PNG, $width x $height, blue. */
+function pngBytes(int $width = 300, int $height = 300): string
+{
+    $image = imagecreatetruecolor($width, $height);
+    imagefill($image, 0, 0, (int) imagecolorallocate($image, 0, 0, 255));
+
+    ob_start();
+    imagepng($image);
+
+    return (string) ob_get_clean();
+}
+
+/** The bytes of a real GIF: a type we do not accept. */
+function gifBytes(int $width = 200, int $height = 200): string
+{
+    $image = imagecreatetruecolor($width, $height);
+
+    ob_start();
+    imagegif($image);
+
+    return (string) ob_get_clean();
+}
+
 function upload(string $bytes, string $name = 'selfie.jpg'): UploadedFile
 {
     return UploadedFile::fake()->createWithContent($name, $bytes);
