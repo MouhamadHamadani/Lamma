@@ -324,6 +324,20 @@ function demoHostPage(string $component, Room $room, ?string $token = DEMO_TOKEN
     return $test;
 }
 
+const DEMO_GUEST = 'g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7';
+
+/** A demo game that ran to the end: one person (guest token DEMO_GUEST unless they are given an account) and the two bots, every question revealed. */
+function finishedDemo(int $questions = 3, int $person = 200): Room
+{
+    $room = finishedGame(['Ali' => $person], questions: $questions);
+    $room->update(['is_demo' => true, 'host_id' => null, 'host_token_hash' => hash('sha256', DEMO_TOKEN)]);
+    $room->players()->update(['guest_token' => DEMO_GUEST]);
+    app(Bots::class)->seed($room);
+    $room->players()->where('is_bot', true)->orderBy('id')->get()->each(fn (RoomPlayer $bot, int $i) => $bot->update(['score' => 120 + $i * 40]));
+
+    return $room->fresh();
+}
+
 function at(string $time): void
 {
     test()->travelTo(CarbonImmutable::parse("2026-10-01 {$time}"));

@@ -64,6 +64,7 @@
             @if ($error)
                 <p class="text-base font-semibold text-sun" role="alert" data-test="play-again-error">{{ $error }}</p>
             @endif
+            <x-lamma.share-button :card="$share" :on-dark="true" class="w-fit" data-test="share-result" />
             <a href="{{ route('home') }}" class="min-h-11 text-base font-semibold text-ink-on-dark underline-offset-4 hover:underline">{{ __('Back to home') }}</a>
         </section>
 

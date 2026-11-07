@@ -6,6 +6,7 @@ use App\Enums\RoomStatus;
 use App\Game\PlayerIdentity;
 use App\Game\RoomPresence;
 use App\Game\Scoreboard;
+use App\Game\ShareCard;
 use App\Models\Room;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
@@ -64,7 +65,7 @@ class PlayerResults extends Component
         return null;
     }
 
-    public function render(PlayerIdentity $identity, Scoreboard $scoreboard): View
+    public function render(PlayerIdentity $identity, Scoreboard $scoreboard, ShareCard $share): View
     {
         $me = $identity->playerIn($this->room) ?? abort(403);
         $ranking = $scoreboard->ranking($this->room);
@@ -84,6 +85,7 @@ class PlayerResults extends Component
             'saved' => $me->user_id !== null,
             'loggedIn' => $identity->user() !== null,
             'isDemo' => $this->room->is_demo,
+            'share' => $share->for($this->room, $ranking, 'phone', $me->id),
             'colors' => $this->room->players()->orderBy('joined_at')->orderBy('id')->pluck('id')->flip()->all(),
         ]);
     }

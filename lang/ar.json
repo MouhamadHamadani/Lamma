@@ -520,5 +520,10 @@
     "Main menu": "القائمة الرئيسية",
     "Footer menu": "قائمة أسفل الصفحة",
     "Please choose another nickname.": "يرجى اختيار اسم مستعار آخر.",
-    "Player": "لاعب"
+    "Player": "لاعب",
+    "Share result": "شارك النتيجة",
+    "Result shared": "تمت مشاركة النتيجة",
+    "Result saved to your device": "تم حفظ النتيجة على جهازك",
+    "We couldn't make the picture. Try again.": "تعذّر إنشاء الصورة. حاول مرة أخرى.",
+    "My result on Lamma": "نتيجتي في لمّة"
 }

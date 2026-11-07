@@ -11,7 +11,6 @@ use App\Events\RoomClosed;
 use App\Events\ScoreboardUpdated;
 use App\Filament\Resources\Rooms\Pages\ListRooms;
 use App\Filament\Widgets\ContentStats;
-use App\Game\Bots;
 use App\Game\DemoStats;
 use App\Game\GameStats;
 use App\Game\PlayerStats;
@@ -41,25 +40,11 @@ use Livewire\Livewire;
  * And what happens to a demo after two hours.
  */
 
-const DEMO_GUEST = 'g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7g7';
-
 beforeEach(function () {
     Queue::fake();
     Event::fake([GameStarted::class, QuestionStarted::class, PlayerAnswered::class, QuestionRevealed::class, ScoreboardUpdated::class, GameFinished::class, RoomClosed::class, PlayerJoined::class]);
     at('12:00:00.000');
 });
-
-/** A demo game that ran to the end: one person (guest token DEMO_GUEST unless they are given an account) and the two bots, every question revealed. */
-function finishedDemo(int $questions = 3, int $person = 200): Room
-{
-    $room = finishedGame(['Ali' => $person], questions: $questions);
-    $room->update(['is_demo' => true, 'host_id' => null, 'host_token_hash' => hash('sha256', DEMO_TOKEN)]);
-    $room->players()->update(['guest_token' => DEMO_GUEST]);
-    app(Bots::class)->seed($room);
-    $room->players()->where('is_bot', true)->orderBy('id')->get()->each(fn (RoomPlayer $bot, int $i) => $bot->update(['score' => 120 + $i * 40]));
-
-    return $room->fresh();
-}
 
 describe('question_seen', function () {
     it('records the person who played a demo, never a bot', function () {

@@ -8,6 +8,7 @@ use App\Game\PlayerIdentity;
 use App\Game\Podium;
 use App\Game\RoomManager;
 use App\Game\Scoreboard;
+use App\Game\ShareCard;
 use App\Models\Room;
 use App\Support\Analytics;
 use Illuminate\Contracts\View\View;
@@ -66,7 +67,7 @@ class HostResults extends Component
         return $this->redirectRoute('host.lobby', ['room' => $new->code], navigate: false);
     }
 
-    public function render(Scoreboard $scoreboard, Podium $podium): View
+    public function render(Scoreboard $scoreboard, Podium $podium, ShareCard $share): View
     {
         $ranking = $scoreboard->ranking($this->room);
         $steps = $podium->steps($ranking);
@@ -75,6 +76,8 @@ class HostResults extends Component
             'both' => $this->room->settings->hostScreenLocale === HostScreenLocale::Both,
             'questionCount' => $this->room->roomQuestions()->count(),
             'isDemo' => $this->room->is_demo,
+            // What the "Share result" picture shows: the winner and the top three, never a photo or the room code (App\Game\ShareCard).
+            'share' => $share->for($this->room, $ranking, 'host'),
             // Reported once, by the browser, when the results first appear (what GA hears: App\Support\Analytics). A demo reports demo_finished instead, with nothing.
             'finished' => Analytics::event('game_finished', [
                 'player_count' => $this->room->players()->count(),

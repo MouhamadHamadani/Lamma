@@ -520,5 +520,10 @@
     "Main menu": "Main menu",
     "Footer menu": "Footer menu",
     "Please choose another nickname.": "Please choose another nickname.",
-    "Player": "Player"
+    "Player": "Player",
+    "Share result": "Share result",
+    "Result shared": "Result shared",
+    "Result saved to your device": "Result saved to your device",
+    "We couldn't make the picture. Try again.": "We couldn't make the picture. Try again.",
+    "My result on Lamma": "My result on Lamma"
 }

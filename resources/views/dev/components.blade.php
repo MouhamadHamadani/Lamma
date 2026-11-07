@@ -5,7 +5,7 @@
         $planets = [['Venus', 'الزهرة'], ['Mars', 'المريخ'], ['Jupiter', 'المشتري'], ['Saturn', 'زحل']];
         $endsAt = now()->addSeconds(12);
         $endsSoon = now()->addSeconds(4);
-        $icons = ['check', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'leaf', 'compass', 'sparkles', 'home', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key', 'camera', 'target'];
+        $icons = ['check', 'share', 'x', 'lock', 'arrow-right', 'menu', 'play', 'monitor', 'phone', 'trophy', 'chart', 'sliders', 'clock', 'arrows-v', 'globe', 'flask', 'ball', 'landmark', 'film', 'utensils', 'bulb', 'leaf', 'compass', 'sparkles', 'home', 'chevron-down', 'logout', 'user', 'trash', 'copy', 'plus', 'refresh', 'qr', 'key', 'camera', 'target'];
     @endphp
 
     <main class="mx-auto max-w-[1600px] space-y-20 p-8">
@@ -170,6 +170,23 @@
                             <x-lamma.fun-fact :text="$ar ? 'يصبّ النيل في البحر الأبيض المتوسط.' : 'The Nile flows into the Mediterranean Sea.'" :lang="$loc" :alt="$ar ? null : 'يصبّ النيل في البحر الأبيض المتوسط.'" />
                             <x-lamma.fun-fact :text="$ar ? 'يصبّ النيل في البحر الأبيض المتوسط.' : 'The Nile flows into the Mediterranean Sea.'" :lang="$loc" size="phone" />
                         </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-display text-2xl font-bold">Share result · draws the 1080x1350 card in the browser, then shares or downloads it</h3>
+                    @php
+                        $shareCard = [
+                            'locale' => $loc, 'surface' => 'phone', 'brand' => $ar ? 'لمّة' : 'Lamma', 'logo' => '/brand/lamma-logo-stacked-dark.svg',
+                            'eyebrow' => __('Game over · :count questions', ['count' => 10]), 'headline' => __(':name wins!', ['name' => $ar ? 'سارة' : 'Sara']),
+                            'top' => [['rank' => 1, 'name' => $ar ? 'سارة' : 'Sara', 'score' => 1450], ['rank' => 2, 'name' => $ar ? 'علي' : 'Ali', 'score' => 1210], ['rank' => 3, 'name' => $ar ? 'مايا' : 'Maya', 'score' => 980]],
+                            'me' => ['label' => __('Your place: :rank', ['rank' => App\Game\Scoreboard::ordinal(2)])], 'cta' => __('The quiz night for everyone'),
+                            'host' => App\Game\ShareCard::host(), 'filename' => 'lamma-result.png', 'shareTitle' => __('My result on Lamma'), 'shareText' => App\Game\ShareCard::host(),
+                        ];
+                    @endphp
+                    <div class="flex flex-wrap items-start gap-10">
+                        <x-lamma.share-button :card="$shareCard" class="w-[320px]" />
+                        <div class="rounded-panel bg-navy p-6"><x-lamma.share-button :card="$shareCard" :on-dark="true" class="w-[320px]" /></div>
                     </div>
                 </div>
 

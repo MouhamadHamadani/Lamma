@@ -62,6 +62,8 @@
             @endforeach
         </ol>
 
+        <x-lamma.share-button :card="$share" class="w-full" data-test="share-result" />
+
         <div class="w-full" data-test="save-card">
             @if ($isDemo)
                 {{-- A demo is not a saved game: it can be neither saved nor played again. --}}

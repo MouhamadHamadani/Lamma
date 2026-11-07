@@ -17,3 +17,5 @@ import './confetti';
 import './analytics';
 
 import './selfie';
+
+import './share-card';
