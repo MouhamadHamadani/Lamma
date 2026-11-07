@@ -28,6 +28,7 @@ class HardestQuestions extends TableWidget
                     ->limit(80)
                     ->wrap(),
                 TextColumn::make('category.name')->label('Category'),
+                TextColumn::make('type')->badge(),
                 TextColumn::make('wrong_count')->label('Wrong answers'),
                 TextColumn::make('answers_count')->label('Answers'),
                 TextColumn::make('percent_correct')
@@ -38,6 +39,8 @@ class HardestQuestions extends TableWidget
                         return $percent === null ? '—' : $percent.'%';
                     }),
             ])
+            // Every type counts the same way: an answer is right or wrong as the game decided (a closest-number guess within the tolerance is right).
+            ->description('A closest-number guess within the tolerance counts as correct.')
             ->paginated(false)
             ->emptyStateHeading('No answers yet')
             ->emptyStateDescription('Questions appear here once players have answered them.');
