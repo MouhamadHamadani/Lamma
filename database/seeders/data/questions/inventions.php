@@ -74,4 +74,9 @@ return [
     ['medium', 'في أي بلد اخترع الناس البارود لأول مرة؟', 'In which country was gunpowder first invented?', ['الصين|China', 'الهند|India', 'اليونان|Greece', 'مصر|Egypt']],
     ['medium', 'أي عالم هولندي اخترع ساعة البندول عام 1656؟', 'Which Dutch scientist invented the pendulum clock in 1656?', ['كريستيان هويغنز|Christiaan Huygens', 'غاليليو غاليلي|Galileo Galilei', 'يوهانس كبلر|Johannes Kepler', 'أنطوان لافوازييه|Antoine Lavoisier']],
     ['medium', 'أي مخترع أمريكي ابتكر في خمسينيات القرن التاسع عشر مصعداً آمناً بفرامل تمنع سقوطه؟', 'Which American inventor created, in the 1850s, a safe elevator with a brake that stops it falling?', ['إليشا أوتيس|Elisha Otis', 'هنري فورد|Henry Ford', 'ألفريد نوبل|Alfred Nobel', 'كارل بنز|Karl Benz']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'أي مركبة لها عجلتان وتُحرَّك بالدواسات؟', 'Which vehicle has two wheels and is driven by pedals?', ['الدراجة الهوائية|The bicycle', 'السيارة|The car', 'القطار|The train', 'العربة|The cart']],
+    ['medium', 'أي شركة أنتجت نظام التشغيل «ويندوز»؟', 'Which company created the "Windows" operating system?', ['مايكروسوفت|Microsoft', 'آبل|Apple', 'غوغل|Google', 'آي بي إم|IBM']],
+    ['hard', 'من الشريك المؤسس لشركة آبل مع ستيف جوبز عام 1976؟', 'Who co-founded Apple with Steve Jobs in 1976?', ['ستيف وزنياك|Steve Wozniak', 'بيل غيتس|Bill Gates', 'لاري بيج|Larry Page', 'مارك زوكربيرغ|Mark Zuckerberg']],
 ];

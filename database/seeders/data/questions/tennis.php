@@ -73,4 +73,9 @@ return [
     ['medium', 'أي بطولة من البطولات الأربع الكبرى تُقام أولاً في السنة؟', 'Which of the four Grand Slam tournaments is held first in the year?', ['أستراليا المفتوحة|The Australian Open', 'فرنسا المفتوحة|The French Open', 'ويمبلدون|Wimbledon', 'أمريكا المفتوحة|The US Open']],
     ['medium', 'أي بطولة من البطولات الأربع الكبرى تُقام آخراً في السنة؟', 'Which of the four Grand Slam tournaments is held last in the year?', ['أمريكا المفتوحة|The US Open', 'ويمبلدون|Wimbledon', 'فرنسا المفتوحة|The French Open', 'أستراليا المفتوحة|The Australian Open']],
     ['medium', 'من أي بلد جاء اللاعب نوفاك ديوكوفيتش؟', 'Which country is the player Novak Djokovic from?', ['صربيا|Serbia', 'كرواتيا|Croatia', 'سلوفينيا|Slovenia', 'بلغاريا|Bulgaria']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'ماذا نسمّي الخط الذي يقع في نهاية كل جانب من ملعب التنس؟', 'What is the line at the back of each side of a tennis court called?', ['الخط الخلفي (البيسلاين)|The baseline', 'خط الشبكة|The net line', 'خط الجانب|The sideline', 'خط الإرسال|The service line']],
+    ['medium', 'بأي اسم رسمي تُعرف بطولة ويمبلدون؟', 'By what official name is the Wimbledon tournament known?', ['البطولات (ذا تشامبيونشيبس)|The Championships', 'كأس لندن|The London Cup', 'الجائزة الكبرى|The Grand Prize', 'الماسية|The Diamond Open']],
+    ['hard', 'ما اسم الملعب الرئيسي في نادي عموم إنجلترا للتنس في ويمبلدون؟', 'What is the main court at the All England Club in Wimbledon called?', ['الملعب المركزي (سنتر كورت)|Centre Court', 'ملعب رقم 1|Court Number One', 'ملعب الملكة|The Queen\'s Court', 'ملعب النصر|Victory Court']],
 ];

@@ -74,4 +74,9 @@ return [
     ['medium', 'أي فصيلة دم تُعدّ «المستقبِل العام» للدم؟', 'Which blood group is the universal recipient for blood?', ['AB موجب|AB positive', 'O سالب|O negative', 'A سالب|A negative', 'B موجب|B positive']],
     ['medium', 'ما الصبغة التي تعطي الجلد لونه؟', 'Which pigment gives skin its colour?', ['الميلانين|Melanin', 'الكلوروفيل|Chlorophyll', 'الهيموغلوبين|Haemoglobin', 'الكاروتين|Carotene']],
     ['medium', 'ما اسم الأنبوب الذي ينقل البول من الكلية إلى المثانة؟', 'What is the tube that carries urine from the kidney to the bladder called?', ['الحالب|The ureter', 'الإحليل|The urethra', 'المريء|The oesophagus', 'الأبهر|The aorta']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'كم إصبعاً في قدم الإنسان الواحدة؟', 'How many toes are there on one human foot?', ['5', '4', '6', '10']],
+    ['medium', 'ما اسم النسيج الطري داخل بعض العظام الذي يصنع خلايا الدم؟', 'What is the soft tissue inside some bones that makes blood cells called?', ['نخاع العظم|Bone marrow', 'الغضروف|Cartilage', 'الأوتار|Tendons', 'الأربطة|Ligaments']],
+    ['hard', 'أي جزء من الدماغ يتحكّم في التنفس ونبض القلب؟', 'Which part of the brain controls breathing and the heartbeat?', ['النخاع المستطيل|The medulla oblongata', 'المخيخ|The cerebellum', 'القشرة المخية|The cerebral cortex', 'الغدة النخامية|The pituitary gland']],
 ];

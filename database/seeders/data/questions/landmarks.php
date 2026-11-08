@@ -73,4 +73,9 @@ return [
     ['easy', 'في أي مدينة يقع جسر المرفأ الشهير بجانب دار الأوبرا الشهيرة؟', 'In which city is the famous Harbour Bridge, beside the famous Opera House?', ['سيدني|Sydney', 'ملبورن|Melbourne', 'ويلينغتون|Wellington', 'أوكلاند|Auckland']],
     ['medium', 'في أي مدينة يقع معبد «البانثيون» الروماني ذو القبة الكبيرة؟', 'In which city is the Roman Pantheon with its great dome?', ['روما|Rome', 'أثينا|Athens', 'باريس|Paris', 'القاهرة|Cairo']],
     ['medium', 'في أي مدينة أمريكية يقع جسر بروكلين الشهير؟', 'In which American city is the famous Brooklyn Bridge?', ['نيويورك|New York', 'سان فرانسيسكو|San Francisco', 'بوسطن|Boston', 'واشنطن|Washington']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'في أي بلد يقع سور الصين العظيم؟', 'In which country is the Great Wall located?', ['الصين|China', 'اليابان|Japan', 'الهند|India', 'منغوليا|Mongolia']],
+    ['medium', 'في أي مدينة يقع متحف رايكس (ريكسميوزيوم) الشهير؟', 'In which city is the famous Rijksmuseum?', ['أمستردام|Amsterdam', 'بروكسل|Brussels', 'روتردام|Rotterdam', 'كوبنهاغن|Copenhagen']],
+    ['hard', 'في أي مدينة إيطالية يقع متحف أوفيتزي الشهير؟', 'In which Italian city is the famous Uffizi Gallery?', ['فلورنسا|Florence', 'روما|Rome', 'البندقية|Venice', 'ميلانو|Milan']],
 ];

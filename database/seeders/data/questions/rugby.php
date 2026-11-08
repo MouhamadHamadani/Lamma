@@ -72,4 +72,9 @@ return [
     ['medium', 'ماذا نسمّي التنافس على الكرة وهي على الأرض بعد التحام اللاعبين فوقها؟', 'What is the contest for the ball on the ground, with players from both teams bound over it, called?', ['الرك|A ruck', 'اللاين أوت|A lineout', 'المول|A maul', 'السكروم|A scrum']],
     ['medium', 'أي بطولة سنوية تجمع جنوب أفريقيا ونيوزيلندا وأستراليا والأرجنتين؟', 'Which annual tournament brings together South Africa, New Zealand, Australia and Argentina?', ['بطولة الرغبي (ذا رغبي تشامبيونشيب)|The Rugby Championship', 'بطولة الأمم الست|The Six Nations', 'كأس العالم للرغبي|The Rugby World Cup', 'بطولة سوبر رغبي|Super Rugby']],
     ['medium', 'في أي مدينة يقع ملعب «برينسيباليتي» الذي يلعب عليه منتخب ويلز؟', 'In which city is the Principality Stadium, where Wales play their home matches?', ['كارديف|Cardiff', 'سوانزي|Swansea', 'نيوبورت|Newport', 'لندن|London']],
+
+    // ---- Phase 15 margin: one more of each difficulty (warn_margin keeps lamma:doctor green) ----
+    ['easy', 'ماذا نسمّي إسقاط اللاعب الذي يحمل الكرة على الأرض بإمساكه؟', 'What is it called when a defender brings the player with the ball to the ground by grabbing him?', ['تدخّل (تاكل)|A tackle', 'تمريرة|A pass', 'رمية|A throw', 'ركلة|A kick']],
+    ['medium', 'أي منتخب يُلقَّب بـ«الفيجيين الطائرين» في الرغبي؟', 'Which rugby team is nicknamed the "Flying Fijians"?', ['فيجي|Fiji', 'ساموا|Samoa', 'تونغا|Tonga', 'اليابان|Japan']],
+    ['hard', 'أي منتخب فاز بأول كأس عالم لرغبي الدوري عام 1954؟', 'Which team won the first Rugby League World Cup, in 1954?', ['بريطانيا العظمى|Great Britain', 'أستراليا|Australia', 'فرنسا|France', 'نيوزيلندا|New Zealand']],
 ];

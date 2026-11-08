@@ -73,4 +73,9 @@ return [
     ['medium', 'أي فريق يُعرف بسياراته الفضية المسمّاة «الأسهم الفضية»؟', 'Which team is known for its silver cars called the "Silver Arrows"?', ['مرسيدس|Mercedes', 'فيراري|Ferrari', 'ريد بُل|Red Bull', 'ماكلارين|McLaren']],
     ['medium', 'في أي دولة تقع حلبة «ريد بُل رينغ»؟', 'In which country is the Red Bull Ring circuit?', ['النمسا|Austria', 'ألمانيا|Germany', 'سويسرا|Switzerland', 'هولندا|The Netherlands']],
     ['medium', 'في أي دولة تقع حلبة إنترلاغوس الشهيرة؟', 'In which country is the famous Interlagos circuit?', ['البرازيل|Brazil', 'الأرجنتين|Argentina', 'المكسيك|Mexico', 'تشيلي|Chile']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'ما اسم الممرّ الذي تدخله السيارات لتغيير الإطارات والإصلاح في أثناء السباق؟', 'What is the lane that cars enter to change tyres and be repaired during a race called?', ['ممر الحفرة (البِت لين)|The pit lane', 'الحافة|The kerb', 'منصة التتويج|The podium', 'خط البداية|The grid']],
+    ['medium', 'ماذا نسمّي الشخص الذي يجلس بجانب السائق في سباق الراليات ويقرأ له ملاحظات الطريق؟', 'What is the person who sits beside the driver in a rally and reads out the road notes called?', ['الملاح (كو درايفر)|The co-driver', 'المدرب|The coach', 'الحكم|The steward', 'المهندس|The engineer']],
+    ['hard', 'أي سائق بريطاني فاز ببطولة العالم للفورمولا 1 عام 1996 مع فريق ويليامز؟', 'Which British driver won the Formula One World Championship in 1996 with Williams?', ['دامون هيل|Damon Hill', 'نايجل مانسيل|Nigel Mansell', 'جنسون باتون|Jenson Button', 'جاك فيلنوف|Jacques Villeneuve']],
 ];

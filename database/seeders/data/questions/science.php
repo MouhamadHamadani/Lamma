@@ -55,4 +55,9 @@ return [
     ['hard', 'ما الرمز الكيميائي للقصدير؟', 'What is the chemical symbol for tin?', ['Sn', 'Sb', 'Ti', 'Tn']],
     ['hard', 'ما العدد الذري للحديد؟', 'What is the atomic number of iron?', ['26', '16', '36', '56']],
     ['hard', 'ما الغاز الرئيسي في الغلاف الجوي لكوكب المريخ؟', 'Which gas is the main component of the atmosphere of Mars?', ['ثاني أكسيد الكربون|Carbon dioxide', 'الأكسجين|Oxygen', 'النيتروجين|Nitrogen', 'الميثان|Methane']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'إلى أي مجموعة من الحيوانات ينتمي الحوت؟', 'To which group of animals does the whale belong?', ['الثدييات|Mammals', 'الأسماك|Fish', 'الزواحف|Reptiles', 'البرمائيات|Amphibians']],
+    ['medium', 'ما الرمز الكيميائي للكربون؟', 'What is the chemical symbol for carbon?', ['C', 'Ca', 'Cr', 'Co']],
+    ['hard', 'ما العدد الذري للذهب؟', 'What is the atomic number of gold?', ['79', '47', '29', '82']],
 ];

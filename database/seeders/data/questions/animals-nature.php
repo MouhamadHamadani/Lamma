@@ -58,4 +58,9 @@ return [
     ['hard', 'أي شجرة هي الأكبر في العالم من حيث الحجم؟', 'Which tree is the biggest in the world by volume?', ['السكويا العملاقة|The giant sequoia', 'الخشب الأحمر الساحلي|The coast redwood', 'شجرة الباوباب|The baobab', 'شجرة الصفصاف|The willow']],
     ['hard', 'أي طائر يقطع أطول مسافة هجرة سنوية بين القطبين؟', 'Which bird makes the longest yearly migration, between the poles?', ['خرشنة القطب الشمالي (الجلم القطبي)|The Arctic tern', 'اللقلق الأبيض|The white stork', 'البجع|The pelican', 'النورس الرمادي|The grey gull']],
     ['hard', 'أي حيوان بحري له أكثف فراء بين الحيوانات؟', 'Which sea mammal has the densest fur of any animal?', ['قضاعة البحر|The sea otter', 'الفقمة|The seal', 'الدب القطبي|The polar bear', 'الفظّ|The walrus']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'أي طائر يفرد ريش ذيله الملوّن كالمروحة؟', 'Which bird fans out its colourful tail feathers?', ['الطاووس|The peacock', 'البجعة|The swan', 'الغراب|The crow', 'الحمامة|The pigeon']],
+    ['medium', 'أي حيوان يبني السدود على الأنهار من الأغصان والطين؟', 'Which animal builds dams on rivers from branches and mud?', ['القندس|The beaver', 'الدب|The bear', 'الثعلب|The fox', 'الغزال|The deer']],
+    ['hard', 'أي حيوان بري يقطع أطول مسافة هجرة سنوية بين الثدييات البرية؟', 'Which land mammal makes the longest yearly migration of any land mammal?', ['الرنة (الكاريبو)|The caribou', 'الفيل|The elephant', 'الزرافة|The giraffe', 'الجمل|The camel']],
 ];

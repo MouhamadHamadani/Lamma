@@ -53,4 +53,9 @@ return [
     ['hard', 'أي مضيق يصل الخليج العربي بخليج عُمان؟', 'Which strait connects the Persian Gulf with the Gulf of Oman?', ['مضيق هرمز|The Strait of Hormuz', 'مضيق باب المندب|The Bab-el-Mandeb Strait', 'مضيق جبل طارق|The Strait of Gibraltar', 'مضيق البوسفور|The Bosphorus']],
     ['hard', 'أي بحيرة في إثيوبيا ينبع منها النيل الأزرق؟', 'From which lake in Ethiopia does the Blue Nile flow?', ['بحيرة تانا|Lake Tana', 'بحيرة فيكتوريا|Lake Victoria', 'بحيرة تنجانيقا|Lake Tanganyika', 'بحيرة تشاد|Lake Chad']],
     ['hard', 'أي دولة تملك أطول ساحل في العالم؟', 'Which country has the longest coastline in the world?', ['كندا|Canada', 'روسيا|Russia', 'أستراليا|Australia', 'إندونيسيا|Indonesia']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'في أي قارة تقع الهند؟', 'On which continent is India?', ['آسيا|Asia', 'أفريقيا|Africa', 'أوروبا|Europe', 'أستراليا|Oceania']],
+    ['medium', 'في أي محيط تقع جزر المالديف؟', 'In which ocean are the Maldives?', ['المحيط الهندي|The Indian Ocean', 'المحيط الهادئ|The Pacific Ocean', 'المحيط الأطلسي|The Atlantic Ocean', 'المحيط المتجمد الشمالي|The Arctic Ocean']],
+    ['hard', 'ما أعلى قمة في جبال الألب؟', 'What is the highest peak in the Alps?', ['مون بلان|Mont Blanc', 'ماترهورن|The Matterhorn', 'مونتي روزا|Monte Rosa', 'أيغر|The Eiger']],
 ];

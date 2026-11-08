@@ -61,4 +61,9 @@ return [
     ['hard', 'أي مملكة حكمتها الملكة زنوبيا في القرن الثالث الميلادي؟', 'Which kingdom was ruled by Queen Zenobia in the 3rd century?', ['تدمر|Palmyra', 'قرطاج|Carthage', 'سبأ|Sheba', 'بابل|Babylon']],
     ['hard', 'في أي عام جرت معركة ليبانتو البحرية الكبرى في البحر المتوسط؟', 'In which year was the great naval battle of Lepanto fought in the Mediterranean?', ['1571', '1453', '1683', '1492']],
     ['hard', 'أي إمبراطورية في غرب أفريقيا حكمها منسا موسى المشهور بثروته؟', 'Which West African empire was ruled by Mansa Musa, famous for his wealth?', ['إمبراطورية مالي|The Mali Empire', 'إمبراطورية غانا|The Ghana Empire', 'إمبراطورية الأشانتي|The Ashanti Empire', 'إمبراطورية سونغاي|The Songhai Empire']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'من أي منطقة جاء الفايكنغ؟', 'Which region did the Vikings come from?', ['اسكندنافيا|Scandinavia', 'شبه الجزيرة الإيبيرية|The Iberian Peninsula', 'البلقان|The Balkans', 'القوقاز|The Caucasus']],
+    ['medium', 'في أي بلد بدأت الثورة الصناعية؟', 'In which country did the Industrial Revolution begin?', ['بريطانيا|Britain', 'ألمانيا|Germany', 'الولايات المتحدة|The United States', 'اليابان|Japan']],
+    ['hard', 'ما اسم السفينة التي أبحر عليها تشارلز داروين في رحلته العلمية الشهيرة؟', 'What was the name of the ship on which Charles Darwin made his famous scientific voyage?', ['البيغل|HMS Beagle', 'الميفلاور|The Mayflower', 'سانتا ماريا|The Santa Maria', 'الفكتوري|HMS Victory']],
 ];

@@ -73,4 +73,9 @@ return [
     ['medium', 'ماذا نسمّي اللكمة السريعة المستقيمة بيد القيادة في الملاكمة؟', 'What is the quick straight punch thrown with the leading hand in boxing called?', ['جاب|A jab', 'أبركت|An uppercut', 'هوك|A hook', 'سوينغ|A swing']],
     ['medium', 'ماذا يعني «التاب أوت» في فنون القتال المختلطة؟', 'What does a "tap out" mean in mixed martial arts?', ['استسلام المقاتل|The fighter surrenders', 'بداية الجولة|The round begins', 'ضربة قاضية|A knockout', 'الفوز بالنقاط|A win on points']],
     ['medium', 'أي مقاتل اعتزل عام 2020 في فنون القتال المختلطة بسجل خالٍ من الهزائم هو 29-0؟', 'Which mixed martial artist retired in 2020 with an unbeaten record of 29-0?', ['حبيب نورمحمدوف|Khabib Nurmagomedov', 'كونور ماكغريغور|Conor McGregor', 'جون جونز|Jon Jones', 'أندرسون سيلفا|Anderson Silva']],
+
+    // ---- Phase 15 margin ----
+    ['easy', 'ماذا يرمي مصارعو السومو من الملح قبل بدء النزال؟', 'What do sumo wrestlers throw into the ring before a bout?', ['الملح|Salt', 'الرمل|Sand', 'الماء|Water', 'الأرز|Rice']],
+    ['medium', 'بأي اسم يُعرف الجيو جيتسو البرازيلي لتركيزه على الإمساك والسيطرة؟', 'By what nickname is Brazilian jiu-jitsu known, for its focus on grappling and control?', ['الفن اللطيف|The gentle art', 'الفن الأسود|The dark art', 'الفن الصامت|The silent art', 'الفن الحلو|The sweet art']],
+    ['hard', 'أي ملاكم أمريكي كان يُلقَّب بـ«جو المدخّن» وهزم محمد علي عام 1971؟', 'Which American boxer, nicknamed "Smokin\' Joe", beat Muhammad Ali in 1971?', ['جو فريزر|Joe Frazier', 'جورج فورمان|George Foreman', 'ليون سبينكس|Leon Spinks', 'لاري هولمز|Larry Holmes']],
 ];
