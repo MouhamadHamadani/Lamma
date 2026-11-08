@@ -64,4 +64,14 @@ return [
     ['hard', 'أي حجرة في القلب تضخّ الدم المحمّل بالأكسجين إلى أنحاء الجسم؟', 'Which chamber of the heart pumps oxygen-rich blood around the body?', ['البطين الأيسر|The left ventricle', 'البطين الأيمن|The right ventricle', 'الأذين الأيمن|The right atrium', 'الأذين الأيسر|The left atrium']],
     ['hard', 'أي بروتين يحمل الأكسجين داخل خلايا الدم الحمراء؟', 'Which protein carries oxygen inside red blood cells?', ['الهيموغلوبين|Haemoglobin', 'الكولاجين|Collagen', 'الكيراتين|Keratin', 'الميوغلوبين|Myoglobin']],
     ['hard', 'أي غدة على شكل فراشة في العنق تتحكّم في عمليات الأيض في الجسم؟', 'Which butterfly-shaped gland in the neck controls the body\'s metabolism?', ['الغدة الدرقية|The thyroid gland', 'الغدة النخامية|The pituitary gland', 'الغدة الكظرية|The adrenal gland', 'الغدة الصنوبرية|The pineal gland']],
+
+    // ---- Phase 15 fill-up: 4 more easy and 4 more medium, so the subcategory reaches 20 / 20 / 20 ----
+    ['easy', 'ما الذي يحمي القلب والرئتين داخل الصدر؟', 'What protects the heart and lungs inside the chest?', ['القفص الصدري (الأضلاع)|The rib cage', 'الجمجمة|The skull', 'العمود الفقري|The spine', 'الحوض|The pelvis']],
+    ['easy', 'ماذا نسمّي مجموع العظام التي تعطي الجسم شكله؟', 'What do we call the set of bones that gives the body its shape?', ['الهيكل العظمي|The skeleton', 'الجهاز الهضمي|The digestive system', 'الجهاز العصبي|The nervous system', 'الجلد|The skin']],
+    ['easy', 'ما الغاز الذي ينقله الدم من الرئتين إلى خلايا الجسم؟', 'Which gas does the blood carry from the lungs to the cells of the body?', ['الأكسجين|Oxygen', 'الهيدروجين|Hydrogen', 'النيتروجين|Nitrogen', 'الهيليوم|Helium']],
+    ['easy', 'أي جزء من الجسم يصل الرأس بالجذع؟', 'Which part of the body joins the head to the trunk?', ['الرقبة|The neck', 'الكتف|The shoulder', 'الظهر|The back', 'الركبة|The knee']],
+    ['medium', 'ما نوع مفصل الكتف؟', 'What type of joint is the shoulder?', ['مفصل كروي حقّي|A ball-and-socket joint', 'مفصل رزّي|A hinge joint', 'مفصل منزلق|A gliding joint', 'مفصل محوري|A pivot joint']],
+    ['medium', 'أي فصيلة دم تُعدّ «المستقبِل العام» للدم؟', 'Which blood group is the universal recipient for blood?', ['AB موجب|AB positive', 'O سالب|O negative', 'A سالب|A negative', 'B موجب|B positive']],
+    ['medium', 'ما الصبغة التي تعطي الجلد لونه؟', 'Which pigment gives skin its colour?', ['الميلانين|Melanin', 'الكلوروفيل|Chlorophyll', 'الهيموغلوبين|Haemoglobin', 'الكاروتين|Carotene']],
+    ['medium', 'ما اسم الأنبوب الذي ينقل البول من الكلية إلى المثانة؟', 'What is the tube that carries urine from the kidney to the bladder called?', ['الحالب|The ureter', 'الإحليل|The urethra', 'المريء|The oesophagus', 'الأبهر|The aorta']],
 ];

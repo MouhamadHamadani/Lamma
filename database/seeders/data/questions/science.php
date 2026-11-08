@@ -43,4 +43,16 @@ return [
     ['hard', 'أي كوكب في المجموعة الشمسية يدور على جانبه تقريباً؟', 'Which planet in the solar system spins almost on its side?', ['أورانوس|Uranus', 'نبتون|Neptune', 'زحل|Saturn', 'المشتري|Jupiter']],
     ['hard', 'ما اسم القارة العملاقة الواحدة التي كانت تضم اليابسة قبل مئات الملايين من السنين؟', 'What was the name of the single giant landmass that existed hundreds of millions of years ago?', ['بانجيا|Pangaea', 'غندوانا|Gondwana', 'لوراسيا|Laurasia', 'أتلانتس|Atlantis']],
     ['hard', 'أي كوكب هو الأبعد عن الشمس بين كواكب المجموعة الشمسية الثمانية؟', 'Which of the eight planets of the solar system is the farthest from the Sun?', ['نبتون|Neptune', 'أورانوس|Uranus', 'زحل|Saturn', 'المشتري|Jupiter']],
+
+    // ---- Phase 15 fill-up: 10 more so the category reaches 100 ----
+    ['easy', 'ما الغاز الذي يحتاج إليه الإنسان ليتنفّسه؟', 'Which gas do humans need to breathe in?', ['الأكسجين|Oxygen', 'الهيدروجين|Hydrogen', 'الميثان|Methane', 'الهيليوم|Helium']],
+    ['easy', 'ما ترتيب كوكب الأرض بين كواكب المجموعة الشمسية من حيث البعد عن الشمس؟', 'Counting from the Sun, which place does Earth have among the planets?', ['الثالث|Third', 'الثاني|Second', 'الرابع|Fourth', 'الخامس|Fifth']],
+    ['easy', 'أي جزء من النبات يمتصّ ضوء الشمس ليصنع الغذاء؟', 'Which part of a plant takes in sunlight to make food?', ['الأوراق|The leaves', 'الجذور|The roots', 'الساق|The stem', 'الثمار|The fruit']],
+    ['medium', 'أي كوكب يحمل «البقعة الحمراء العظيمة» وهي عاصفة هائلة؟', 'Which planet has the "Great Red Spot", a huge storm?', ['المشتري|Jupiter', 'زحل|Saturn', 'المريخ|Mars', 'نبتون|Neptune']],
+    ['medium', 'من العالم الذي وضع نظرية التطور بالانتخاب الطبيعي؟', 'Which scientist proposed the theory of evolution by natural selection?', ['تشارلز داروين|Charles Darwin', 'غريغور مندل|Gregor Mendel', 'لويس باستور|Louis Pasteur', 'غاليليو غاليلي|Galileo Galilei']],
+    ['medium', 'ماذا نسمّي تحوّل الماء السائل إلى بخار؟', 'What is the change of liquid water into vapour called?', ['التبخّر|Evaporation', 'التكاثف|Condensation', 'التجمّد|Freezing', 'الانصهار|Melting']],
+    ['medium', 'ماذا نسمّي الصخور التي تتكوّن من تبرّد الحمم البركانية؟', 'What do we call rocks formed when lava or magma cools?', ['الصخور النارية|Igneous rocks', 'الصخور الرسوبية|Sedimentary rocks', 'الصخور المتحولة|Metamorphic rocks', 'الصخور الجيرية|Limestone rocks']],
+    ['hard', 'ما الرمز الكيميائي للقصدير؟', 'What is the chemical symbol for tin?', ['Sn', 'Sb', 'Ti', 'Tn']],
+    ['hard', 'ما العدد الذري للحديد؟', 'What is the atomic number of iron?', ['26', '16', '36', '56']],
+    ['hard', 'ما الغاز الرئيسي في الغلاف الجوي لكوكب المريخ؟', 'Which gas is the main component of the atmosphere of Mars?', ['ثاني أكسيد الكربون|Carbon dioxide', 'الأكسجين|Oxygen', 'النيتروجين|Nitrogen', 'الميثان|Methane']],
 ];

@@ -63,4 +63,14 @@ return [
     ['hard', 'أي لاعب ألماني أصبح أصغر بطل لويمبلدون للرجال، وكان عمره 17 عاماً عام 1985؟', 'Which German player became the youngest men\'s Wimbledon champion, at 17, in 1985?', ['بوريس بيكر|Boris Becker', 'ميشائيل شتيش|Michael Stich', 'تومي هاس|Tommy Haas', 'ألكسندر زفيريف|Alexander Zverev']],
     ['hard', 'أي أمريكي أكمل «الغراند سلام الذهبي» على مدى مسيرته بفوزه بفرنسا المفتوحة 1999 بعد ذهبية أولمبياد 1996؟', 'Which American completed the "career Golden Slam" by winning the 1999 French Open, after Olympic gold in 1996?', ['أندريه أغاسي|Andre Agassi', 'بيت سامبراس|Pete Sampras', 'جيم كورييه|Jim Courier', 'آندي روديك|Andy Roddick']],
     ['hard', 'أي لاعب بريطاني فاز ببطولة ويمبلدون للرجال عام 2013 وكان أول بريطاني يفعلها منذ فريد بيري عام 1936؟', 'Which British player won the Wimbledon men\'s title in 2013, the first Briton to do so since Fred Perry in 1936?', ['آندي موراي|Andy Murray', 'تيم هينمان|Tim Henman', 'غريغ روزيدسكي|Greg Rusedski', 'دان إيفانز|Dan Evans']],
+
+    // ---- Phase 15 fill-up: 4 more easy and 4 more medium, so the subcategory reaches 20 / 20 / 20 ----
+    ['easy', 'ماذا نسمّي الصفر في نظام احتساب النقاط في التنس؟', 'What is zero called in tennis scoring?', ['لوف|Love', 'ديوس|Deuce', 'ليت|Let', 'فولت|Fault']],
+    ['easy', 'ما الأداة التي يضرب بها اللاعب الكرة في التنس؟', 'What does a player use to hit the ball in tennis?', ['المضرب|A racket', 'العصا|A stick', 'المطرقة|A mallet', 'المجداف|A paddle']],
+    ['easy', 'في أي مدينة تقام بطولة ويمبلدون؟', 'In which city is the Wimbledon tournament held?', ['لندن|London', 'باريس|Paris', 'نيويورك|New York', 'ملبورن|Melbourne']],
+    ['easy', 'ما النقطة التي تلي 15 و30 في لعبة التنس؟', 'What score comes after 15 and 30 in a tennis game?', ['40', '45', '50', '35']],
+    ['medium', 'أي لاعبة أمريكية فازت بـ23 لقباً فردياً في البطولات الأربع الكبرى بين 1999 و2017؟', 'Which American player won 23 Grand Slam singles titles between 1999 and 2017?', ['سيرينا ويليامز|Serena Williams', 'فينوس ويليامز|Venus Williams', 'ليندسي ديفنبورت|Lindsay Davenport', 'جينيفر كابرياتي|Jennifer Capriati']],
+    ['medium', 'أي بطولة من البطولات الأربع الكبرى تُقام أولاً في السنة؟', 'Which of the four Grand Slam tournaments is held first in the year?', ['أستراليا المفتوحة|The Australian Open', 'فرنسا المفتوحة|The French Open', 'ويمبلدون|Wimbledon', 'أمريكا المفتوحة|The US Open']],
+    ['medium', 'أي بطولة من البطولات الأربع الكبرى تُقام آخراً في السنة؟', 'Which of the four Grand Slam tournaments is held last in the year?', ['أمريكا المفتوحة|The US Open', 'ويمبلدون|Wimbledon', 'فرنسا المفتوحة|The French Open', 'أستراليا المفتوحة|The Australian Open']],
+    ['medium', 'من أي بلد جاء اللاعب نوفاك ديوكوفيتش؟', 'Which country is the player Novak Djokovic from?', ['صربيا|Serbia', 'كرواتيا|Croatia', 'سلوفينيا|Slovenia', 'بلغاريا|Bulgaria']],
 ];

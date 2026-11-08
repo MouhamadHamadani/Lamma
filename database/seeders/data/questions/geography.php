@@ -43,4 +43,14 @@ return [
     ['hard', 'في أي بلد تقع صحراء أتاكاما، من أكثر الصحارى جفافاً في العالم؟', 'In which country is the Atacama Desert, one of the driest places on Earth?', ['تشيلي|Chile', 'بيرو|Peru', 'الأرجنتين|Argentina', 'المكسيك|Mexico']],
     ['hard', 'في أي بلد تقع مدينة تمبكتو التاريخية؟', 'In which country is the historic city of Timbuktu?', ['مالي|Mali', 'السنغال|Senegal', 'النيجر|Niger', 'موريتانيا|Mauritania']],
     ['hard', 'بين أي بلدين تقع شلالات إيغواسو الشهيرة؟', 'Between which two countries do the famous Iguazu Falls lie?', ['البرازيل والأرجنتين|Brazil and Argentina', 'البرازيل وبيرو|Brazil and Peru', 'تشيلي والأرجنتين|Chile and Argentina', 'كولومبيا وفنزويلا|Colombia and Venezuela']],
+
+    // ---- Phase 15 fill-up: 8 more so the category reaches 100 ----
+    ['easy', 'في أي قارة تقع مصر؟', 'On which continent is Egypt?', ['أفريقيا|Africa', 'آسيا|Asia', 'أوروبا|Europe', 'أمريكا الجنوبية|South America']],
+    ['easy', 'أي بحر يفصل بين شبه الجزيرة العربية وأفريقيا؟', 'Which sea lies between the Arabian Peninsula and Africa?', ['البحر الأحمر|The Red Sea', 'البحر الأسود|The Black Sea', 'بحر قزوين|The Caspian Sea', 'البحر المتوسط|The Mediterranean Sea']],
+    ['medium', 'ما أكبر دولة في أفريقيا من حيث المساحة؟', 'Which is the largest country in Africa by area?', ['الجزائر|Algeria', 'السودان|Sudan', 'ليبيا|Libya', 'الكونغو الديمقراطية|The Democratic Republic of the Congo']],
+    ['medium', 'أي نهر يمرّ بمدينة بغداد؟', 'Which river flows through the city of Baghdad?', ['نهر دجلة|The Tigris', 'نهر الفرات|The Euphrates', 'نهر النيل|The Nile', 'نهر الأردن|The Jordan']],
+    ['medium', 'أي قناة اصطناعية تربط البحر المتوسط بالبحر الأحمر؟', 'Which artificial canal links the Mediterranean Sea with the Red Sea?', ['قناة السويس|The Suez Canal', 'قناة بنما|The Panama Canal', 'قناة كيل|The Kiel Canal', 'قناة كورنث|The Corinth Canal']],
+    ['hard', 'أي مضيق يصل الخليج العربي بخليج عُمان؟', 'Which strait connects the Persian Gulf with the Gulf of Oman?', ['مضيق هرمز|The Strait of Hormuz', 'مضيق باب المندب|The Bab-el-Mandeb Strait', 'مضيق جبل طارق|The Strait of Gibraltar', 'مضيق البوسفور|The Bosphorus']],
+    ['hard', 'أي بحيرة في إثيوبيا ينبع منها النيل الأزرق؟', 'From which lake in Ethiopia does the Blue Nile flow?', ['بحيرة تانا|Lake Tana', 'بحيرة فيكتوريا|Lake Victoria', 'بحيرة تنجانيقا|Lake Tanganyika', 'بحيرة تشاد|Lake Chad']],
+    ['hard', 'أي دولة تملك أطول ساحل في العالم؟', 'Which country has the longest coastline in the world?', ['كندا|Canada', 'روسيا|Russia', 'أستراليا|Australia', 'إندونيسيا|Indonesia']],
 ];

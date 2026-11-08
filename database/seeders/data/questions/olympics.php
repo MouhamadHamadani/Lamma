@@ -64,4 +64,14 @@ return [
     ['hard', 'أي عدّاء مغربي فاز بسباقَي 1500 متر و5000 متر في أولمبياد أثينا 2004؟', 'Which Moroccan runner won both the 1500 m and the 5000 m at the 2004 Athens Olympics?', ['هشام الكروج|Hicham El Guerrouj', 'سعيد عويطة|Said Aouita', 'نور الدين مرسلي|Noureddine Morceli', 'خالد خنوشي|Khalid Khannouchi']],
     ['hard', 'أي عدّاءة جزائرية فازت بسباق 1500 متر في أولمبياد برشلونة 1992؟', 'Which Algerian runner won the 1500 m at the 1992 Barcelona Olympics?', ['حسيبة بولمرقة|Hassiba Boulmerka', 'نوال المتوكل|Nawal El Moutawakel', 'غادة شعاع|Ghada Shouaa', 'مريم يوسف جمال|Maryam Yusuf Jamal']],
     ['hard', 'أي لاعب وثب طويل أمريكي قفز 8.90 متراً في أولمبياد مكسيكو 1968 وحطّم الرقم العالمي بفارق هائل؟', 'Which American long jumper leapt 8.90 metres at the 1968 Mexico City Olympics, smashing the world record by a huge margin?', ['بوب بيمون|Bob Beamon', 'كارل لويس|Carl Lewis', 'مايك باول|Mike Powell', 'إيفان بيدروسو|Iván Pedroso']],
+
+    // ---- Phase 15 fill-up: 4 more easy and 4 more medium, so the subcategory reaches 20 / 20 / 20 ----
+    ['easy', 'ما الميدالية التي تُمنح للمركز الثالث في الألعاب الأولمبية؟', 'Which medal is awarded for third place at the Olympics?', ['برونزية|Bronze', 'ذهبية|Gold', 'فضية|Silver', 'بلاتينية|Platinum']],
+    ['easy', 'أي مدينة يابانية استضافت الألعاب الأولمبية الصيفية التي أُقيمت عام 2021 بعد تأجيلها؟', 'Which Japanese city hosted the Summer Olympics held in 2021 after they were postponed?', ['طوكيو|Tokyo', 'أوساكا|Osaka', 'كيوتو|Kyoto', 'ناغويا|Nagoya']],
+    ['easy', 'في أي رياضة يقفز اللاعب فوق عارضة مستعيناً بعمود طويل مرن؟', 'In which sport does an athlete vault over a bar using a long flexible pole?', ['القفز بالزانة|The pole vault', 'القفز العالي|The high jump', 'القفز الطويل|The long jump', 'القفز الثلاثي|The triple jump']],
+    ['easy', 'أي رياضة تُلقَّب «أم الألعاب» وتضم الجري والقفز والرمي؟', 'Which sport is nicknamed the "queen of sports" and includes running, jumping and throwing?', ['ألعاب القوى|Athletics', 'السباحة|Swimming', 'الجمباز|Gymnastics', 'التجديف|Rowing']],
+    ['medium', 'أي مدينة ألمانية استضافت الألعاب الأولمبية الصيفية عام 1972؟', 'Which German city hosted the 1972 Summer Olympics?', ['ميونخ|Munich', 'برلين|Berlin', 'هامبورغ|Hamburg', 'فرانكفورت|Frankfurt']],
+    ['medium', 'أي مدينة استضافت الألعاب الأولمبية الصيفية عام 2004؟', 'Which city hosted the 2004 Summer Olympics?', ['أثينا|Athens', 'بكين|Beijing', 'برشلونة|Barcelona', 'أتلانتا|Atlanta']],
+    ['medium', 'أي مدينة كندية استضافت الألعاب الأولمبية الصيفية عام 1976؟', 'Which Canadian city hosted the 1976 Summer Olympics?', ['مونتريال|Montreal', 'تورونتو|Toronto', 'فانكوفر|Vancouver', 'كالغاري|Calgary']],
+    ['medium', 'أي مدينة استضافت الألعاب الأولمبية الصيفية عام 1980؟', 'Which city hosted the 1980 Summer Olympics?', ['موسكو|Moscow', 'لوس أنجلوس|Los Angeles', 'ميونخ|Munich', 'مونتريال|Montreal']],
 ];

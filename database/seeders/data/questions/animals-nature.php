@@ -43,4 +43,19 @@ return [
     ['hard', 'ما الحيوان البحري المعروف بـ«بقرة البحر» لأنه يرعى الأعشاب البحرية؟', 'Which sea mammal is called a "sea cow" because it grazes on seagrass?', ['خروف البحر (المانيتي)|The manatee', 'الفقمة|The seal', 'الدلفين|The dolphin', 'أسد البحر|The sea lion']],
     ['hard', 'أي كائنات صغيرة بنت الحاجز المرجاني العظيم بأعداد هائلة؟', 'Which tiny creatures built the Great Barrier Reef in huge numbers?', ['البوليبات المرجانية|Coral polyps', 'الأسماك الملونة|Colourful fish', 'الطحالب فقط|Algae alone', 'قنافذ البحر|Sea urchins']],
     ['hard', 'أي قارة ليس فيها نمل طبيعي أصلي؟', 'Which continent has no native ants?', ['القارة القطبية الجنوبية|Antarctica', 'أستراليا|Australia', 'أوروبا|Europe', 'أمريكا الجنوبية|South America']],
+
+    // ---- Phase 15 fill-up: 13 more so the category reaches 100 ----
+    ['easy', 'أي حيوان يُلقَّب بـ«صديق الإنسان الوفي»؟', 'Which animal is called "man\'s best friend"?', ['الكلب|The dog', 'القطة|The cat', 'الحصان|The horse', 'الأرنب|The rabbit']],
+    ['easy', 'ماذا ينسج العنكبوت ليصطاد به الحشرات؟', 'What does a spider spin to catch insects?', ['شبكة|A web', 'عشاً|A nest', 'خلية|A hive', 'جحراً|A burrow']],
+    ['easy', 'في أي فصل تتساقط أوراق كثير من الأشجار؟', 'In which season do the leaves of many trees fall?', ['الخريف|Autumn', 'الربيع|Spring', 'الصيف|Summer', 'الشتاء|Winter']],
+    ['easy', 'ما الذي تأكله الأبقار في الغالب؟', 'What do cows mostly eat?', ['العشب|Grass', 'اللحم|Meat', 'السمك|Fish', 'الحشرات|Insects']],
+    ['medium', 'أي طائر يشتهر بتقليد كلام البشر؟', 'Which bird is famous for copying human speech?', ['الببغاء|The parrot', 'النسر|The eagle', 'البطريق|The penguin', 'اللقلق|The stork']],
+    ['medium', 'أي كائن بحري ينتج اللؤلؤ؟', 'Which sea creature produces pearls?', ['المحار|The oyster', 'السلطعون|The crab', 'الأخطبوط|The octopus', 'قنديل البحر|The jellyfish']],
+    ['medium', 'ماذا نسمّي الذكر البالغ من الأغنام؟', 'What do we call the adult male sheep?', ['كبش|A ram', 'خروف|A lamb', 'تيس|A billy goat', 'ثور|A bull']],
+    ['medium', 'أي قطّ كبير ذو فراء ذهبي ببقع سوداء مدوّرة ويتسلّق الأشجار بمهارة؟', 'Which big cat has a golden coat with black rosette spots and climbs trees skilfully?', ['النمر المرقط (الليوبارد)|The leopard', 'الأسد|The lion', 'النمر المخطط|The tiger', 'الفهد الصياد (الشيتا)|The cheetah']],
+    ['medium', 'ماذا نسمّي مجموعة من الدلافين؟', 'What is a group of dolphins called?', ['قطيع|A pod', 'سرب|A flock', 'مدرسة|A school', 'عشيرة|A clan']],
+    ['hard', 'أي ثعبان هو الأطول في العالم؟', 'Which snake is the longest in the world?', ['الأصلة الشبكية|The reticulated python', 'الأناكوندا الخضراء|The green anaconda', 'الكوبرا الملكية|The king cobra', 'الأصلة الصخرية الأفريقية|The African rock python']],
+    ['hard', 'أي شجرة هي الأكبر في العالم من حيث الحجم؟', 'Which tree is the biggest in the world by volume?', ['السكويا العملاقة|The giant sequoia', 'الخشب الأحمر الساحلي|The coast redwood', 'شجرة الباوباب|The baobab', 'شجرة الصفصاف|The willow']],
+    ['hard', 'أي طائر يقطع أطول مسافة هجرة سنوية بين القطبين؟', 'Which bird makes the longest yearly migration, between the poles?', ['خرشنة القطب الشمالي (الجلم القطبي)|The Arctic tern', 'اللقلق الأبيض|The white stork', 'البجع|The pelican', 'النورس الرمادي|The grey gull']],
+    ['hard', 'أي حيوان بحري له أكثف فراء بين الحيوانات؟', 'Which sea mammal has the densest fur of any animal?', ['قضاعة البحر|The sea otter', 'الفقمة|The seal', 'الدب القطبي|The polar bear', 'الفظّ|The walrus']],
 ];

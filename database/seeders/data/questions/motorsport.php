@@ -63,4 +63,14 @@ return [
     ['hard', 'أي سائق إسباني فاز ببطولة العالم للفورمولا 1 عامَي 2005 و2006؟', 'Which Spanish driver won the Formula One World Championship in 2005 and 2006?', ['فرناندو ألونسو|Fernando Alonso', 'كارلوس ساينز|Carlos Sainz', 'بيدرو دي لا روزا|Pedro de la Rosa', 'خايمي ألغيرسواري|Jaime Alguersuari']],
     ['hard', 'أي دولة في الشرق الأوسط كانت أول من استضاف سباق جائزة كبرى في الفورمولا 1، وذلك عام 2004؟', 'Which Middle Eastern country was the first to host a Formula One Grand Prix, in 2004?', ['البحرين|Bahrain', 'الإمارات|The United Arab Emirates', 'قطر|Qatar', 'السعودية|Saudi Arabia']],
     ['hard', 'على أي حلبة يُقام سباق جائزة أبوظبي الكبرى للفورمولا 1؟', 'On which circuit is the Formula One Abu Dhabi Grand Prix held?', ['حلبة مرسى ياس|Yas Marina Circuit', 'حلبة البحرين الدولية|Bahrain International Circuit', 'حلبة لوسيل|Lusail Circuit', 'حلبة كورنيش جدة|Jeddah Corniche Circuit']],
+
+    // ---- Phase 15 fill-up: 4 more easy and 4 more medium, so the subcategory reaches 20 / 20 / 20 ----
+    ['easy', 'ماذا يعني العلم الأخضر في سباقات السيارات؟', 'What does a green flag mean in motor racing?', ['المسار خالٍ|The track is clear', 'هناك خطر على المسار|Danger on the track ahead', 'بدأت اللفة الأخيرة|The final lap has begun', 'عودوا إلى الحفرة فوراً|Return to the pits now']],
+    ['easy', 'ماذا نسمّي دورة كاملة واحدة حول حلبة السباق؟', 'What is one full circuit of a racing track called?', ['لفّة|A lap', 'شوط|A heat', 'مرحلة|A stage', 'جولة|A round']],
+    ['easy', 'من يقف على أعلى درجة من منصّة التتويج بعد السباق؟', 'Who stands on the top step of the podium after a race?', ['الفائز بالمركز الأول|The winner', 'صاحب المركز الثاني|The runner-up', 'صاحب المركز الثالث|The third-placed driver', 'صاحب أسرع لفة|The fastest-lap driver']],
+    ['easy', 'ماذا نسمّي الفريق الذي يبدّل الإطارات ويصلح السيارة في أثناء السباق؟', 'What do we call the team that changes the tyres and repairs the car during a race?', ['طاقم الحفرة (البِت كرو)|The pit crew', 'الحكّام|The marshals', 'المتفرجون|The spectators', 'المعلّقون|The commentators']],
+    ['medium', 'ماذا يعني الاختصار DRS في سباقات الفورمولا 1؟', 'What does DRS stand for in Formula One?', ['نظام تقليل السحب|Drag Reduction System', 'نظام السرعة المباشرة|Direct Racing Speed', 'محطة السباق الرقمية|Digital Race Station', 'نظام الفرامل الديناميكية|Dynamic Rear Stopper']],
+    ['medium', 'أي فريق يُعرف بسياراته الفضية المسمّاة «الأسهم الفضية»؟', 'Which team is known for its silver cars called the "Silver Arrows"?', ['مرسيدس|Mercedes', 'فيراري|Ferrari', 'ريد بُل|Red Bull', 'ماكلارين|McLaren']],
+    ['medium', 'في أي دولة تقع حلبة «ريد بُل رينغ»؟', 'In which country is the Red Bull Ring circuit?', ['النمسا|Austria', 'ألمانيا|Germany', 'سويسرا|Switzerland', 'هولندا|The Netherlands']],
+    ['medium', 'في أي دولة تقع حلبة إنترلاغوس الشهيرة؟', 'In which country is the famous Interlagos circuit?', ['البرازيل|Brazil', 'الأرجنتين|Argentina', 'المكسيك|Mexico', 'تشيلي|Chile']],
 ];

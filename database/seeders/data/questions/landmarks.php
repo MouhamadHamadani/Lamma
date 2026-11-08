@@ -65,4 +65,12 @@ return [
     ['hard', 'في أي مدينة مغربية تقع ساحة جامع الفنا الشهيرة؟', 'In which Moroccan city is the famous square Jemaa el-Fnaa?', ['مراكش|Marrakech', 'فاس|Fez', 'الرباط|Rabat', 'طنجة|Tangier']],
     ['hard', 'من المهندس الدنماركي الذي صمّم دار أوبرا سيدني؟', 'Which Danish architect designed the Sydney Opera House?', ['يورن أوتزون|Jørn Utzon', 'فرانك غيري|Frank Gehry', 'نورمان فوستر|Norman Foster', 'آرني ياكوبسن|Arne Jacobsen']],
     ['hard', 'في أي مدينة مصرية يقع مجمّع معابد الكرنك؟', 'In which Egyptian city is the Karnak temple complex?', ['الأقصر|Luxor', 'أسوان|Aswan', 'الإسكندرية|Alexandria', 'الجيزة|Giza']],
+
+    // ---- Phase 15 fill-up: 4 more easy and 2 more medium, so the subcategory reaches 20 / 20 / 20 ----
+    ['easy', 'في أي مدينة يقع المدرّج الروماني الشهير «الكولوسيوم»؟', 'In which city is the famous Roman amphitheatre, the Colosseum?', ['روما|Rome', 'أثينا|Athens', 'ميلانو|Milan', 'فلورنسا|Florence']],
+    ['easy', 'في أي مدينة يقع متحف اللوفر الشهير؟', 'In which city is the famous Louvre Museum?', ['باريس|Paris', 'لندن|London', 'مدريد|Madrid', 'روما|Rome']],
+    ['easy', 'في أي مدينة أمريكية تقع لافتة «هوليوود» الشهيرة على التلّ؟', 'In which American city is the famous "Hollywood" sign on the hillside?', ['لوس أنجلوس|Los Angeles', 'نيويورك|New York', 'شيكاغو|Chicago', 'لاس فيغاس|Las Vegas']],
+    ['easy', 'في أي مدينة يقع جسر المرفأ الشهير بجانب دار الأوبرا الشهيرة؟', 'In which city is the famous Harbour Bridge, beside the famous Opera House?', ['سيدني|Sydney', 'ملبورن|Melbourne', 'ويلينغتون|Wellington', 'أوكلاند|Auckland']],
+    ['medium', 'في أي مدينة يقع معبد «البانثيون» الروماني ذو القبة الكبيرة؟', 'In which city is the Roman Pantheon with its great dome?', ['روما|Rome', 'أثينا|Athens', 'باريس|Paris', 'القاهرة|Cairo']],
+    ['medium', 'في أي مدينة أمريكية يقع جسر بروكلين الشهير؟', 'In which American city is the famous Brooklyn Bridge?', ['نيويورك|New York', 'سان فرانسيسكو|San Francisco', 'بوسطن|Boston', 'واشنطن|Washington']],
 ];
