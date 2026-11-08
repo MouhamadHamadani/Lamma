@@ -19,6 +19,13 @@ return [
     'photo_uploads_per_minute' => 6,
     'photo_uploads_per_ip_per_minute' => 30,
 
+    // Destructive artisan commands (migrate:fresh, migrate:refresh, migrate:reset, migrate:rollback, db:wipe) refuse to run in production, and on a development machine
+    // unless this is true. Set LAMMA_ALLOW_DESTRUCTIVE=true in .env (or in the shell, for one command) to reset a local database on purpose. Never in production.
+    'allow_destructive' => (bool) env('LAMMA_ALLOW_DESTRUCTIVE', false),
+
+    // `php artisan lamma:backup-local` looks for mysqldump here first (MYSQLDUMP_PATH in .env), then in a WAMP install next to this PHP, then on the PATH.
+    'mysqldump_path' => env('MYSQLDUMP_PATH'),
+
     // The no-signup demo (App\Game\DemoRoom). The host of a demo has no account: an encrypted, httpOnly cookie holds a random token and the room stores its
     // sha256. Demo rooms started per IP address per hour, how long a demo room lives before `lamma:prune` closes and deletes it, and how long the host
     // screen waits for a real player before it says "Waiting for you? Scan the code".

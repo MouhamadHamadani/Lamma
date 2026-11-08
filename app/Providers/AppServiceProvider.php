@@ -81,6 +81,18 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
+     * `migrate:fresh`, `migrate:refresh`, `migrate:reset`, `migrate:rollback` and `db:wipe` refuse to run on the live site AND on a development machine (the local MySQL
+     * holds your seeded content and test accounts), unless the person deliberately set LAMMA_ALLOW_DESTRUCTIVE=true. The testing environment (SQLite in memory, `.env.testing`)
+     * is never blocked: Pest's RefreshDatabase and the browser tests need `migrate:fresh`. The one-line reset and the local dump are in CLAUDE.md "Gotchas".
+     */
+    public function configureDestructiveCommands(): void
+    {
+        DB::prohibitDestructiveCommands(
+            app()->isProduction() || (app()->isLocal() && ! config('lamma.allow_destructive')),
+        );
+    }
+
+    /**
      * Configure default behaviors for production-ready applications.
      */
     protected function configureDefaults(): void
@@ -90,9 +102,7 @@ class AppServiceProvider extends ServiceProvider
         // Western digits (0-9) in every locale, including Arabic.
         Number::useLocale('en');
 
-        DB::prohibitDestructiveCommands(
-            app()->isProduction(),
-        );
+        $this->configureDestructiveCommands();
 
         Password::defaults(fn (): ?Password => app()->isProduction()
             ? Password::min(12)
