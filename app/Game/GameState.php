@@ -22,6 +22,7 @@ final class GameState
      * @param  array<int, int>  $previousPositions  player id => 0-based position before this round's points
      * @param  array<int, int>  $streaks  player id => right answers in a row up to this question; empty until revealed
      * @param  bool  $doubled  this question counts double (ScoringService::isDoubled): the screens show the x2 chip
+     * @param  bool  $doublesNext  the next question counts double (ScoringService::doublesNext): the reveal of this one says "Next: double points"
      * @param  float|null  $correctNumber  closest number: the correct value; null until the reveal (and for the other types)
      * @param  list<array{player: RoomPlayer, value: float, distance: float, points: int, closest: bool}>  $guesses  closest number: every guess, nearest first; empty until the reveal
      */
@@ -43,6 +44,7 @@ final class GameState
         public readonly bool $doubled = false,
         public readonly ?float $correctNumber = null,
         public readonly array $guesses = [],
+        public readonly bool $doublesNext = false,
     ) {}
 
     public function type(): QuestionType

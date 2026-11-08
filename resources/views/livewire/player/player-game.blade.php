@@ -39,6 +39,10 @@
     if ($fact && in_array($phase, ['correct', 'wrong', 'timeout'], true)) {
         $announce .= '. '.$fact['text'];
     }
+    // The reveal of the second-to-last question, whoever was right: the next one counts double.
+    if ($state?->doublesNext && in_array($phase, ['correct', 'wrong', 'timeout'], true)) {
+        $announce .= '. '.__('Next: double points');
+    }
     $seconds = $state?->roomQuestion->durationSeconds() ?? $room->settings->secondsPerQuestion;
 @endphp
 <div class="relative min-h-dvh" @if ($phase !== 'over') wire:poll.4s @endif data-test="player-game" data-phase="{{ $phase }}">
@@ -52,7 +56,7 @@
         <x-lamma.confetti :count="5" />
     @endif
 
-    <div class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+    <div class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))] [@media(max-height:699px)]:pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         {{-- z-50: above the 3 · 2 · 1 overlay. In a game the sound and vibration switches take the logo's place: the question number and the score need the room. --}}
         <header class="relative z-50 flex h-16 shrink-0 items-center justify-between">
             <div class="flex items-center gap-2">
@@ -254,7 +258,7 @@
             {{-- One sound, one vibration and (when right) one burst of confetti per answer, even if a refresh runs this x-init again. A right answer is a long buzz,
                  a wrong one a short soft one (never harsh); the streak chime follows the "correct" one. --}}
             <main
-                wire:key="p-{{ $position }}-reveal" class="relative flex grow flex-col items-center gap-[18px] pb-7 pt-5 text-center" data-test="reveal-{{ $phase }}"
+                wire:key="p-{{ $position }}-reveal" class="relative flex grow flex-col items-center gap-[18px] pb-7 pt-5 text-center [@media(max-height:699px)]:gap-3 [@media(max-height:699px)]:pb-3 [@media(max-height:699px)]:pt-1" data-test="reveal-{{ $phase }}"
                 x-init="$store.sound.once('p{{ $position }}-result', () => { $store.sound.play('{{ $phase === 'correct' ? 'correct' : 'wrong' }}'); $store.sound.buzz('{{ $phase === 'correct' ? 'correct' : 'wrong' }}'); @if ($phase === 'correct') setTimeout(() => lammaConfetti.burst($el.querySelector('[data-test=points-gained]'), 22), 350); @if ($streak >= 3) setTimeout(() => $store.sound.play('streak'), 750); @endif @endif })"
             >
                 <span @class([
@@ -275,7 +279,7 @@
                     @endif
                 </span>
 
-                <h1 class="font-display text-[56px] font-extrabold leading-none motion-safe:animate-fade-up" data-test="result-title">
+                <h1 class="font-display text-[56px] font-extrabold leading-none motion-safe:animate-fade-up [@media(max-height:699px)]:text-[44px]" data-test="result-title">
                     {{ ['correct' => $number ? ($exact ? __('Spot on!') : __('Close!')) : __('Correct!'), 'wrong' => __('Not quite!'), 'timeout' => __("Time's up!")][$phase] }}
                 </h1>
 
@@ -283,7 +287,7 @@
                     <span
                         dir="ltr" x-data="lammaCountUp({{ $gained }}, 400, {{ $gained > 0 ? 'true' : 'false' }})" data-test="points-gained"
                         @class([
-                            'inline-flex h-16 -rotate-3 items-center rounded-[18px] border-3 border-navy px-7 font-display text-[40px] font-extrabold shadow-sticker motion-safe:animate-chip-pop',
+                            'inline-flex h-16 -rotate-3 items-center rounded-[18px] border-3 border-navy px-7 font-display text-[40px] font-extrabold shadow-sticker motion-safe:animate-chip-pop [@media(max-height:699px)]:h-14 [@media(max-height:699px)]:text-[34px]',
                             'bg-sun' => $phase === 'correct',
                             'bg-white' => $phase !== 'correct',
                         ])
@@ -318,7 +322,7 @@
                 <div class="grow"></div>
 
                 @if ($number && $correctNumber !== null)
-                    <div class="flex w-full items-center gap-3.5 rounded-tile border-2 border-line bg-cream px-[18px] py-4 text-start" data-test="correct-answer">
+                    <div class="flex w-full items-center gap-3.5 rounded-tile border-2 border-line bg-cream px-[18px] py-4 text-start [@media(max-height:699px)]:py-3" data-test="correct-answer">
                         <span class="flex size-11 shrink-0 items-center justify-center rounded-xl border-3 border-navy bg-teal"><x-lamma.icon name="target" :size="22" /></span>
                         <span class="flex min-w-0 grow flex-col">
                             <span class="text-[13px] font-bold text-ink-subtle">{{ __('Correct answer') }}</span>
@@ -333,7 +337,7 @@
                     </div>
                 @elseif ($correctOption)
                     @php $correctIndex = (int) $state->indexOf($correctOption->id); @endphp
-                    <div class="flex w-full items-center gap-3.5 rounded-tile border-2 border-line bg-cream px-[18px] py-4 text-start" data-test="correct-answer">
+                    <div class="flex w-full items-center gap-3.5 rounded-tile border-2 border-line bg-cream px-[18px] py-4 text-start [@media(max-height:699px)]:py-3" data-test="correct-answer">
                         <span class="flex size-11 shrink-0 items-center justify-center rounded-xl border-3 border-navy {{ ['bg-coral', 'bg-teal', 'bg-sun', 'bg-navy text-cream'][$correctIndex % 4] }}">
                             <x-lamma.shape :index="$correctIndex" :size="22" />
                         </span>
@@ -348,7 +352,12 @@
                     <x-lamma.fun-fact :text="$fact['text']" :lang="$fact['lang']" size="phone" class="w-full" />
                 @endif
 
-                <p class="text-[15px] font-bold">{{ $state->isLast() ? __('Final results coming up…') : __('Next question coming up…') }}</p>
+                @if ($state->doublesNext)
+                    {{-- Second-to-last question: this line is the heads-up that the next one counts double (the live region says it too). --}}
+                    <x-lamma.double-next :lang="$lang" />
+                @else
+                    <p class="text-[15px] font-bold">{{ $state->isLast() ? __('Final results coming up…') : __('Next question coming up…') }}</p>
+                @endif
             </main>
 
         @else

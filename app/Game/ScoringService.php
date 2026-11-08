@@ -107,6 +107,15 @@ class ScoringService
         return $room->settings->doubleFinal && $question->position >= $room->totalQuestions();
     }
 
+    /**
+     * The NEXT question counts double: this is the game's second-to-last (the reveal of it says so: "Next: double points"). The same setting and the same "last of the game" as
+     * isDoubled(), so Classic and Vote agree; a one-question game has no question before the last, so it never says it.
+     */
+    public function doublesNext(Room $room, RoomQuestion $question): bool
+    {
+        return $room->settings->doubleFinal && $room->totalQuestions() >= 2 && $question->position === $room->totalQuestions() - 1;
+    }
+
     /** Full until FULL_SPEED_MS, then falling in a straight line to 0 at the deadline. An answer in the grace after the deadline gets none. */
     private function speedBonus(CarbonInterface $answeredAt, CarbonInterface $startedAt, CarbonInterface $endsAt): int
     {

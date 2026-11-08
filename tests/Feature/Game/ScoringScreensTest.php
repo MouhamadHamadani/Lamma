@@ -75,7 +75,8 @@ describe('the phone reveal', function () {
         expect($html)->toContain('lammaCountUp(155, 400, true)')
             ->toContain('data-test="points-breakdown"')
             ->toContain('<bdi dir="ltr">100</bdi> + <bdi dir="ltr">55</bdi> speed')
-            ->toMatch('/data-test="announcer">\s*Correct, plus 155 points\s*</')
+            // question 1 of 2 is the second-to-last: its reveal also says the next one counts double (Phase 14.1; DoubleNextTest has the rest)
+            ->toMatch('/data-test="announcer">\s*Correct, plus 155 points\. Next: double points\s*</')
             ->not->toContain('data-test="double-chip"');
     });
 

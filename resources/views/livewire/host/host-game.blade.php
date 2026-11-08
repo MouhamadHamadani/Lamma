@@ -38,6 +38,10 @@
     if ($state && $revealed && ! $vote && $fact) {
         $announce .= '. '.$fact['text'];
     }
+    // The reveal of the second-to-last question: the next one counts double (the chip says it too; the live region is what a screen reader hears).
+    if ($state && $revealed && ! $vote && $state->doublesNext) {
+        $announce .= '. '.__('Next: double points');
+    }
 @endphp
 <div>
 @if ($state?->finished)
@@ -354,6 +358,9 @@
                     {{ $number ? __(':correct of :total were close enough', ['correct' => $state->correctCount(), 'total' => $state->expected]) : __(':correct of :total got it right', ['correct' => $state->correctCount(), 'total' => $state->expected]) }}
                     @if ($state->doubled)
                         <x-lamma.double-chip size="lg" />
+                    @endif
+                    @if ($state->doublesNext)
+                        <x-lamma.double-next size="lg" :lang="$main" class="ms-auto" />
                     @endif
                 </p>
             </div>

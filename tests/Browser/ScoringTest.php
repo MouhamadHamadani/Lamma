@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\HostScreenLocale;
 use App\Game\GameEngine;
 use App\Models\PlayerAnswer;
 use App\Models\Room;
@@ -168,3 +169,51 @@ it('does not scroll on create room at 1280x720 with the new setting, in Arabic t
     sbNoScroll($page);
     $page->assertNoJavaScriptErrors();
 })->with(['English' => 'en', 'Arabic' => 'ar']);
+
+it('shows "Next: double points" on the second-to-last reveal without scrolling: the big screen in Both with a number question and a fun fact', function (int $width, int $height) {
+    $host = User::factory()->create(['preferred_locale' => 'en']);
+    $room = typedRoom(['closest_number', 'multiple_choice'], players: 8, settings: ['secondsPerQuestion' => 30, 'hostScreenLocale' => HostScreenLocale::Both], host: $host);
+    $this->actingAs($host);
+    startGame($room);
+    foreach ($room->players()->orderBy('id')->get() as $i => $player) {
+        $player->update(['nickname' => $i % 2 ? "مريم الزهراء {$i}" : "Maximiliano {$i}"]);
+        guess($player, 1969 + $i * 2);
+    }
+
+    $page = visit("/host/{$room->code}")->resize($width, $height);
+    sbWait($page, "document.querySelector('[data-test=correct-count]')", 15, 'the reveal');
+    $page->assertVisible('[data-test=double-next]')->assertSeeIn('[data-test=double-next]', 'Next: double points')
+        ->assertScript("document.querySelector('[data-test=announcer]').textContent.trim().endsWith('Next: double points')")
+        ->assertScript("(() => { const r = document.querySelector('[data-test=double-next]').getBoundingClientRect(); return r.right <= window.innerWidth && r.bottom <= window.innerHeight && r.left >= 0; })()")
+        ->assertScript("(() => { const c = document.querySelector('[data-test=correct-count]'); return c.scrollWidth <= c.clientWidth + 1; })()");
+    sbNoScroll($page);
+    sbShot($page, "double-next-host-{$width}");
+    $page->assertNoJavaScriptErrors();
+})->with(['1280x720' => [1280, 720], '1920x1080' => [1920, 1080]]);
+
+it('shows "Next: double points" on a 360x640 phone without scrolling, in English and Arabic, after a number question with a fun fact', function (string $locale, string $text, bool $right) {
+    $room = typedRoom(['closest_number', 'multiple_choice'], players: 0, settings: ['secondsPerQuestion' => 30]);
+    $phone = sbPhone($room, $locale, 360, 640);
+    $question = startGame($room);
+
+    $phone->navigate("/play/{$room->code}");
+    sbWait($phone, "document.querySelector('[data-test=number-input]') || document.querySelector('input')", 15, 'the number question');
+    if ($right) {
+        guess($room->players()->first(), 1969);   // the closest guess: the +150 breakdown line is on this reveal too
+    }
+    app(GameEngine::class)->reveal($room, 1, force: true);
+    $phase = $right ? 'correct' : 'timeout';
+    sbWait($phone, "document.querySelector('[data-test=reveal-{$phase}]')", 15, 'the reveal');
+
+    $phone->assertVisible('[data-test=double-next]')->assertSeeIn('[data-test=double-next]', $text)
+        ->assertScript("document.querySelector('[data-test=announcer]').textContent.includes(".json_encode($text, JSON_UNESCAPED_UNICODE).')')
+        ->assertScript('document.documentElement.scrollWidth <= window.innerWidth + 1');
+    sbShot($phone, "double-next-phone-{$locale}-{$phase}");
+    expect($phone->script('() => document.documentElement.scrollHeight - window.innerHeight'))->toBeLessThanOrEqual(1);
+    $phone->assertNoJavaScriptErrors();
+    $phone->wait(1)->assertNoAccessibilityIssues();
+})->with([
+    'English, time is up' => ['en', 'Next: double points', false],
+    'Arabic, time is up' => ['ar', 'التالي: نقاط مضاعفة', false],
+    'English, the closest guess' => ['en', 'Next: double points', true],
+]);

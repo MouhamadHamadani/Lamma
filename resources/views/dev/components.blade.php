@@ -276,6 +276,10 @@
                                 <x-lamma.double-chip />
                                 <x-lamma.double-chip size="lg" />
                             </div>
+                            {{-- The heads-up on the reveal of the second-to-last question: an English phone (md), an Arabic phone, and the big screen (lg). --}}
+                            <x-lamma.double-next />
+                            <x-lamma.double-next lang="ar" />
+                            <x-lamma.double-next size="lg" lang="en" />
                             <x-lamma.button size="md" x-on:click="lammaConfetti.burst($el, 28)">Confetti burst</x-lamma.button>
                         </div>
                     </div>

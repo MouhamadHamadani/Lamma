@@ -29,6 +29,7 @@ class GameView
 
         /** @var Question $question */
         $question = $roomQuestion->question()->with(['category.parent', 'options'])->firstOrFail();
+        $roomQuestion->setRelation('question', $question);   // GameEngine::revealSecondsFor and the views read it: no second query
         $revealed = $roomQuestion->revealed_at !== null;
         $ranking = $revealed ? $this->scoreboard->ranking($room, $roomQuestion) : [];
         $progress = $this->engine->progress($room, $roomQuestion);
@@ -49,6 +50,7 @@ class GameView
             finished: $room->status === RoomStatus::Finished,
             streaks: $revealed ? $this->scoreboard->streaks($room, $roomQuestion) : [],
             doubled: $this->scoring->isDoubled($room, $roomQuestion),
+            doublesNext: $this->scoring->doublesNext($room, $roomQuestion),
             correctNumber: $revealed && $question->type->takesNumber() ? (float) $question->answer_number : null,
             guesses: $revealed && $question->type->takesNumber() ? $this->guesses($room, $roomQuestion) : [],
         );
