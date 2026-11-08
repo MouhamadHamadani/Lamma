@@ -33,7 +33,16 @@ Read these next to this report: [content-review-phase-15.md](content-review-phas
 
 ## 2. Test results
 
-TEST_RESULTS_PLACEHOLDER
+| Check | Result |
+|---|---|
+| `composer test` (Pint, PHPStan level 7, Pest), run once on the finished code | **Green.** Pint passed, PHPStan 0 errors, Pest **2,805 tests (2,799 passed, 6 skipped as before), 164,947 assertions**. Before Phase 15 the same command gave 2,769 tests and 108,714 assertions; most of the extra assertions are the new data being linted. A last one-word data fix (a wrong option in one Olympics row) came after that run and was re-checked with the content tests. |
+| New and changed test files | `LebanonLevantTest` (8 tests), `QuestionAuditTest` (15), additions to `ContentTest`, `ContentSeedingTest`, `DoctorTest` and `Lamma/LandingTest` |
+| Browser tests (run per file, as the Phase 7 setup says) | `Browser/SubcategoriesTest` **10 passed** (96 assertions: create room with Sports expanded at four sizes, a game from a subcategory); `Browser/SmokeTest` **44 passed** (238 assertions: every public page in both languages, the landing page included). The other browser files were not run: nothing they cover changed. |
+| Production build | `npm run build`: built in 2.8 s, `app` JS 95.0 kB (28.8 kB gzipped), CSS 77.9 kB (14.8 kB gzipped). No front-end code changed in this phase. |
+| `php artisan lamma:questions-report` | "Every category meets its target.", 1,979 playable questions (local database after the seeder). |
+| `php artisan lamma:doctor` | **PASS** on *Questions* ("22 categories, all at their targets"). |
+| `php artisan db:seed --class=ContentSeeder`, twice | First run `721 new question(s) added`, second run `0 new question(s) added`. |
+| `php artisan lamma:questions-audit` | Exit 0. In the new content: no time-sensitive wording, no copied wrong options. The remaining flags (22 defects, 5 warnings) are all in questions from before Phase 15. |
 
 ## 3. Arabic strings that need a native review
 

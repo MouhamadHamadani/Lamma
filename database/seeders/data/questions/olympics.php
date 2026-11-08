@@ -76,7 +76,7 @@ return [
     ['medium', 'أي مدينة استضافت الألعاب الأولمبية الصيفية عام 1980؟', 'Which city hosted the 1980 Summer Olympics?', ['موسكو|Moscow', 'لوس أنجلوس|Los Angeles', 'ميونخ|Munich', 'مونتريال|Montreal']],
 
     // ---- Phase 15 margin ----
-    ['easy', 'ما لون الحلقة الأولى من اليسار في شعار الألعاب الأولمبية؟', 'What is the colour of the leftmost ring in the Olympic symbol?', ['أزرق|Blue', 'أصفر|Yellow', 'أحمر|Red', 'بنفسجي|Purple']],
+    ['easy', 'ما لون الحلقة الأولى من اليسار في شعار الألعاب الأولمبية؟', 'What is the colour of the leftmost ring in the Olympic symbol?', ['أزرق|Blue', 'أصفر|Yellow', 'أحمر|Red', 'وردي|Pink']],
     ['medium', 'أي مدينة صينية استضافت الألعاب الأولمبية الشتوية عام 2022؟', 'Which Chinese city hosted the 2022 Winter Olympics?', ['بكين|Beijing', 'شنغهاي|Shanghai', 'هاربين|Harbin', 'غوانغزو|Guangzhou']],
     ['hard', 'أي عدّاءة أسترالية أشعلت المرجل الأولمبي في افتتاح أولمبياد سيدني 2000؟', 'Which Australian runner lit the Olympic cauldron at the opening of the 2000 Sydney Games?', ['كاثي فريمان|Cathy Freeman', 'دون فريزر|Dawn Fraser', 'إيان ثورب|Ian Thorpe', 'بيتي كاثبرت|Betty Cuthbert']],
 ];
