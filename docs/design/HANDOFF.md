@@ -336,3 +336,15 @@ Small changes on existing screens; look at the new component in the gallery (`/_
 | Admin dashboard | A fifth figure beside Categories, Questions, Users and Rooms: **Nicknames refused today**, with **N in the last 7 days** under it. | A count only: never the word. |
 
 Motion and sound: the pill pops like the other chips (`chip-pop`), nothing else moves, no new sound.
+
+## 15. A new subcategory chip and the landing examples (Phase 15, built without design files)
+
+No new component and no new motion or sound: one more `<x-lamma.subcategory-chip>` on an existing screen, and a rule about which categories the landing page shows.
+
+| Where | What | Notes |
+| --- | --- | --- |
+| Create room, under **The Arab World** | When the tile's arrow is open (`aria-expanded`), one chip: **Lebanon & Levant** (Arabic: **لبنان وبلاد الشام**), the same chip as the Sports and General Knowledge ones (real button, `aria-pressed`, 44 px tall, the parent's tint). The tile's arrow appears now because the category has a subcategory. | Subcategory names come from the database in both languages. |
+| Create room, the lone chip | The Arab World has just one subcategory. Choosing the chip means **only Lebanon & Levant** (the tile shows "some of it" and the summary says **The Arab World: Lebanon & Levant**); the tile still chooses the whole category, with its own questions too. Choosing every chip of a parent with several subcategories is still the same as choosing the parent. | `CreateRoom::toggleSubcategory`. With the parent chosen as a whole, tapping the lone chip leaves nothing chosen. |
+| Phone and big screen | The category chip on a question reads **The Arab World · Lebanon & Levant** (Arabic: **العالم العربي · لبنان وبلاد الشام**), the leaf icon, the Arab World tint. | `Category::fullName()`, `CategoryStyle` (`lebanon-levant` => `leaf`). |
+| Landing page | The six example categories under *Categories* are the first six **top-level** categories (General Knowledge, Science, Geography, History, Sports, Food & Drink). A subcategory is never shown there. | It used to take any six, so Football or Lebanon & Levant (sort order 1 inside their parents) could push Science and Geography out. |
+| Question screens | Some questions are in the Lebanese dialect on purpose (a few dozen under Lebanon & Levant): the Arabic reads like speech, the English says what the word means. Nothing in the layout changes; a long dialect phrase wraps like any other. | See `docs/content-review-phase-15.md`. |

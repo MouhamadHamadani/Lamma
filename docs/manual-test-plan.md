@@ -208,7 +208,7 @@ Finish the game (5 questions). Try to end with a **tie** between two players if 
 
 ## 15. Subcategories and repeated questions (new)
 
-Run `php artisan migrate:fresh --seed` first so the 13 subcategories and the 1,200+ questions are there (`php artisan lamma:questions-report` prints what each has).
+Run `php artisan migrate:fresh --seed` first so the subcategories and the questions are there (`php artisan lamma:questions-report` prints what each has; since Phase 15 that is 14 subcategories and 1,979 questions).
 
 | ☐ | Step and what to expect | Auto |
 | --- | --- | --- |
@@ -428,6 +428,22 @@ One laptop and one phone. Start the servers as in [realtime-testing.md](realtime
 | ☐ | **Nickname list.** On the join page try `zeb`, `teez`, `5awal`, `neek`, `FvCk`, `3ers`, `dayyous`: each says **Please choose another nickname.** Names next to them (Nayef, Khawla, Dayana, Tiziana, Zeba) join fine. In `/admin` the dashboard's **Nicknames refused today** went up by one for each refusal, and shows no word. | NicknameFilterTest, NicknameRefusalsTest |
 | ☐ | **The guard.** In a terminal at the project: `php artisan migrate:fresh` refuses with a message about `LAMMA_ALLOW_DESTRUCTIVE` (your database is untouched). `php artisan lamma:backup-local` writes a dump. | DestructiveGuardTest |
 
+## 25. The bigger question bank and Lebanon & Levant (Phase 15)
+
+Run the content seeder first (`php artisan db:seed --class=ContentSeeder`, or `migrate:fresh --seed` on a throw-away database). It adds the new questions and the new subcategory without touching the old ones. One laptop and one phone; Arabic and English.
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **Counts.** `php artisan lamma:questions-report` ends with "Every category meets its target." and exit code 0, and its second table (per top-level category) adds up to 1,979 playable questions. `php artisan lamma:doctor` has a **PASS** on *Questions*. | ContentTest, ContentSeedingTest, DoctorTest |
+| ☐ | **Run the seeder twice.** The second run says `Content: 0 new question(s) added.` In `/admin` turn one Lebanon & Levant question off and delete another, run the seeder again: both stay as you left them. | LebanonLevantTest, ContentTest |
+| ☐ | **Create room, English.** Open Create room, tap the arrow on **The Arab World**: one chip, **Lebanon & Levant**. Tap the chip: the summary says **The Arab World: Lebanon & Levant** and the tile shows "some of it". Tap the **tile** instead: the whole Arab World is chosen. Tap the chip again and it is off. | LebanonLevantTest |
+| ☐ | **Create room, Arabic.** The same in Arabic: the chip reads **لبنان وبلاد الشام**, the summary **العالم العربي: لبنان وبلاد الشام**, the chip is at least 44 px tall and reads right to left. | LebanonLevantTest, SubcategoriesTest (browser) |
+| ☐ | **A Classic game on Lebanon & Levant only.** Choose only the chip, Mixed difficulty, 10 questions, and play it. Every question's chip on the big screen and on the phone reads **The Arab World · Lebanon & Levant**; there are food, place, music and language questions, none about parties, leaders, wars or sectarian topics. | LebanonLevantTest |
+| ☐ | **A Vote game.** Pick The Arab World, Science and Geography as the pool and The Arab World first. The first batch comes from The Arab World's tree (Lebanon & Levant questions among them). | LebanonLevantTest |
+| ☐ | **Read the Lebanese questions.** Ask a Lebanese speaker to read the Arabic of the rows marked `dialect` in [content-review-phase-15.md](content-review-phase-15.md) (the dialect words and what they are said to mean), then the food, place and people names. Anything wrong goes to the admin's question list, not to a code change. | – |
+| ☐ | **Landing page.** The six example categories are top-level ones (General Knowledge, Science, Geography, History, Sports, Food & Drink), not Football or Lebanon & Levant. | LandingTest |
+| ☐ | **Not repeating.** Play two 10-question games in a row with the same players on Football (Mixed): the second game has no question from the first. | QuestionPickerTest |
+
 ## Sign-off
 
 | Area | Result | Notes |
@@ -456,5 +472,6 @@ One laptop and one phone. Start the servers as in [realtime-testing.md](realtime
 | 22 True/false, pictures, closest number | | |
 | 23 Demo, landing, nicknames, share card | | |
 | 24 Follow-ups (Phase 14.1) | | |
+| 25 Question bank and Lebanon & Levant (Phase 15) | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________
