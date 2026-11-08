@@ -401,7 +401,7 @@ The same laptop and phone(s). Do the share card on a **real phone** (the Web Sha
 | ☐ | **Waiting for you?** Start another demo and do nothing: after 90 seconds the dashed row says **Waiting for you? Scan the code** and Start stays locked. | DemoTest |
 | ☐ | **Play the demo.** 4 questions, 15 s each, Mixed, the last one doubles. Sara and Karim answer at different moments (the "N of 3 answered" counter moves on its own) and are right about two times in three. The question reveals at once when you have answered and both bots have. They are on the scoreboard and the podium. | DemoBotsTest, Browser DemoGameTest |
 | ☐ | **The end of a demo.** The podium and your phone offer **Host your own game** (sign-up) and **Join a friend's game**; there is no **Play again**, no **New game** and no **Save your score**. | DemoTest, Browser DemoGameTest |
-| ☐ | **The limit.** Start 6 demos in an hour from one address: the 6th says to try again in N minutes. | DemoTest |
+| ☐ | **The limit.** Start 6 demos in an hour from one browser: the 6th says to try again in N minutes (since Phase 14.1: 5 per browser cookie and 30 per address, see section 24). | DemoTest |
 | ☐ | **Clean-up.** `php artisan lamma:prune` closes and deletes demo rooms older than 2 hours (change `lamma.demo.lifetime_hours` to try it): a phone still on one is told the room closed. After it, `/admin` > Rooms shows no demo and the dashboard's **Demo games** figure still counts it. | DemoExclusionsTest |
 | ☐ | **Nothing of a demo leaks.** After a demo and a real game: **My games** (as a logged-in player) lists only the real one; the admin's Games per day, Most played categories and Questions most often answered wrong ignore the demo; Rooms in `/admin` says **Demo (no account)** for it and counts one player. | DemoExclusionsTest |
 | ☐ | **Nickname filter.** On the join page try a rude word in English, in Arabic and in Arabizi, then with spaces, dots, stretched letters and digits (`f u c k`, `fuuuck`, `sh1t`, `ع ر ص`). Each says **Please choose another nickname.** in the same place as "taken", never naming a word. Innocent names (Cassandra, Essex, Nicole, كساب, نيكول) join. Also try renaming in the lobby. Ask a native Arabic reader to try the words they would worry about. | NicknameFilterTest |
@@ -411,6 +411,22 @@ The same laptop and phone(s). Do the share card on a **real phone** (the Web Sha
 | ☐ | **Funnel.** `/admin` dashboard: **Funnel · last 30 days** has rooms created, games started, games finished, rematch rate, average players and the demo figure; after a real game they went up by one, after a demo only the demo figure did. | FunnelWidgetTest |
 | ☐ | **Analytics events.** With analytics on (production, a real ID): nothing is sent before **Accept**; after it, in GA4 DebugView, `join_page_viewed`, `demo_started`, `demo_finished`, `share_clicked`, `rematch_clicked`, `host_signup` and `game_finished` (with `player_bucket` and `mode`) appear with no name, code or account. | AnalyticsTest, Browser AnalyticsTest |
 | ☐ | **Deploy.** `php artisan migrate` (one migration), restart the queue workers and Reverb (`deploy.sh` does). `lamma:doctor` now also lists `brand/og-image.png` among the placeholders. | DoctorTest |
+
+## 24. The follow-ups: host screen and join tab in one browser, "Next: double points", number time, 8-second reveal, a demo without the worker (Phase 14.1)
+
+One laptop and one phone. Start the servers as in [realtime-testing.md](realtime-testing.md) (Reverb on: the first step is about the real-time channel). For the last step stop the queue worker.
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **The big screen stays the host.** On the laptop open the host screen (`/host/CODE`) in one tab. Open **a second tab of the same browser** and join the room there (`/join`). Close that second tab. The big screen's player list drops the player within about 30 seconds, and with the tab open the lobby counts it connected and **Start game** works. (Before the fix the two tabs were one presence member: the player never left, a ghost that never became ready.) | Feature HostScreenRoleTest, Browser SameBrowserTest *(the socket itself: yours)* |
+| ☐ | **Join from this laptop (demo).** Start a demo and wait 90 seconds without scanning: the dashed row says **Waiting for you? Scan the code** with a link **Join from this laptop**. It opens the join page in a **new tab**; join there, tap Ready, Start, and play the demo to the end with both tabs open. The big screen stays the big screen, the link is gone once someone real has joined. | DemoTest, Browser SameBrowserTest |
+| ☐ | **"Next: double points".** Play a game with **Double points on the last question** on. On the reveal of the **second-to-last** question the big screen shows a sun pill with the **x2** sticker and **Next: double points** (English; in an Arabic room, **التالي: نقاط مضاعفة**) beside "N of M got it right", and every phone shows it instead of "Next question coming up…" (also after a wrong answer or "Time's up"). With a screen reader on, the live region says it after the answer. Not on any other reveal, not with the setting off, not in a one-question game, and in a Vote game on the second-to-last question of the **whole game**. On a 360x640 phone nothing scrolls. | DoubleNextTest, Browser ScoringTest |
+| ☐ | **A number question has more time.** Play with 15 s per question and a closest-number question: its ring (big screen) and bar (phone) run **20 s**, a tap question's 15 s. The phone's box still takes a guess until the very end, the answer is not shown early unless everybody has guessed. | QuestionTimingTest |
+| ☐ | **The reveal stays longer when there is something to read.** After a number question, or any question with a fun fact, the "Next question in" bar counts **8 s**; after a plain tap question **5 s**. **Next question** still skips either. | QuestionTimingTest |
+| ☐ | **A demo without the worker.** Stop `queue:listen`, start a demo and join it from your phone. Sara and Karim still answer, a moment after their time (the "N of 3 answered" counter moves by itself, up to two seconds late), and the demo plays to the end. Start the worker again and it is a little snappier. | DemoBotsTickTest, Browser DemoGameTest |
+| ☐ | **Demo limits.** From one browser the 6th demo in an hour says to try again in N minutes (5 per browser); a private window on the same laptop gets 5 more, until the address's 30. | DemoTest |
+| ☐ | **Nickname list.** On the join page try `zeb`, `teez`, `5awal`, `neek`, `FvCk`, `3ers`, `dayyous`: each says **Please choose another nickname.** Names next to them (Nayef, Khawla, Dayana, Tiziana, Zeba) join fine. In `/admin` the dashboard's **Nicknames refused today** went up by one for each refusal, and shows no word. | NicknameFilterTest, NicknameRefusalsTest |
+| ☐ | **The guard.** In a terminal at the project: `php artisan migrate:fresh` refuses with a message about `LAMMA_ALLOW_DESTRUCTIVE` (your database is untouched). `php artisan lamma:backup-local` writes a dump. | DestructiveGuardTest |
 
 ## Sign-off
 
@@ -439,5 +455,6 @@ The same laptop and phone(s). Do the share card on a **real phone** (the Web Sha
 | 21 Speed bonus, double final, host's phone | | |
 | 22 True/false, pictures, closest number | | |
 | 23 Demo, landing, nicknames, share card | | |
+| 24 Follow-ups (Phase 14.1) | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

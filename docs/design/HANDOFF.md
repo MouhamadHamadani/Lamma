@@ -318,3 +318,21 @@ section 7. Look at the new component in the gallery (`/_components`, "Share resu
 Motion: nothing new moves except the share status line's fade. Sounds: nothing new. The demo uses the real game's screens, sounds and timers.
 
 Accessibility: the share button is a real `<button>` with `aria-busy` while it draws and a `role="status"` line; the demo page's small-screen note is plain text; the **Waiting for you?** row has `role="status"`; the **Bot** tag is text, not colour.
+
+## 14. Follow-ups: "Next: double points", more time for a number, a longer reveal, the join link (Phase 14.1, built without design files)
+
+Small changes on existing screens; look at the new component in the gallery (`/_components`, next to the x2 chip).
+
+| Where | What | Notes |
+| --- | --- | --- |
+| `<x-lamma.double-next>` | A **sun-tinted pill** (`bg-tint-sun`, 3px navy outline, `sticker-sm`, `chip-pop` with a fade under reduced motion) holding the **x2 sticker** (the same coral sticker as `<x-lamma.double-chip>`, tilted -3°, 28 px on a phone / 36 px on the big screen) and **Next: double points** in the display font, 15 px (md, phone) or 20 px (lg, big screen). `lang` is the screen's language. | The sticker is `aria-hidden`; the words are what a screen reader meets, and the screen's live region also says it. |
+| Host reveal | At the end of the **N of M got it right** row (`ms-auto`), only on the reveal of the **second-to-last** question. Arabic room: **التالي: نقاط مضاعفة**. In Both it is the English line only, like the other labels in that footer (Next question in, Scoreboard): the sticker needs no translation. | Measured at 1280x720 and 1920x1080 with eight players, a number question and a fun fact: nothing scrolls, the row does not wrap. |
+| Phone reveal | Takes the place of **Next question coming up…**, after a right answer, a wrong one and "Time's up" alike. On a phone under 700 px tall the reveal is a little tighter so the extra height does not scroll it (gap 12 px, headline 44 px, the +N chip 56 px, cards `py-3`, 12 px under the content). | 360x640 with a number question, a fun fact and the closest-guess line fits without scrolling. |
+| Live regions | The big screen's and the phone's announcer end with **Next: double points** on that reveal. | Same words as the pill. |
+| When | The second-to-last question of the **game**, with *Double points on the last question* on and at least two questions; in Vote mode the second-to-last of the whole game (not of a batch); in a demo too. Never with the setting off, never in a one-question game. | `ScoringService::doublesNext`. |
+| Timers | The ring (big screen) and the bar (phone) of a **closest-number question** run 5 s longer than the room's time per question (15 s becomes 20 s), because typing takes longer than a tap. They draw against the question's own length, so the ring starts full. | `lamma.number_question_extra_seconds`. |
+| Host reveal bar | **Next question in N s** counts **8 s** after a number question or any question with a fun fact, **5 s** after a plain one, and the sun bar fills against that length. **Next question** still skips. | `lamma.reveal_seconds`, `lamma.reveal_seconds_long`. |
+| Host lobby, a demo | The dashed **Waiting for you? Scan the code** row (after 90 s with nobody real) gains a second line: **Join from this laptop**, an underlined 15 px bold navy link (24 px tall at least) that opens the join page in a **new tab** of the same browser. The row is a sun-tinted status block as before. | Gone once somebody real has joined. The big screen stays the big screen (see the presence-channel rule in CLAUDE.md). |
+| Admin dashboard | A fifth figure beside Categories, Questions, Users and Rooms: **Nicknames refused today**, with **N in the last 7 days** under it. | A count only: never the word. |
+
+Motion and sound: the pill pops like the other chips (`chip-pop`), nothing else moves, no new sound.

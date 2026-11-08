@@ -288,7 +288,15 @@ bash deploy/deploy.sh --no-pull          # rebuild and restart what is checked o
 
 When the fix is on `main`: `git checkout main && bash deploy/deploy.sh`.
 If the bad deploy also ran a **database migration**, the newer tables are still there. Most migrations only add things and the old code ignores them. If one did
-not, restore the nightly backup (section 12) or run `php artisan migrate:rollback --step=1` *before* checking out the old commit. Do this on a quiet moment.
+not, restore the nightly backup (section 12) or roll the last migration back *before* checking out the old commit. Do this on a quiet moment.
+
+Since Phase 14.1 production refuses the destructive artisan commands (`migrate:fresh`, `migrate:refresh`, `migrate:reset`, `migrate:rollback`, `db:wipe`), so a plain
+`php artisan migrate:rollback --step=1 --force` stops with "This command is prohibited from running in this environment" (`AppServiceProvider::configureDestructiveCommands`; there is no flag that
+lifts it in production, on purpose). When you really mean it, say so for that one command, with the environment named on the command line and never in `.env`:
+
+```bash
+APP_ENV=staging php artisan migrate:rollback --step=1 --force   # break-glass: the guard only watches "production" and a local machine; take a backup first (section 12)
+```
 
 ## 14. Replacing the placeholder logo, icons and sounds
 
@@ -421,3 +429,15 @@ Phase 9. Besides a nickname a player can take a selfie with the phone's front ca
   captions) on the server and the landing page's **See how it works** opens it in a dialog. Files in that folder are not touched by a deploy (`git pull` leaves untracked files alone); commit them if
   you want them in the repository.
 - **Nicknames:** the list is `resources/blocklist/nicknames.php` (the header says how to extend it). After a change, `php artisan config:clear` (`deploy.sh` re-caches the config).
+
+## 20. The follow-ups (Phase 14.1)
+
+- **Two new migrations**, run by `deploy.sh` (`2026_11_10_090000_create_bot_plans_table`: the demo bots' plans, one row per bot per question, removed with the room; `2026_11_10_090100_create_nickname_refusals_table`: one row per
+  day with a COUNT of refused nicknames, never a word). Restart the queue workers and Reverb as usual (`deploy.sh` does): `GameEngine`, `Bots` and the broadcasting auth changed.
+- **Behind the proxy, the channel auth now reads one request header** (`X-Lamma-Role: host`, sent by the big screen's Echo). nginx passes request headers through by default; nothing to configure. It grants nothing on its own:
+  the server only believes it for the room's own host.
+- **New settings in `config/lamma.php`** (no environment variable; change them there if you must): `number_question_extra_seconds` (5), `reveal_seconds` (5), `reveal_seconds_long` (8), `demo.per_ip_per_hour` (30),
+  `demo.per_cookie_per_hour` (5). `demo.rooms_per_ip_per_hour` is gone.
+- **The destructive-command guard is on in production** (and on a development machine unless `LAMMA_ALLOW_DESTRUCTIVE=true` is in its `.env`). Do **not** put that variable in the server's `.env`: it does nothing there, on purpose.
+  A rollback is the one-off command in section 13. `lamma:backup-local` is for a development machine; the server's backups are `deploy/backup.sh` (section 12).
+- **Nothing else to do on the server.** The demo's bots no longer need the worker, but keep it running: it makes them answer on time and runs the game's own timers.

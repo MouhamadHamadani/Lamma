@@ -43,6 +43,16 @@ function sameBrowserTab(AwaitableWebpage $page, string $path): AwaitableWebpage
     return new AwaitableWebpage($tab, $origin.$path);
 }
 
+/**
+ * A click through the DOM. These tests run without Reverb (the screens follow by polling), and with the socket down the "Reconnecting..." card (`fixed inset-0`, shown by
+ * `lammaConnection` about ten seconds after a page loads) covers the whole page, so a real mouse click on a button is intercepted by it and Playwright waits for it for
+ * minutes. The buttons below are the ones this slow test reaches after that moment.
+ */
+function domClick($page, string $selector): void
+{
+    $page->script("() => document.querySelector('{$selector}').click()");
+}
+
 /** What the page's Echo sends with every channel authorization. */
 function echoHeaders($page): array
 {
@@ -75,12 +85,12 @@ it('keeps the host screen the host while a player tab of the same logged-in brow
     expect($player->user_id)->toBe($host->id)->and($player->guest_token)->not->toBeNull();
     $player->update(['left_at' => null]); // what the presence connection of the player tab does
 
-    $tab->click('[data-test=ready-button]');
+    domClick($tab, '[data-test=ready-button]');
     sameWait($tab, "document.querySelector('[data-test=ready-button]').getAttribute('aria-pressed') === 'true'", 10, 'Ready to register');
     sameWait($screen, "document.querySelector('[data-test=ready-count]').textContent.includes('1 of 1')", 20, 'the host to count the player ready');
     sameWait($screen, "document.querySelector('[data-test=start-button]') && ! document.querySelector('[data-test=start-button]').disabled", 20, 'Start game to unlock');
 
-    $screen->click('[data-test=start-button]');
+    domClick($screen, '[data-test=start-button]');
     sameWait($screen, "document.querySelector('[data-test=host-game]')", 15, 'the game on the big screen');
     sameWait($tab, "document.querySelector('[data-test=player-game]')?.dataset.phase === 'question'", 25, 'the first question on the player tab');
     $tab->script("() => document.querySelectorAll('[data-test=answers] button')[0].click()");
@@ -122,14 +132,14 @@ it('plays a whole demo in one browser: the big screen and "Join from this laptop
     expect(echoHeaders($tab))->toMatchArray(['role' => null]);
     $room->players()->where('is_bot', false)->update(['left_at' => null]);
 
-    $tab->click('[data-test=ready-button]');
+    domClick($tab, '[data-test=ready-button]');
     sameWait($tab, "document.querySelector('[data-test=ready-button]').getAttribute('aria-pressed') === 'true'", 10, 'Ready to register');
     sameWait($screen, "document.querySelector('[data-test=ready-count]').textContent.includes('3 of 3')", 20, 'the big screen to count three ready');
     // The banner is gone once somebody real is in.
     $screen->assertScript("document.querySelector('[data-test=join-from-laptop]') === null");
     sameWait($screen, "document.querySelector('[data-test=start-button]') && ! document.querySelector('[data-test=start-button]').disabled", 20, 'Start game to unlock');
 
-    $screen->click('[data-test=start-button]');
+    domClick($screen, '[data-test=start-button]');
     foreach ([1, 2, 3, 4] as $question) {
         sameWait($tab, "document.querySelector('[data-test=player-game]')?.dataset.phase === 'question'", 30, "question {$question} on the player tab");
         $tab->script("() => document.querySelectorAll('[data-test=answers] button')[0].click()");
