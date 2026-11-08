@@ -405,9 +405,13 @@ Phase 9. Besides a nickname a player can take a selfie with the phone's front ca
 ## 19. The demo and the share card (Phase 14)
 
 - **What it is:** `/demo` starts a game for someone with no account: the big screen is a browser holding an encrypted, httpOnly cookie (`lamma_demo_host`, a day), the room has two bots, Sara and
-  Karim, and it is deleted by `lamma:prune` two hours after it started (`lamma.demo.lifetime_hours`). Five demos per IP address per hour (`lamma.demo.rooms_per_ip_per_hour`).
-- **The bots need the queue worker.** They answer through delayed `BotAnswer` jobs, queued when each question opens. With the worker stopped the demo still runs (the question reveals on time) but
-  Sara and Karim never answer. `deploy.sh` restarts the workers; `lamma:doctor` already fails on a sync queue.
+  Karim, and it is deleted by `lamma:prune` two hours after it started (`lamma.demo.lifetime_hours`). Two limits on demos started in an hour (Phase 14.1): **30 per IP address** (`lamma.demo.per_ip_per_hour`: generous, because a school, an office or a mobile carrier puts many people behind one
+  address) and **5 per demo-host cookie** (`lamma.demo.per_cookie_per_hour`: one browser has no reason to start more; the IP limit is what catches someone who clears their cookies). Both show the same
+  "Please try again in N minutes" message, the longer wait of the two. They live in the cache (Redis), so a `cache:clear` resets them; behind a proxy make sure `TrustProxies` gives the real client
+  address (it trusts only 127.0.0.1 by default), or every visitor shares one IP and the 30 is shared by everybody.
+- **The bots no longer need the queue worker** (Phase 14.1). Each bot's answer is planned when the question opens (the `bot_plans` table) and queued as a delayed `BotAnswer` job, and the host screen's
+  2-second poll (`GameEngine::tick()`) answers for any bot whose moment has passed, so with the worker stopped Sara and Karim still answer (up to two seconds late). With the worker running the job answers first.
+  `deploy.sh` still restarts the workers; `lamma:doctor` still fails on a sync queue.
 - **Deploy:** one new migration (`2026_11_09_090000_add_demo_rooms`: `rooms.is_demo`, `rooms.host_token_hash`, `room_players.is_bot`, the `demo_stats` table). Restart the queue workers and Reverb (the
   `deploy.sh` run does): there is a new job class and a new channel guard. No nginx change. Rooms and players from before the migration are real ones (`is_demo` and `is_bot` default to false).
 - **Environment:** `LAMMA_LANDING_FREE_LINE` (default true) shows or hides the line under the landing page's Host button that says hosting and playing are free. Nothing else is new.

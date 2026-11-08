@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
@@ -144,51 +145,128 @@ describe('starting a demo', function () {
 });
 
 describe('the limit', function () {
-    it('allows 5 demo rooms per IP per hour and refuses the 6th with a message, creating nothing', function () {
+    it('ships 30 demo rooms per IP per hour and 5 per demo-host cookie per hour', function () {
+        expect(config('lamma.demo.per_ip_per_hour'))->toBe(30)->and(config('lamma.demo.per_cookie_per_hour'))->toBe(5)
+            ->and(config('lamma.demo'))->not->toHaveKey('rooms_per_ip_per_hour');
+    });
+
+    it('allows 30 demo rooms per IP per hour (browsers with no cookie) and refuses the 31st with a message, creating nothing', function () {
         demoContent();
 
-        foreach (range(1, 5) as $n) {
+        foreach (range(1, 30) as $n) {
             $this->post(route('demo.start'))->assertRedirect()->assertSessionHasNoErrors();
         }
-        expect(Room::count())->toBe(5);
+        expect(Room::count())->toBe(30);
 
         $this->from('/demo')->post(route('demo.start'))->assertRedirect('/demo')->assertSessionHasErrors('demo');
-        expect(Room::count())->toBe(5)->and(session('errors')->first('demo'))->toContain('minutes');
+        expect(Room::count())->toBe(30)->and(session('errors')->first('demo'))->toContain('minutes');
     });
 
     it('counts per address: another IP is not held back', function () {
         demoContent();
+        config(['lamma.demo.per_ip_per_hour' => 5]);
         foreach (range(1, 5) as $n) {
             $this->post(route('demo.start'));
         }
+        $this->post(route('demo.start'))->assertSessionHasErrors('demo');
 
         $this->withServerVariables(['REMOTE_ADDR' => '10.9.8.7'])->post(route('demo.start'))->assertRedirect()->assertSessionHasNoErrors();
 
         expect(Room::count())->toBe(6);
     });
 
-    it('lets the same address start again an hour later', function () {
+    it('allows 5 demo rooms per host cookie per hour whatever the address, and refuses the 6th with the same message', function () {
+        demoContent();
+
+        foreach (range(1, 5) as $n) {
+            // A different address every time: only the cookie is the same.
+            $this->withCookie('lamma_demo_host', DEMO_TOKEN)->withServerVariables(['REMOTE_ADDR' => "10.1.0.{$n}"])->post(route('demo.start'))->assertRedirect()->assertSessionHasNoErrors();
+        }
+        expect(Room::count())->toBe(5);
+
+        $this->from('/demo')->withCookie('lamma_demo_host', DEMO_TOKEN)->withServerVariables(['REMOTE_ADDR' => '10.1.0.99'])->post(route('demo.start'))
+            ->assertRedirect('/demo')->assertSessionHasErrors('demo');
+        expect(Room::count())->toBe(5)->and(session('errors')->first('demo'))->toContain('You have started a lot of demos. Please try again in')->toContain('minutes');
+    });
+
+    it('counts per cookie: another browser on the same address is not held back by it', function () {
         demoContent();
         foreach (range(1, 5) as $n) {
-            $this->post(route('demo.start'));
+            $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'));
         }
-        $this->post(route('demo.start'))->assertSessionHasErrors('demo');
+        $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'))->assertSessionHasErrors('demo');
+
+        $this->withCookie('lamma_demo_host', OTHER_DEMO_TOKEN)->post(route('demo.start'))->assertRedirect()->assertSessionHasNoErrors();   // same IP, another cookie
+        $this->post(route('demo.start'))->assertRedirect()->assertSessionHasNoErrors();   // same IP, no cookie yet: only the address counts
+
+        expect(Room::count())->toBe(7);
+    });
+
+    it('counts the demo that gave a browser its cookie, and the address as well as the cookie', function () {
+        demoContent();
+
+        $this->post(route('demo.start'));   // a browser with no cookie: it is given one, and that start is counted under it
+        $hash = Room::sole()->host_token_hash;
+
+        expect(RateLimiter::attempts(DemoRoom::ipKey('127.0.0.1')))->toBe(1)
+            ->and(RateLimiter::attempts('demo-cookie:'.$hash))->toBe(1)
+            ->and(DemoRoom::cookieKey(DEMO_TOKEN))->toBe('demo-cookie:'.hash('sha256', DEMO_TOKEN));
+    });
+
+    it('counts a start that succeeds and nothing else: a refusal neither creates a room nor stretches the wait', function () {
+        demoContent();
+        config(['lamma.demo.per_cookie_per_hour' => 1]);
+        $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'));
+        $key = DemoRoom::cookieKey(DEMO_TOKEN);
+        $before = RateLimiter::availableIn($key);
+
+        $this->travel(10)->minutes();
+        $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'))->assertSessionHasErrors('demo');
+
+        expect(RateLimiter::attempts($key))->toBe(1)->and(RateLimiter::availableIn($key))->toBe($before - 600)->and(Room::count())->toBe(1);
+    });
+
+    it('says how long to wait: the longer of the two limits', function () {
+        demoContent();
+        config(['lamma.demo.per_ip_per_hour' => 1, 'lamma.demo.per_cookie_per_hour' => 1]);
+        $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'));   // both limiters start their hour now
+        $this->travel(20)->minutes();
+        RateLimiter::clear(DemoRoom::cookieKey(DEMO_TOKEN));
+        RateLimiter::hit(DemoRoom::cookieKey(DEMO_TOKEN), 3600);   // the cookie's hour restarts: 60 minutes left, the address has 40
+
+        $this->from('/demo')->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'))->assertSessionHasErrors('demo');
+
+        expect(session('errors')->first('demo'))->toContain('60 minutes');
+    });
+
+    it('lets the same address and the same cookie start again an hour later', function () {
+        demoContent();
+        foreach (range(1, 5) as $n) {
+            $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'));
+        }
+        $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'))->assertSessionHasErrors('demo');
 
         $this->travel(61)->minutes();
-        $this->post(route('demo.start'))->assertRedirect()->assertSessionHasNoErrors();
+        $this->withCookie('lamma_demo_host', DEMO_TOKEN)->post(route('demo.start'))->assertRedirect()->assertSessionHasNoErrors();
 
         expect(Room::count())->toBe(6);
     });
 
-    it('is a setting', function () {
+    it('is a setting, both of them', function () {
         demoContent();
-        config(['lamma.demo.rooms_per_ip_per_hour' => 2]);
+        config(['lamma.demo.per_ip_per_hour' => 2]);
 
         $this->post(route('demo.start'));
         $this->post(route('demo.start'));
         $this->post(route('demo.start'))->assertSessionHasErrors('demo');
-
         expect(Room::count())->toBe(2);
+
+        config(['lamma.demo.per_ip_per_hour' => 30, 'lamma.demo.per_cookie_per_hour' => 2]);
+        $this->withCookie('lamma_demo_host', OTHER_DEMO_TOKEN)->withServerVariables(['REMOTE_ADDR' => '10.2.2.2'])->post(route('demo.start'));
+        $this->withCookie('lamma_demo_host', OTHER_DEMO_TOKEN)->withServerVariables(['REMOTE_ADDR' => '10.2.2.3'])->post(route('demo.start'));
+        $this->withCookie('lamma_demo_host', OTHER_DEMO_TOKEN)->withServerVariables(['REMOTE_ADDR' => '10.2.2.4'])->post(route('demo.start'))->assertSessionHasErrors('demo');
+
+        expect(Room::count())->toBe(4);
     });
 });
 
