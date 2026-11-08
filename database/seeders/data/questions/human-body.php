@@ -58,4 +58,10 @@ return [
     ['hard', 'أي فيتامين ضروري لتجلّط الدم؟', 'Which vitamin is essential for blood clotting?', ['فيتامين ك|Vitamin K', 'فيتامين ج|Vitamin C', 'فيتامين د|Vitamin D', 'فيتامين هـ|Vitamin E']],
     ['hard', 'أي غدة تُلقَّب بـ«الغدة الرئيسية» لأنها تتحكم في كثير من الغدد الأخرى؟', 'Which gland is called the "master gland" because it controls many other glands?', ['الغدة النخامية|The pituitary gland', 'الغدة الدرقية|The thyroid gland', 'الغدة الكظرية|The adrenal gland', 'البنكرياس|The pancreas']],
     ['hard', 'ما الاسم العلمي لعظم الركبة (الرضفة)؟', 'What is the scientific name of the kneecap?', ['الرضفة (باتيلا)|The patella', 'الترقوة (كلافيكل)|The clavicle', 'القصّ (ستيرنوم)|The sternum', 'اللوح (سكابولا)|The scapula']],
+
+    // ---- Phase 15 hard-tier pass: 4 more hard (now 20) ----
+    ['hard', 'ما نوع الخلايا في شبكية العين المسؤولة عن الرؤية في الضوء الخافت؟', 'Which cells of the retina are responsible for seeing in dim light?', ['العصيات|Rods', 'المخاريط|Cones', 'خلايا القرنية|Corneal cells', 'خلايا العدسة|Lens cells']],
+    ['hard', 'أي حجرة في القلب تضخّ الدم المحمّل بالأكسجين إلى أنحاء الجسم؟', 'Which chamber of the heart pumps oxygen-rich blood around the body?', ['البطين الأيسر|The left ventricle', 'البطين الأيمن|The right ventricle', 'الأذين الأيمن|The right atrium', 'الأذين الأيسر|The left atrium']],
+    ['hard', 'أي بروتين يحمل الأكسجين داخل خلايا الدم الحمراء؟', 'Which protein carries oxygen inside red blood cells?', ['الهيموغلوبين|Haemoglobin', 'الكولاجين|Collagen', 'الكيراتين|Keratin', 'الميوغلوبين|Myoglobin']],
+    ['hard', 'أي غدة على شكل فراشة في العنق تتحكّم في عمليات الأيض في الجسم؟', 'Which butterfly-shaped gland in the neck controls the body\'s metabolism?', ['الغدة الدرقية|The thyroid gland', 'الغدة النخامية|The pituitary gland', 'الغدة الكظرية|The adrenal gland', 'الغدة الصنوبرية|The pineal gland']],
 ];

@@ -57,4 +57,10 @@ return [
     ['hard', 'ماذا يعني اسم «جودو» بالترجمة الحرفية من اليابانية؟', 'What does the word "judo" mean in Japanese?', ['الطريق اللين|The gentle way', 'اليد الفارغة|Empty hand', 'فن الدفاع|The art of defence', 'الطريق الصعب|The hard way']],
     ['hard', 'من أي جزر نشأت رياضة الكاراتيه قبل أن تنتشر إلى اليابان؟', 'From which islands did karate spread to mainland Japan?', ['أوكيناوا|Okinawa', 'هوكايدو|Hokkaido', 'هاواي|Hawaii', 'تايوان|Taiwan']],
     ['hard', 'ما اسم بطولات السومو الكبرى الست التي تُقام كل عام؟', 'What are the six major sumo tournaments held each year called?', ['باشو|Basho', 'دوجو|Dojo', 'كاتا|Kata', 'شودان|Shodan']],
+
+    // ---- Phase 15 hard-tier pass: 4 more hard (now 20) ----
+    ['hard', 'أي ملاكم كوبي فاز بذهبية الوزن الثقيل في ثلاث دورات أولمبية أعوام 1972 و1976 و1980؟', 'Which Cuban boxer won heavyweight Olympic gold three times, in 1972, 1976 and 1980?', ['تيوفيلو ستيفنسون|Teófilo Stevenson', 'فيليكس سافون|Félix Savón', 'محمد علي كلاي|Muhammad Ali', 'جورج فورمان|George Foreman']],
+    ['hard', 'من الملاكم الذي أصبح أصغر بطل عالم للوزن الثقيل، وكان عمره 20 عاماً عام 1986؟', 'Who in 1986 became the youngest heavyweight boxing world champion, at the age of 20?', ['مايك تايسون|Mike Tyson', 'إيفاندر هوليفيلد|Evander Holyfield', 'جورج فورمان|George Foreman', 'لينوكس لويس|Lennox Lewis']],
+    ['hard', 'أي ملاكم فلبيني فاز بألقاب عالمية في ثماني فئات وزنية مختلفة؟', 'Which Filipino boxer won world titles in eight different weight divisions?', ['ماني باكياو|Manny Pacquiao', 'فلويد مايويذر|Floyd Mayweather', 'أوسكار دي لا هويا|Oscar De La Hoya', 'شوغر ري ليونارد|Sugar Ray Leonard']],
+    ['hard', 'أي فن قتالي ياباني أسّسه موريهي أويشيبا ويقوم على توجيه قوة المهاجم ضد نفسه؟', 'Which Japanese martial art, founded by Morihei Ueshiba, works by redirecting an attacker\'s force?', ['الأيكيدو|Aikido', 'الكاراتيه|Karate', 'الجودو|Judo', 'الكيندو|Kendo']],
 ];

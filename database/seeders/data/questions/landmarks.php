@@ -59,4 +59,10 @@ return [
     ['hard', 'في أي جزء من الجزر البريطانية يقع «جسر العملاق» (جاينتس كوزواي) المكوّن من أعمدة بازلتية؟', 'In which part of the British Isles is the Giant\'s Causeway, made of basalt columns?', ['أيرلندا الشمالية|Northern Ireland', 'اسكتلندا|Scotland', 'ويلز|Wales', 'جمهورية أيرلندا|The Republic of Ireland']],
     ['hard', 'في أي مدينة يقع جسر تشارلز التاريخي؟', 'In which city is the historic Charles Bridge?', ['براغ|Prague', 'بودابست|Budapest', 'فيينا|Vienna', 'وارسو|Warsaw']],
     ['hard', 'بين أي بلدين تقع شلالات فيكتوريا؟', 'Between which two countries do the Victoria Falls lie?', ['زامبيا وزيمبابوي|Zambia and Zimbabwe', 'كينيا وتنزانيا|Kenya and Tanzania', 'مصر والسودان|Egypt and Sudan', 'أنغولا وناميبيا|Angola and Namibia']],
+
+    // ---- Phase 15 hard-tier pass: 4 more hard (now 20) ----
+    ['hard', 'بسبب بناء أي سدّ في الستينيات نُقلت معابد أبو سمبل إلى موقع أعلى؟', 'Because of which dam, built in the 1960s, were the Abu Simbel temples moved to higher ground?', ['السد العالي في أسوان|The Aswan High Dam', 'سد الموصل|The Mosul Dam', 'سد هوفر|The Hoover Dam', 'سد الطبقة|The Tabqa Dam']],
+    ['hard', 'في أي مدينة مغربية تقع ساحة جامع الفنا الشهيرة؟', 'In which Moroccan city is the famous square Jemaa el-Fnaa?', ['مراكش|Marrakech', 'فاس|Fez', 'الرباط|Rabat', 'طنجة|Tangier']],
+    ['hard', 'من المهندس الدنماركي الذي صمّم دار أوبرا سيدني؟', 'Which Danish architect designed the Sydney Opera House?', ['يورن أوتزون|Jørn Utzon', 'فرانك غيري|Frank Gehry', 'نورمان فوستر|Norman Foster', 'آرني ياكوبسن|Arne Jacobsen']],
+    ['hard', 'في أي مدينة مصرية يقع مجمّع معابد الكرنك؟', 'In which Egyptian city is the Karnak temple complex?', ['الأقصر|Luxor', 'أسوان|Aswan', 'الإسكندرية|Alexandria', 'الجيزة|Giza']],
 ];

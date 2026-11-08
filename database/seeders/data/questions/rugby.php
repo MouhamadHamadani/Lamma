@@ -57,4 +57,10 @@ return [
     ['hard', 'أي منتخب فاز بأول ميدالية ذهبية أولمبية في رغبي السباعيات عام 2016؟', 'Which team won the first Olympic gold medal in rugby sevens, in 2016?', ['فيجي|Fiji', 'نيوزيلندا|New Zealand', 'بريطانيا|Great Britain', 'جنوب أفريقيا|South Africa']],
     ['hard', 'ما الدوري الاحترافي الأبرز لـ«رغبي ليغ» في إنجلترا؟', 'Which is the main professional rugby league competition in England?', ['سوبر ليغ|The Super League', 'بريميرشيب|The Premiership', 'هاينكن كب|The Heineken Cup', 'بطولة الأمم الست|The Six Nations']],
     ['hard', 'ماذا نسمّي المنطقة الواقعة خلف خط التراي التي يُسجَّل فيها التراي بوضع الكرة على الأرض؟', 'What is the area behind the try line, where a try is scored by grounding the ball, called?', ['منطقة الغول (إن غول)|The in-goal area', 'منطقة الجزاء|The penalty area', 'منطقة الركن|The corner zone', 'منطقة الأمان|The safety zone']],
+
+    // ---- Phase 15 hard-tier pass: 4 more hard (now 20) ----
+    ['hard', 'أي منتخب آسيوي هزم جنوب أفريقيا 34-32 في كأس العالم للرغبي 2015؟', 'Which Asian team stunned South Africa 34-32 at the 2015 Rugby World Cup?', ['اليابان|Japan', 'كوريا الجنوبية|South Korea', 'هونغ كونغ|Hong Kong', 'سريلانكا|Sri Lanka']],
+    ['hard', 'من قائد منتخب جنوب أفريقيا الذي رفع كأس العالم للرغبي عام 1995؟', 'Who captained South Africa when they lifted the Rugby World Cup in 1995?', ['فرانسوا بينار|François Pienaar', 'جونا لومو|Jonah Lomu', 'مارتن جونسون|Martin Johnson', 'جون إيلز|John Eales']],
+    ['hard', 'كم نقطة تساوي الركلة الساقطة (دروب غول) في الرغبي؟', 'How many points is a drop goal worth in rugby union?', ['3', '2', '5', '7']],
+    ['hard', 'كم لاعباً من المهاجمين يشكّلون «السكروم» لكل فريق في الرغبي؟', 'How many forwards from each team make up a scrum in rugby union?', ['8', '6', '10', '15']],
 ];
