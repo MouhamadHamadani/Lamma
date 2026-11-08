@@ -233,8 +233,8 @@ describe('the scheduler heartbeat', function () {
 
 describe('the placeholder files', function () {
     it('are recorded with the hash of what ships today, so the doctor can warn', function () {
-        // Every shipped file IS the placeholder today: all 14 are reported, none missing.
-        expect(BrandFiles::stillPlaceholders())->toBe(array_keys(config('lamma.placeholders')))->toHaveCount(14);
+        // Every shipped file IS the placeholder today: all 15 are reported, none missing.
+        expect(BrandFiles::stillPlaceholders())->toBe(array_keys(config('lamma.placeholders')))->toHaveCount(15);
         foreach (config('lamma.placeholders') as $path => $hash) {
             expect(BrandFiles::hash($path))->toBe($hash, $path);
         }
@@ -261,7 +261,7 @@ describe('the placeholder files', function () {
         copy(public_path('apple-touch-icon.png'), $dir.'/apple-touch-icon.png');
         app()->usePublicPath($dir);
 
-        expect(BrandFiles::stillPlaceholders())->toHaveCount(14)->toContain('brand/lamma-icon.svg');
+        expect(BrandFiles::stillPlaceholders())->toHaveCount(15)->toContain('brand/lamma-icon.svg');
         file_put_contents($dir.'/brand/lamma-icon.svg', '<svg>the official mark</svg>');
         unlink($dir.'/sounds/tick.wav');
 

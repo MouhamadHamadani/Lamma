@@ -24,6 +24,7 @@ dataset('viewports', [
 dataset('public pages', [
     'landing' => '/',
     'join' => '/join',
+    'demo' => '/demo',
     'log in' => '/login',
     'register' => '/register',
     'forgot password' => '/forgot-password',

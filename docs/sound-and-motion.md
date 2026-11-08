@@ -109,3 +109,8 @@ No new sound names. A closest-number question's **Lock in my guess** button play
 (and `rank-up`) as before. New motion, all `transform` and `opacity` behind `motion-safe:` with a fade under reduced motion: the pins on the reveal's number line and the answer's marker use
 `drop-in` (90 ms apart), the ranked guesses use `row-in` (60 ms apart), the phone's locked number card uses `settle`. They run once: the screens' Livewire refreshes cannot replay them because the
 sounds are `$store.sound.once` cues and the number line is only drawn after the reveal.
+
+## Phase 14: the demo and the share card
+
+No new sound names: a demo uses the real game's sounds. The only new motion is the **Share result** status line (**Result shared** / **Result saved to your device**): `fade-in` behind `motion-safe:`,
+plain text under reduced motion. The share card itself is a still picture drawn on a canvas: it has no animation to switch off. The demo lobby's **Waiting for you? Scan the code** row and the **Bot** tag do not move.

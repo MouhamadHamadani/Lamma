@@ -23,9 +23,12 @@ use App\Models\Room;
 use App\Models\RoomPlayer;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 
 /*
@@ -425,5 +428,22 @@ describe('the presence channel', function () {
     it('is a guard of the channel, after the player and web guards', function () {
         expect(config('auth.guards.demo'))->toBe(['driver' => 'demo']);
         Auth::guard('demo')->forgetUser();
+    });
+});
+
+describe('the migration', function () {
+    it('rolls back and comes up again: the demo columns and the tally table go and return, and a room keeps its data and stays a real one', function () {
+        $room = Room::factory()->create();
+        $player = RoomPlayer::factory()->for($room)->create(['nickname' => 'Hadi']);
+        $has = fn () => [Schema::hasColumn('rooms', 'is_demo'), Schema::hasColumn('rooms', 'host_token_hash'), Schema::hasColumn('room_players', 'is_bot'), Schema::hasTable('demo_stats')];
+
+        expect($has())->toBe([true, true, true, true]);
+
+        // Only this phase's own migration (a later one is not the one under test: `--step` would take the newest).
+        Artisan::call('migrate:rollback', ['--path' => 'database/migrations/2026_11_09_090000_add_demo_rooms.php']);
+        expect($has())->toBe([false, false, false, false])->and(DB::table('rooms')->count())->toBe(1)->and(DB::table('room_players')->value('nickname'))->toBe('Hadi');
+
+        Artisan::call('migrate');
+        expect($has())->toBe([true, true, true, true])->and($room->fresh()->is_demo)->toBeFalse()->and($room->fresh()->host_token_hash)->toBeNull()->and($player->fresh()->is_bot)->toBeFalse();
     });
 });

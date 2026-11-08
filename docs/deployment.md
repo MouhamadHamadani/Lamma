@@ -355,8 +355,10 @@ Leave it empty to run without analytics: no script, no notice, no cookie.
   query string, with the route name as its title and only the *origin* of the referrer. Events carry only counts, slugs and language codes: never a nickname, e-mail, user id, guest token or code.
 - **Not on the admin.** `/admin` never loads it.
 - **Events** (GA4 > Reports > Engagement > Events): `room_created` (difficulty, question_count, categories_count), `subcategory_selected` (parent_category, subcategory: slugs), `game_started`
-  (player_count, question_count, difficulty, language), `player_joined` (language), `game_finished` (player_count, question_count, duration_seconds, rounded to 10 s), `play_again_clicked`,
-  `language_switched` (to), `sign_up`, `login`. Each fires once.
+  (player_count, question_count, difficulty, language), `player_joined` (language), `game_finished` (player_count, player_bucket, mode, question_count, duration_seconds, rounded to 10 s), `rematch_clicked`
+  (named `play_again_clicked` before Phase 14),
+  `language_switched` (to), `sign_up`, `login`, and the funnel's `demo_started`, `demo_finished`, `host_signup`, `share_clicked` (surface, method) and `join_page_viewed`. Each fires once. Demo games send
+  only `demo_started` / `demo_finished`, never the real-game events, and nothing is ever sent about the demo's bots. The dashboard's **Funnel** widget is computed from the database, not from GA.
 
 **To do in the Google Analytics dashboard (Lamma cannot do these)**
 
@@ -399,3 +401,19 @@ Phase 9. Besides a nickname a player can take a selfie with the phone's front ca
   Analytics. The admin panel's room page has a **Players** tab with every player's thumbnail and a **Remove photo** action, for moderation only.
 - **Upgrade from before Phase 9:** `deploy.sh` needs no change. `migrate --force` adds `avatar_path` and `avatar_updated_at` to `room_players`; rooms created earlier have photos on
   by default (nobody has a photo in them). `crontab`/`/etc/cron.d/lamma` needs no change either (the scheduler already runs every minute; `lamma:prune` became hourly in code).
+
+## 19. The demo and the share card (Phase 14)
+
+- **What it is:** `/demo` starts a game for someone with no account: the big screen is a browser holding an encrypted, httpOnly cookie (`lamma_demo_host`, a day), the room has two bots, Sara and
+  Karim, and it is deleted by `lamma:prune` two hours after it started (`lamma.demo.lifetime_hours`). Five demos per IP address per hour (`lamma.demo.rooms_per_ip_per_hour`).
+- **The bots need the queue worker.** They answer through delayed `BotAnswer` jobs, queued when each question opens. With the worker stopped the demo still runs (the question reveals on time) but
+  Sara and Karim never answer. `deploy.sh` restarts the workers; `lamma:doctor` already fails on a sync queue.
+- **Deploy:** one new migration (`2026_11_09_090000_add_demo_rooms`: `rooms.is_demo`, `rooms.host_token_hash`, `room_players.is_bot`, the `demo_stats` table). Restart the queue workers and Reverb (the
+  `deploy.sh` run does): there is a new job class and a new channel guard. No nginx change. Rooms and players from before the migration are real ones (`is_demo` and `is_bot` default to false).
+- **Environment:** `LAMMA_LANDING_FREE_LINE` (default true) shows or hides the line under the landing page's Host button that says hosting and playing are free. Nothing else is new.
+- **Replace `public/brand/og-image.png`** with the official 1200x630 picture (it is the placeholder drawn from our placeholder logo: its source is `docs/design/og-image-source.html`). It is the picture
+  WhatsApp, X, Facebook and Telegram show for a link to `/`, `/join` and `/demo`; `lamma:doctor` lists it among the placeholders. The 1200x630 size and under 300 KB keep chat apps happy.
+- **The how-it-works clip is optional:** put `how-it-works.mp4` in a folder called `media` inside the site's `public` folder (and, if you like, `how-it-works.jpg` / `.png` / `.webp` as the poster and `how-it-works.en.vtt` / `how-it-works.ar.vtt` as
+  captions) on the server and the landing page's **See how it works** opens it in a dialog. Files in that folder are not touched by a deploy (`git pull` leaves untracked files alone); commit them if
+  you want them in the repository.
+- **Nicknames:** the list is `resources/blocklist/nicknames.php` (the header says how to extend it). After a change, `php artisan config:clear` (`deploy.sh` re-caches the config).

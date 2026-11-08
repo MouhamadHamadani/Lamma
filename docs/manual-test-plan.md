@@ -5,7 +5,7 @@ differs from "Expect". For how to start the servers and put phones on the laptop
 [realtime-testing.md](realtime-testing.md); this file assumes that works. Section 17 is the same game on the **live domain**,
 after a deploy ([deployment.md](deployment.md)), section 18 is the **selfie** step on real phones (the one thing the automated tests cannot do: a real front camera), and
 section 19 is **sound and motion**: what needs your ears and a real device ([sound-and-motion.md](sound-and-motion.md) lists every sound and animation).
-Section 20 is **Vote mode**, the second game mode: the phones vote on the category of the next questions. Section 22 is the **new question types**: true/false, pictures, closest number and the fun fact.
+Section 20 is **Vote mode**, the second game mode: the phones vote on the category of the next questions. Section 22 is the **new question types**: true/false, pictures, closest number and the fun fact. Section 23 is the **no-signup demo**, the **landing page**, the **nickname filter** and the **share card**.
 
 ## What the automated tests already prove
 
@@ -387,6 +387,31 @@ them; to see one on purpose, add a question in the admin (**Questions > New**, p
 | ☐ | **Statistics.** After a few games: the **Questions most often answered wrong** widget shows each question's type, and a number question counts as right when the guess scored; the question list's % correct agrees. | QuestionStatsTypesTest |
 | ☐ | **Deploy.** `php artisan migrate` (one migration), `php artisan db:seed --class=ContentSeeder --force` (adds the 30 new questions and copies the 8 drawings to `storage/app/public/questions/seed`), `php artisan storage:link` if missing. `lamma:doctor` has a **Question pictures** row: PASS. | DoctorTest |
 
+---
+## 23. The demo, the landing page, nicknames and the share card (Phase 14)
+
+The same laptop and phone(s). Do the share card on a **real phone** (the Web Share API is the one thing no automated test can open), then on a laptop.
+
+| ☐ | Step and what to expect | Auto |
+| --- | --- | --- |
+| ☐ | **Landing page.** At 390 and 1440 px wide, in Arabic and in English: **Host a game** and **Try a demo** side by side (stacked on a phone), the line **Hosting and playing are free for now.** under them, nothing garbled in the two phones of the mockup (name, **EN** / **ع** pill, timer), no sideways scroll. Turn the line off with `LAMMA_LANDING_FREE_LINE=false`. | LandingPhase14Test |
+| ☐ | **See how it works.** Without a clip it scrolls to the three steps. Put a short `public/media/how-it-works.mp4` in place (and, if you like, `how-it-works.jpg` and `how-it-works.en.vtt` / `.ar.vtt`): it opens in a dialog, plays, pauses when you close it. | LandingPhase14Test |
+| ☐ | **Start a demo (laptop).** **Try a demo** > **Start a demo game**. The lobby has the **Demo** chip, **Sara** and **Karim** with a **Bot** tag and no remove button, a QR code and the room code. **Start game** is locked. Nobody else can open this address: in a private window or another browser it is a 403. | DemoTest, Browser DemoGameTest |
+| ☐ | **Join the demo (phone).** Scan the QR code with a real phone, pick a language and a name, tap Ready. The big screen shows 3 of 3 ready and unlocks **Start game**. | Browser DemoGameTest |
+| ☐ | **Waiting for you?** Start another demo and do nothing: after 90 seconds the dashed row says **Waiting for you? Scan the code** and Start stays locked. | DemoTest |
+| ☐ | **Play the demo.** 4 questions, 15 s each, Mixed, the last one doubles. Sara and Karim answer at different moments (the "N of 3 answered" counter moves on its own) and are right about two times in three. The question reveals at once when you have answered and both bots have. They are on the scoreboard and the podium. | DemoBotsTest, Browser DemoGameTest |
+| ☐ | **The end of a demo.** The podium and your phone offer **Host your own game** (sign-up) and **Join a friend's game**; there is no **Play again**, no **New game** and no **Save your score**. | DemoTest, Browser DemoGameTest |
+| ☐ | **The limit.** Start 6 demos in an hour from one address: the 6th says to try again in N minutes. | DemoTest |
+| ☐ | **Clean-up.** `php artisan lamma:prune` closes and deletes demo rooms older than 2 hours (change `lamma.demo.lifetime_hours` to try it): a phone still on one is told the room closed. After it, `/admin` > Rooms shows no demo and the dashboard's **Demo games** figure still counts it. | DemoExclusionsTest |
+| ☐ | **Nothing of a demo leaks.** After a demo and a real game: **My games** (as a logged-in player) lists only the real one; the admin's Games per day, Most played categories and Questions most often answered wrong ignore the demo; Rooms in `/admin` says **Demo (no account)** for it and counts one player. | DemoExclusionsTest |
+| ☐ | **Nickname filter.** On the join page try a rude word in English, in Arabic and in Arabizi, then with spaces, dots, stretched letters and digits (`f u c k`, `fuuuck`, `sh1t`, `ع ر ص`). Each says **Please choose another nickname.** in the same place as "taken", never naming a word. Innocent names (Cassandra, Essex, Nicole, كساب, نيكول) join. Also try renaming in the lobby. Ask a native Arabic reader to try the words they would worry about. | NicknameFilterTest |
+| ☐ | **Share result (phone).** At the end of a game tap **Share result** on a real phone: the share sheet offers the PNG (WhatsApp, Messages, Save to Photos). The picture is 1080x1350, the winner, the top three and your own place, the site address, and no photo or room code. Do it once in Arabic (right to left, shaped letters) and once in English. | ShareCardTest (draws it in Chromium) |
+| ☐ | **Share result (laptop).** On the podium the same button downloads `lamma-result.png` where the browser cannot share files. Closing the share sheet changes nothing. With the system's reduce-motion setting on, the status line appears without a fade. | Browser ShareCardTest |
+| ☐ | **Link preview.** Paste the live address of the landing page and of `/join` into WhatsApp (or Telegram, or the Facebook sharing debugger) in both languages: title, a one-line description and the picture. A `/join?code=...` link shows no code. (The picture is a placeholder until you replace `public/brand/og-image.png`.) | ShareMetaTest |
+| ☐ | **Funnel.** `/admin` dashboard: **Funnel · last 30 days** has rooms created, games started, games finished, rematch rate, average players and the demo figure; after a real game they went up by one, after a demo only the demo figure did. | FunnelWidgetTest |
+| ☐ | **Analytics events.** With analytics on (production, a real ID): nothing is sent before **Accept**; after it, in GA4 DebugView, `join_page_viewed`, `demo_started`, `demo_finished`, `share_clicked`, `rematch_clicked`, `host_signup` and `game_finished` (with `player_bucket` and `mode`) appear with no name, code or account. | AnalyticsTest, Browser AnalyticsTest |
+| ☐ | **Deploy.** `php artisan migrate` (one migration), restart the queue workers and Reverb (`deploy.sh` does). `lamma:doctor` now also lists `brand/og-image.png` among the placeholders. | DoctorTest |
+
 ## Sign-off
 
 | Area | Result | Notes |
@@ -413,5 +438,6 @@ them; to see one on purpose, add a question in the admin (**Questions > New**, p
 | 20 Vote mode | | |
 | 21 Speed bonus, double final, host's phone | | |
 | 22 True/false, pictures, closest number | | |
+| 23 Demo, landing, nicknames, share card | | |
 
 Tester: ______________  Date: ______________  Build / commit: ______________

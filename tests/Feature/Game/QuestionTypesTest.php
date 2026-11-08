@@ -312,7 +312,8 @@ describe('the migration', function () {
 
         expect($columns())->toBe([true, true, true, true, true, true]);
 
-        Artisan::call('migrate:rollback', ['--step' => 1]);
+        // Only this phase's own migration (a later one is not the one under test: `--step` would take the newest).
+        Artisan::call('migrate:rollback', ['--path' => 'database/migrations/2026_11_08_090000_add_question_types.php']);
         expect($columns())->toBe([false, false, false, false, false, false])->and(DB::table('questions')->count())->toBe(1);
 
         Artisan::call('migrate');
