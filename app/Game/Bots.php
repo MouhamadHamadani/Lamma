@@ -3,6 +3,7 @@
 namespace App\Game;
 
 use App\Jobs\BotAnswer;
+use App\Models\BotPlan;
 use App\Models\Room;
 use App\Models\RoomPlayer;
 use App\Models\RoomQuestion;
@@ -13,8 +14,10 @@ use Carbon\CarbonImmutable;
  * so every game rule treats them like anyone: they count for the "everyone answered" early reveal, score, and stand on the podium. What sets them apart
  * is only that they are never written to question_seen, never claimed by an account, and in no statistic (Room::completed(), GameStats, PlayerStats).
  *
- * A bot answers through a delayed BotAnswer job, queued when a question opens: at a random point between 25% and 85% of the question's time, right about
- * 65% of the time. Randomness is mt_rand, so a test can seed it.
+ * A bot's answer is PLANNED when a question opens (plan()): a random moment between 25% and 85% of the question's time, right about 65% of the time (mt_rand, so a test can
+ * seed it), stored in bot_plans. Two things carry the plan out, and either alone is enough (Phase 14.1): the delayed BotAnswer job queued with it, and GameEngine::tick(),
+ * which the host screen calls every two seconds and which answers for every bot whose moment has passed (answerDue). So a demo works with the queue worker stopped. Both end in
+ * answer(), which submits through the normal submitAnswer: the unique answer per player and the room lock make a job and a tick that meet answer once.
  */
 class Bots
 {
@@ -49,7 +52,7 @@ class Bots
         }
     }
 
-    /** A question just opened: queue one answer per bot. Does nothing outside a demo room. */
+    /** A question just opened: plan one answer per bot (stored, and queued as a delayed job). Does nothing outside a demo room. */
     public function plan(Room $room, RoomQuestion $question): void
     {
         if (! $room->is_demo || $question->started_at === null || $question->ends_at === null) {
@@ -62,8 +65,33 @@ class Bots
             $share = (self::EARLIEST * 1000 + mt_rand(0, (int) round((self::LATEST - self::EARLIEST) * 1000))) / 1000;
             $correct = mt_rand(1, 100) <= self::CORRECT_PERCENT;
 
-            BotAnswer::dispatch($room->id, $bot->id, $question->position, $correct)
-                ->delay(CarbonImmutable::instance($question->started_at)->addMilliseconds((int) round($duration * $share)));
+            $at = CarbonImmutable::instance($question->started_at)->addMilliseconds((int) round($duration * $share));
+
+            BotPlan::query()->updateOrCreate(
+                ['room_player_id' => $bot->id, 'position' => $question->position],
+                ['room_id' => $room->id, 'answer_at' => $at, 'correct' => $correct, 'answered_at' => null],
+            );
+            BotAnswer::dispatch($room->id, $bot->id, $question->position, $correct)->delay($at);
+        }
+    }
+
+    /**
+     * What GameEngine::tick() does for a demo: answer for every bot of the open question whose planned moment has passed and who has not answered. It needs no queue worker.
+     * An answer that completes the question reveals it (submitAnswer's early reveal), after which the rest are no-ops.
+     */
+    public function answerDue(GameEngine $engine, Room $room, RoomQuestion $question): void
+    {
+        if (! $room->is_demo || $question->revealed_at !== null) {
+            return;
+        }
+
+        $due = BotPlan::query()
+            ->where('room_id', $room->id)->where('position', $question->position)
+            ->whereNull('answered_at')->where('answer_at', '<=', now()->format('Y-m-d H:i:s.v'))
+            ->orderBy('answer_at')->orderBy('id')->get();
+
+        foreach ($due as $plan) {
+            $this->answer($engine, $room->id, $plan->room_player_id, $plan->position, $plan->correct);
         }
     }
 
@@ -79,8 +107,11 @@ class Bots
         try {
             $engine->submitAnswer($bot, $this->choose($question, $correct));
         } catch (AnswerRejected) {
-            // Too late, or already answered: nothing to do.
+            // Too late, or already answered (the job and the tick met): nothing to do.
         }
+
+        // Answered, or no longer able to: neither the job nor the tick needs to come back to it.
+        BotPlan::query()->where('room_player_id', $bot->id)->where('position', $position)->whereNull('answered_at')->update(['answered_at' => now()]);
     }
 
     /**

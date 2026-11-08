@@ -452,6 +452,12 @@ class GameEngine
         $room = $room->fresh() ?? $room;
         $question = $room->status === RoomStatus::Playing ? $room->currentQuestion() : null;
 
+        // A demo's bots whose moment has passed answer now, so the demo does not depend on the queue worker (Bots::answerDue). An answer can complete the question and reveal it.
+        if ($question !== null && $question->revealed_at === null && $room->is_demo) {
+            $this->bots->answerDue($this, $room, $question);
+            $question = $room->currentQuestion();
+        }
+
         $vote = $question?->revealed_at !== null ? $this->votes->openRound($room) : null;
 
         return match (true) {

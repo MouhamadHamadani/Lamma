@@ -137,3 +137,42 @@ it('says on a small screen to open the demo on a bigger one, and still starts on
     $wide = visit('/demo')->withLocale('en')->resize(1440, 900);
     $wide->assertScript("getComputedStyle(document.querySelector('[data-test=small-screen-note]')).display === 'none'");
 });
+
+it('plays a whole demo with the queue worker stopped: the big screen\'s own tick answers for the bots', function () {
+    Queue::fake();   // not even BotAnswer runs: the only thing that can answer for Sara and Karim is GameEngine::tick(), called by the host screen's poll (Phase 14.1)
+    demoContent();
+
+    $host = visit('/demo')->withLocale('en')->resize(1280, 720);
+    $host->click('[data-test=start-demo]');
+    demoWait($host, "document.querySelector('[data-test=room-code]')", 20, 'the demo lobby');
+    $room = Room::sole();
+    $code = $room->code;
+
+    $phone = visit("/join?code={$code}")->withLocale('en')->resize(390, 844);
+    $phone->type('[data-test=nickname-input]', 'Laila')->click('[data-test=join-button]');
+    demoWait($phone, "location.pathname === '/play/{$code}'", 15, 'the phone to join');
+    $room->players()->where('is_bot', false)->update(['left_at' => null]);
+    $phone->click('[data-test=ready-button]');
+    demoWait($host, "document.querySelector('[data-test=ready-count]').textContent.includes('3 of 3')", 20, 'the host to see all three ready');
+    demoWait($host, "document.querySelector('[data-test=start-button]') && ! document.querySelector('[data-test=start-button]').disabled", 20, 'Start game to unlock');
+    $host->click('[data-test=start-button]');
+
+    foreach ([1, 2, 3, 4] as $question) {
+        demoWait($phone, "document.querySelector('[data-test=player-game]')?.dataset.phase === 'question'", 40, "question {$question} on the phone");
+        // Nobody has answered for the bots: they are not in yet, however long the phone waits... until the host screen's tick passes their planned moments.
+        expect(PlayerAnswer::whereHas('roomPlayer', fn ($players) => $players->where('is_bot', true))->count())->toBe(($question - 1) * 2);
+        $phone->script("() => document.querySelectorAll('[data-test=answers] button')[0].click()");
+        demoWait($phone, "['correct','wrong'].includes(document.querySelector('[data-test=player-game]')?.dataset.phase)", 40, "the reveal of question {$question}");
+        demoWait($host, "document.querySelector('[data-test=correct-count]')", 20, "the host's reveal of question {$question}");
+        expect(PlayerAnswer::whereHas('roomPlayer', fn ($players) => $players->where('is_bot', true))->count())->toBe($question * 2);
+    }
+
+    demoWait($host, "document.querySelector('[data-test=host-results]')", 60, 'the podium');
+    demoWait($phone, "document.querySelector('[data-test=player-results]')", 40, 'the phone results');
+    expect($room->fresh()->isCompleted())->toBeTrue();
+    $room->players()->where('is_bot', true)->get()->each(fn ($bot) => expect($bot->answers()->count())->toBe(4));
+    expect(Queue::pushed(BotAnswer::class))->toHaveCount(8);   // queued (a worker would have used them), never run
+    foreach ([$host, $phone] as $screen) {
+        $screen->assertNoJavaScriptErrors();
+    }
+});
