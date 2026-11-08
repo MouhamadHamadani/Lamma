@@ -54,6 +54,12 @@ return [
             'driver' => 'player',
         ],
 
+        // The big screen of a room, when it says so (the X-Lamma-Role header only the host screen's Echo sends) and is the host: see AppServiceProvider and RoomPresence::hostScreenFor.
+        // It goes FIRST on the presence channel, so a host screen opened in a browser that also holds a player row is still the host.
+        'host' => [
+            'driver' => 'host',
+        ],
+
         // The host of a demo room: no account, a token in a cookie (see AppServiceProvider). Used by channel auth only.
         'demo' => [
             'driver' => 'demo',

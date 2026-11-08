@@ -12,7 +12,12 @@ if (document.documentElement.hasAttribute('data-realtime')) {
     const configured = import.meta.env.VITE_REVERB_HOST ?? '';
     const host = loopback.includes(configured) ? window.location.hostname : configured;
 
+    // The big screen says so on every channel authorization, so that a host screen opened in a browser that also holds a player row (a second tab on the same laptop) is still the host
+    // and not that player (RoomPresence::hostScreenFor believes it only when the request really is the room's host). Phones never send it.
+    const role = document.documentElement.dataset.realtimeRole;
+
     window.Echo = new Echo({
+        auth: { headers: role === 'host' ? { 'X-Lamma-Role': 'host' } : {} },
         broadcaster: 'reverb',
         key: import.meta.env.VITE_REVERB_APP_KEY,
         wsHost: host,

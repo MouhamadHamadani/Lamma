@@ -329,6 +329,35 @@ describe('the demo lobby', function () {
             ->and($room->players()->where('is_bot', true)->connected()->where('is_ready', true)->count())->toBe(2);
     });
 
+    it('offers "Join from this laptop" in that banner: the join page with the code, in a new tab, in both languages', function () {
+        $room = demoGame(humans: 0);
+        $room->forceFill(['created_at' => now()])->save();
+
+        $before = demoHostPage(HostLobby::class, $room);
+        expect($before->html())->not->toContain('data-test="join-from-laptop"');
+
+        $this->travel(91)->seconds();
+        $page = demoHostPage(HostLobby::class, $room);
+        $page->assertSee('Join from this laptop')->assertSee('data-test="join-from-laptop"', false)
+            ->assertSee('href="'.route('join', ['code' => $room->code]).'"', false)->assertSee('target="_blank"', false)->assertSee('rel="noopener"', false);
+        expect($page->html())->toContain('role="status"');
+
+        $settings = $room->settings;
+        $settings->hostScreenLocale = HostScreenLocale::Ar;
+        $room->update(['settings' => $settings]);
+        demoHostPage(HostLobby::class, $room->fresh())->assertSee('انضم من هذا الحاسوب');
+    });
+
+    it('does not offer it once somebody real is in, nor in a real room', function () {
+        $room = demoGame(humans: 1);
+        $room->players()->where('is_bot', false)->update(['left_at' => null]);
+        $this->travel(5)->minutes();
+        expect(demoHostPage(HostLobby::class, $room)->html())->not->toContain('join-from-laptop');
+
+        $real = gameRoom(players: 0);
+        expect(Livewire::actingAs($real->host)->test(HostLobby::class, ['room' => $real])->html())->not->toContain('join-from-laptop');
+    });
+
     it('stops saying it once a real player has joined', function () {
         $room = demoGame(humans: 1);
         $room->players()->where('is_bot', false)->update(['left_at' => null]);

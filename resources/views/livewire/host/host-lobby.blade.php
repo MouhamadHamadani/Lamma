@@ -107,11 +107,19 @@
                         </x-lamma.player-row>
                     @endforeach
 
-                    {{-- Always last, even with players. A demo that nobody has joined for a minute and a half says what to do. --}}
-                    <li @class(['flex h-19 items-center justify-center gap-2.5 rounded-[20px] border-2 border-dashed text-base font-semibold', 'border-line-strong text-ink-subtle' => ! $waitingForYou, 'border-navy bg-tint-sun text-navy' => $waitingForYou]) @if ($waitingForYou) data-test="waiting-for-you" role="status" @endif>
-                        <x-lamma.icon name="phone" :size="22" />
-                        {{ $waitingForYou ? __('Waiting for you? Scan the code') : __('Waiting for more players…') }}
-                    </li>
+                    {{-- Always last, even with players. A demo that nobody has joined for a minute and a half says what to do, and offers the one thing left for someone with
+                         only a laptop: the join page in a new tab of THIS browser (the big screen stays the host: it sends X-Lamma-Role, see RoomPresence::hostScreenFor). --}}
+                    @if ($waitingForYou)
+                        <li class="flex min-h-19 flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-navy bg-tint-sun px-4 py-3 text-center text-base font-semibold text-navy" data-test="waiting-for-you" role="status">
+                            <span class="flex items-center gap-2.5"><x-lamma.icon name="phone" :size="22" />{{ __('Waiting for you? Scan the code') }}</span>
+                            <a href="{{ route('join', ['code' => $room->code]) }}" target="_blank" rel="noopener" class="min-h-6 text-[15px] font-bold underline underline-offset-4 hover:text-coral-700" data-test="join-from-laptop">{{ __('Join from this laptop') }}</a>
+                        </li>
+                    @else
+                        <li class="flex h-19 items-center justify-center gap-2.5 rounded-[20px] border-2 border-dashed border-line-strong text-base font-semibold text-ink-subtle">
+                            <x-lamma.icon name="phone" :size="22" />
+                            {{ __('Waiting for more players…') }}
+                        </li>
+                    @endif
                 </ul>
 
                 <div class="grow"></div>

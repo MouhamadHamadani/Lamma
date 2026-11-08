@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\RoomPlayer;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
@@ -15,6 +16,9 @@ use Illuminate\Support\Str;
  */
 class RoomPresence
 {
+    /** The header the host screen's Echo adds to its channel auth request (resources/js/echo.js). Phones never send it. */
+    public const ROLE_HEADER = 'X-Lamma-Role';
+
     public function __construct(private readonly PlayerIdentity $identity) {}
 
     /** The channel a room's lobby listens on (without the "presence-" prefix Echo and Reverb add). */
@@ -66,6 +70,24 @@ class RoomPresence
             'locale' => $player->locale,
             'is_host' => false,
         ] : null;
+    }
+
+    /**
+     * The "host" guard: this request is the room's big screen, if it says so (ROLE_HEADER is "host") AND really is the host of the channel's room: the logged-in host
+     * account, or for a demo the browser holding its host cookie. Anything else (no header, another value, a stranger, the host of ANOTHER room, a phone) gets null, so the
+     * normal guards decide exactly as before. The header grants nothing by itself: it only chooses between identities the request already holds, so a browser that is both
+     * the host and a player (two tabs on one laptop) is the host on the big screen and the player on the phone tab.
+     */
+    public function hostScreenFor(Request $request): User|DemoHost|null
+    {
+        $channel = (string) $request->input('channel_name');
+        if ($request->header(self::ROLE_HEADER) !== 'host' || ! str_contains($channel, 'room.')) {
+            return null;
+        }
+
+        $room = Room::query()->where('code', Str::upper(Str::after($channel, 'room.')))->first();
+
+        return $room ? $this->identity->hostFor($room) : null;
     }
 
     /**

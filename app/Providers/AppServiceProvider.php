@@ -76,6 +76,8 @@ class AppServiceProvider extends ServiceProvider
     protected function configureGuards(): void
     {
         Auth::viaRequest('player', fn (Request $request) => app(RoomPresence::class)->guestPlayerFor($request->input('channel_name')));
+        // The big screen says what it is (a header only the host screen's Echo sends) and is believed only when it really is the host of the channel's room.
+        Auth::viaRequest('host', fn (Request $request) => app(RoomPresence::class)->hostScreenFor($request));
         // The host of a demo room has no account either: the host cookie of the room named by the channel makes them its DemoHost.
         Auth::viaRequest('demo', fn (Request $request) => app(RoomPresence::class)->demoHostFor($request->input('channel_name')));
     }

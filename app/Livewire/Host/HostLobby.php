@@ -27,7 +27,7 @@ use Livewire\Component;
  * phone as gone) and the broadcast events refresh the list. Only the room's host reaches it (RoomPolicy::host, checked
  * again on every action). The rules live in App\Game (RoomRoster, GameEngine).
  */
-#[Layout('layouts::lamma', ['realtime' => true])]
+#[Layout('layouts::lamma', ['realtime' => true, 'realtimeRole' => 'host'])]
 class HostLobby extends Component
 {
     #[Locked]
