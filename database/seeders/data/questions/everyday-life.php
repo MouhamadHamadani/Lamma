@@ -97,7 +97,7 @@ return [
     ['medium', 'كم سنتيمتراً في البوصة (الإنش) الواحدة؟', 'How many centimetres are there in one inch?', ['2.54', '2.00', '3.05', '1.50']],
     ['medium', 'كم أونصة في الباوند الواحد؟', 'How many ounces are there in one pound?', ['16', '12', '10', '20']],
     ['medium', 'كم قدماً في الياردة الواحدة؟', 'How many feet are there in one yard?', ['3', '2', '4', '12']],
-    ['medium', 'كم تبلغ درجة حرارة جسم الإنسان السليم تقريباً بالدرجات المئوية؟', 'Roughly what is the temperature of a healthy human body in degrees Celsius?', ['37', '35', '39', '41']],
+    ['medium', 'كم ساعة نوم يحتاج إليها البالغ عادةً كل ليلة؟', 'About how many hours of sleep does an adult usually need each night?', ['من 7 إلى 9|7 to 9', 'من 3 إلى 4|3 to 4', 'من 5 إلى 6|5 to 6', 'من 11 إلى 13|11 to 13']],
     ['medium', 'كم فولت تقريباً يبلغ جهد الكهرباء المنزلية في الولايات المتحدة؟', 'About how many volts is the household electricity supply in the United States?', ['120', '230', '380', '12']],
     ['medium', 'ما شكل إشارة «أفسح الطريق» (الأولوية) على الطريق؟', 'What shape is the "give way" road sign?', ['مثلث مقلوب|An inverted triangle', 'مثمّن أحمر بحروف بيضاء|An octagon with white letters', 'مربّع أزرق بسهم|A blue square with an arrow', 'دائرة صفراء بشريط|A yellow circle with a bar']],
     ['medium', 'ما شكل إشارات التحذير من الخطر على الطرق في معظم الدول؟', 'What shape are warning signs on the roads of most countries?', ['مثلث بإطار أحمر|A triangle with a red border', 'دائرة زرقاء بسهم أبيض|A blue circle with a white arrow', 'مستطيل أخضر بكتابة بيضاء|A green rectangle with white writing', 'مثمّن أحمر بحروف بيضاء|A red octagon with white letters']],

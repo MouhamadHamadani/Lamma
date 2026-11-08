@@ -59,7 +59,7 @@ return [
     ['easy', 'من أي خضار يُصنع البابريكا بعد تجفيفه وطحنه؟', 'From which vegetable is paprika made after it is dried and ground?', ['الفلفل الأحمر|Red peppers', 'الطماطم|Tomatoes', 'الجزر|Carrots', 'الشمندر|Beetroot']],
 
     ['medium', 'ما الطبق المصري الشعبي المكوّن من الأرز والمعكرونة والعدس مع صلصة الطماطم؟', 'Which popular Egyptian dish is made of rice, pasta and lentils with tomato sauce?', ['الكشري|Koshari', 'الملوخية|Mulukhiyah', 'الفتّة|Fatteh', 'المحشي|Mahshi']],
-    ['medium', 'ما اسم الوعاء الفخاري المخروطي الغطاء الذي يُطبخ فيه الطبق المغربي الشهير؟', 'What is the cone-lidded clay pot in which a famous Moroccan stew is cooked called?', ['الطاجين|Tagine', 'الكسكاس|Couscoussier', 'القِدر|Cauldron', 'الصاج|Saj']],
+    ['medium', 'أي مشروب إيطالي من القهوة يعلوه رغوة حليب كثيفة؟', 'Which Italian coffee drink is topped with a thick layer of milk foam?', ['الكابتشينو|Cappuccino', 'الإسبريسو|Espresso', 'الريستريتو|Ristretto', 'الأمريكانو|Americano']],
     ['medium', 'ما الشراب الشتوي العربي الشهير المصنوع من صفائح المشمش المجففة؟', 'What popular Arab drink is made from dried apricot sheets?', ['قمر الدين|Qamar al-Din', 'السحلب|Sahlab', 'الجلّاب|Jallab', 'الينسون|Anise tea']],
     ['medium', 'ما الحلوى الخليجية المكوّنة من كرات عجين مقلية تُسقى بدبس التمر؟', 'What Gulf sweet is made of fried dough balls drizzled with date syrup?', ['اللقيمات|Luqaimat', 'الكليجة|Kleicha', 'البسبوسة|Basbousa', 'القطايف|Qatayef']],
     ['medium', 'ما اسم الأرز طويل الحبة العطري المستعمل في أطباق كثيرة مثل البرياني؟', 'What is the long-grain, fragrant rice used in many dishes, such as biryani, called?', ['البسمتي|Basmati', 'الأرز المصري|Egyptian rice', 'الأرز الأبيض القصير|Short-grain rice', 'الأرز البنّي|Brown rice']],

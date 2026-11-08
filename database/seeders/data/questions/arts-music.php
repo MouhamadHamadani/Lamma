@@ -61,8 +61,8 @@ return [
     ['hard', 'أي شاعر سوري اشتهر بقصائد الحب والغزل المعاصرة؟', 'Which Syrian poet is famous for his modern love poems?', ['نزار قباني|Nizar Qabbani', 'محمود درويش|Mahmoud Darwish', 'أدونيس|Adonis', 'بدر شاكر السياب|Badr Shakir al-Sayyab']],
 
     // ---- Phase 15: 24 more of each difficulty (now 40 / 40 / 40), with a regional angle: Arab music, cinema, literature and architecture, plus the famous works everyone shares ----
-    ['easy', 'من رسم لوحة «ليلة النجوم» الشهيرة بدوّاماتها الزرقاء؟', 'Who painted the famous "Starry Night" with its blue swirls?', ['فنسنت فان غوخ|Vincent van Gogh', 'كلود مونيه|Claude Monet', 'بابلو بيكاسو|Pablo Picasso', 'سلفادور دالي|Salvador Dalí']],
-    ['easy', 'في أي متحف بباريس تُعرض لوحة الموناليزا؟', 'In which Paris museum is the Mona Lisa on display?', ['اللوفر|The Louvre', 'أورسيه|The Musée d\'Orsay', 'بومبيدو|The Centre Pompidou', 'الأورانجري|The Orangerie']],
+    ['easy', 'ماذا نسمّي المكان الذي تُعرض فيه اللوحات والتماثيل أمام الجمهور؟', 'What do we call a place where paintings and sculptures are shown to the public?', ['معرض فني (غاليري)|An art gallery', 'مكتبة|A library', 'مسرح|A theatre', 'مطبعة|A printing house']],
+    ['easy', 'أي رقصة إسبانية تُؤدّى بدقّ الأقدام وعزف الغيتار والكاستانيت؟', 'Which Spanish dance is performed with stamping feet, guitar and castanets?', ['الفلامنكو|Flamenco', 'التانغو|Tango', 'السالسا|Salsa', 'الفالس|Waltz']],
     ['easy', 'كم وتراً في آلة الكمان؟', 'How many strings does a violin have?', ['4', '6', '5', '3']],
     ['easy', 'أي آلة من هذه الآلات من الآلات النحاسية؟', 'Which of these instruments is a brass instrument?', ['الترومبيت|The trumpet', 'الفلوت|The flute', 'الكمان|The violin', 'الأكورديون|The accordion']],
     ['easy', 'من المغني الملقّب بـ«ملك البوب»؟', 'Which singer is nicknamed the "King of Pop"?', ['مايكل جاكسون|Michael Jackson', 'إلفيس بريسلي|Elvis Presley', 'بوب مارلي|Bob Marley', 'فريدي ميركوري|Freddie Mercury']],
@@ -82,7 +82,7 @@ return [
     ['easy', 'ماذا نسمّي الفنان الذي ينحت التماثيل؟', 'What do we call an artist who carves or models statues?', ['نحّات|A sculptor', 'خطّاط|A calligrapher', 'رسّام كاريكاتير|A cartoonist', 'مصوّر|A photographer']],
     ['easy', 'ماذا نسمّي الشخص الذي يؤلّف الموسيقى؟', 'What do we call a person who writes music?', ['ملحّن|A composer', 'مغنٍّ|A singer', 'عازف|A player', 'مايسترو|A conductor']],
     ['easy', 'من أي بلد جاءت موسيقى الريغي؟', 'In which country did reggae music begin?', ['جامايكا|Jamaica', 'كوبا|Cuba', 'البرازيل|Brazil', 'إسبانيا|Spain']],
-    ['easy', 'من رسم سقف كنيسة سيستين في الفاتيكان؟', 'Who painted the ceiling of the Sistine Chapel in the Vatican?', ['مايكل أنجلو|Michelangelo', 'ليوناردو دافنشي|Leonardo da Vinci', 'رافاييل|Raphael', 'بوتيتشيلي|Botticelli']],
+    ['easy', 'أي آلة موسيقية كبيرة ذات أوتار كثيرة تُعزف بنقر الأصابع في الأوركسترا؟', 'Which large orchestral instrument has many strings plucked by the fingers?', ['القيثارة (الهارب)|The harp', 'الكمان|The violin', 'التشيلو|The cello', 'البيانو|The piano']],
     ['easy', 'ماذا يعني الاختصار DJ في الموسيقى؟', 'What does the abbreviation DJ stand for in music?', ['ديسك جوكي|Disc jockey', 'جاز مزدوج|Double jazz', 'عازف رقمي|Digital jammer', 'مدير الجاز|Director of jazz']],
     ['easy', 'إلى أي عائلة من الآلات تنتمي الكمان والفيولا والتشيلو؟', 'To which family of instruments do the violin, viola and cello belong?', ['الآلات الوترية|The string family', 'الآلات النحاسية|The brass family', 'آلات النفخ الخشبية|The woodwind family', 'الآلات الإيقاعية|The percussion family']],
 

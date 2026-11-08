@@ -59,8 +59,8 @@ return [
     ['hard', 'أي فريق اختار اللاعب الصيني ياو مينغ أولاً في الدرافت عام 2002؟', 'Which team picked the Chinese centre Yao Ming first overall in the 2002 draft?', ['هيوستن روكتس|The Houston Rockets', 'لوس أنجلوس ليكرز|The Los Angeles Lakers', 'دالاس مافريكس|The Dallas Mavericks', 'ميامي هيت|The Miami Heat']],
 
     // ---- Phase 15: 24 more of each difficulty (now 40 / 40 / 40): the stars and clubs people talk about, plus Arab, African and Lebanese basketball ----
-    ['easy', 'كم لاعباً من الفريق الواحد يكون داخل الملعب في وقت واحد في كرة السلة؟', 'How many players from one team are on the court at the same time in basketball?', ['5', '6', '7', '4']],
-    ['easy', 'كم نقطة تساوي رمية ناجحة من خلف القوس؟', 'How many points is a successful shot from behind the arc worth?', ['3', '2', '4', '1']],
+    ['easy', 'أي علامة رياضية تصنع حذاء «إير جوردان» الشهير؟', 'Which sports brand makes the famous "Air Jordan" shoes?', ['نايك|Nike', 'أديداس|Adidas', 'بوما|Puma', 'ريبوك|Reebok']],
+    ['easy', 'خلف أي خط يقف اللاعب عند تنفيذ الرمية الحرة؟', 'Behind which line does a player stand to take a free throw?', ['خط الرمية الحرة|The free-throw line', 'خط الثلاث نقاط|The three-point line', 'خط منتصف الملعب|The halfway line', 'خط النهاية|The baseline']],
     ['easy', 'ما اسم اللاعب الذي يقود الهجوم ويوزّع الكرات على زملائه عادةً؟', 'What is the player who usually runs the offence and distributes the ball to teammates called?', ['صانع الألعاب|The point guard', 'المركز|The centre', 'الجناح القوي|The power forward', 'الجناح الصغير|The small forward']],
     ['easy', 'ماذا نسمّي دخول الكرة السلة دون أن تلمس الحلقة ولا اللوحة؟', 'What is it called when the ball goes through the hoop without touching the rim or the backboard?', ['رمية نظيفة (سويش)|A swish', 'رمية ضائعة|An airball', 'رمية لوحية|A bank shot', 'رمية تكميلية|A tip-in']],
     ['easy', 'كيف تبدأ مباراة كرة السلة عادةً؟', 'How does a basketball game usually begin?', ['بكرة قفز بين لاعبين|With a jump ball', 'بإلقاء قطعة نقود|With a coin toss', 'برمية حرة|With a free throw', 'بتمريرة من الحكم|With a pass from the referee']],
@@ -84,7 +84,7 @@ return [
     ['easy', 'ماذا نسمّي الاحتكاك غير القانوني بالخصم في كرة السلة؟', 'What is illegal contact with an opponent called in basketball?', ['خطأ شخصي|A personal foul', 'خطأ إداري|An administrative foul', 'تبديل|A substitution', 'وقت مستقطع|A timeout']],
     ['easy', 'كم رمية حرة ينفّذها اللاعب عادةً إذا ارتُكب عليه خطأ أثناء تسديدة عادية داخل القوس وأخطأ الهدف؟', 'How many free throws does a player usually get if fouled while shooting a two-point shot and missing it?', ['2', '1', '3', '4']],
 
-    ['medium', 'كم يبلغ ارتفاع حلقة السلة عن الأرض؟', 'How high is the basketball rim above the floor?', ['3.05 متر|3.05 metres', '2.75 متر|2.75 metres', '3.35 متر|3.35 metres', '2.45 متر|2.45 metres']],
+    ['medium', 'بعد كم خطأ شخصي يُستبعد اللاعب في مباريات الاتحاد الدولي لكرة السلة؟', 'After how many personal fouls is a player fouled out in FIBA games?', ['5', '4', '6', '3']],
     ['medium', 'كم مباراة يلعب كل فريق في الموسم المنتظم لدوري السلة الأمريكي؟', 'How many games does each team play in the NBA regular season?', ['82', '72', '92', '60']],
     ['medium', 'كم دقيقة يستغرق كل ربع في مباريات الاتحاد الدولي لكرة السلة؟', 'How many minutes does each quarter last in FIBA games?', ['10', '12', '8', '15']],
     ['medium', 'كم دقيقة يستغرق الشوط الإضافي في دوري السلة الأمريكي؟', 'How many minutes does an overtime period last in the NBA?', ['5', '3', '10', '8']],
