@@ -162,14 +162,15 @@ describe('guessing', function () {
     it('follows the timing rules of any answer: until the deadline plus the grace, never after the reveal', function () {
         [$room, , $players] = numberGame();
 
-        $this->travelTo(CarbonImmutable::parse('2026-10-01 12:00:20.400'));
+        // 20 s for the room, plus the 5 s a number question gets (Phase 14.1): QuestionTimingTest has the boundaries.
+        $this->travelTo(CarbonImmutable::parse('2026-10-01 12:00:25.400'));
         expect(tryGuess($players[0], 1969))->toBeNull(); // inside the grace
 
-        $this->travelTo(CarbonImmutable::parse('2026-10-01 12:00:20.501'));
+        $this->travelTo(CarbonImmutable::parse('2026-10-01 12:00:25.501'));
         expect(tryGuess($players[1], 1969))->toBe(AnswerRejected::LATE);
 
         revealGame($room);
-        $this->travelTo(CarbonImmutable::parse('2026-10-01 12:00:21.000'));
+        $this->travelTo(CarbonImmutable::parse('2026-10-01 12:00:26.000'));
         expect(tryGuess($players[2], 1969))->toBe(AnswerRejected::CLOSED);
     });
 

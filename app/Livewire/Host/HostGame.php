@@ -176,7 +176,7 @@ class HostGame extends Component
     {
         $question = $state->roomQuestion;
         $due = $state->isRevealed()
-            ? $question->revealed_at?->addSeconds(GameEngine::REVEAL_SECONDS)
+            ? $question->revealed_at?->addSeconds($engine->revealSecondsFor($question))
             : $engine->revealDueAt($question);
 
         return $state->finished || $due === null ? null : max(0, (int) now()->diffInMilliseconds($due, false));

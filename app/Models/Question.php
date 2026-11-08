@@ -118,6 +118,12 @@ class Question extends Model
         $query->where('is_active', true);
     }
 
+    /** Does it have a fun fact, in either language? (The reveal stays on screen longer when it does: GameEngine::revealSecondsFor.) */
+    public function hasFact(): bool
+    {
+        return filled($this->getTranslation('explanation', 'ar', false)) || filled($this->getTranslation('explanation', 'en', false));
+    }
+
     /** A question with a picture above its options (or above its number box). */
     public function hasPicture(): bool
     {

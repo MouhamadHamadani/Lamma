@@ -46,9 +46,6 @@ class GameEngine
     /** Answers still count this long after ends_at (a slow connection, a tap right at zero). */
     public const ANSWER_GRACE_MS = 500;
 
-    /** How long the answer stays on screen before the next question. */
-    public const REVEAL_SECONDS = 5;
-
     /** The 3 - 2 - 1 - Go! between "Start game" and question 1. */
     public const COUNTDOWN_SECONDS = 3;
 
@@ -279,7 +276,7 @@ class GameEngine
         if ($transition === Transition::Done) {
             QuestionRevealed::broadcast($fresh, $question)->toOthers();
             ScoreboardUpdated::broadcast($fresh, $question->position, $question)->toOthers();
-            AdvanceQuestion::dispatch($fresh->id, $question->position)->delay(now()->addSeconds(self::REVEAL_SECONDS));
+            AdvanceQuestion::dispatch($fresh->id, $question->position)->delay(now()->addSeconds($this->revealSecondsFor($question)));
         }
 
         return $transition;
@@ -306,7 +303,7 @@ class GameEngine
                 // The vote is under way; closeVote() moves the game on.
                 return [Transition::Already, null, $fresh, null];
             }
-            $waitUntil = $vote?->closed_at?->addSeconds(CategoryVote::resultSeconds()) ?? $question->revealed_at->addSeconds(self::REVEAL_SECONDS);
+            $waitUntil = $vote?->closed_at?->addSeconds(CategoryVote::resultSeconds()) ?? $question->revealed_at->addSeconds($this->revealSecondsFor($question));
             if (! $force && now() < $waitUntil) {
                 return [Transition::TooEarly, null, $fresh, null];
             }
@@ -497,9 +494,27 @@ class GameEngine
     {
         $question = $room->roomQuestions()->where('position', $position)->firstOrFail();
         $started = now();
-        $question->update(['started_at' => $started, 'ends_at' => $started->addSeconds($room->settings->secondsPerQuestion)]);
+        $question->update(['started_at' => $started, 'ends_at' => $started->addSeconds($this->secondsFor($room, $question))]);
 
         return $question->fresh();
+    }
+
+    /** How long a question is open: the room's time per question, and for a closest-number question lamma.number_question_extra_seconds more (typing a number takes longer than a tap). */
+    public function secondsFor(Room $room, RoomQuestion $question): int
+    {
+        return $room->settings->secondsPerQuestion + ($question->question->type->takesNumber() ? max(0, (int) config('lamma.number_question_extra_seconds')) : 0);
+    }
+
+    /**
+     * How long the answer stays on screen before the next question (or the vote): lamma.reveal_seconds (5), and lamma.reveal_seconds_long (8) when there is something to read: the number line
+     * and ranked guesses of a closest-number question, or a fun fact. The ONE place that says so: the next-question job, the host's "Next question in N s" bar and tick, and the Vote
+     * flow's batch boundary all ask here. The host's Next question button still skips it.
+     */
+    public function revealSecondsFor(RoomQuestion $question): int
+    {
+        $asked = $question->question;
+
+        return (int) config($asked->type->takesNumber() || $asked->hasFact() ? 'lamma.reveal_seconds_long' : 'lamma.reveal_seconds');
     }
 
     /** Tell everyone a question is open and schedule its reveal. Called after the transaction has committed. */

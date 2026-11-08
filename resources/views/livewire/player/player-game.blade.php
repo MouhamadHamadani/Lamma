@@ -39,7 +39,7 @@
     if ($fact && in_array($phase, ['correct', 'wrong', 'timeout'], true)) {
         $announce .= '. '.$fact['text'];
     }
-    $seconds = $room->settings->secondsPerQuestion;
+    $seconds = $state?->roomQuestion->durationSeconds() ?? $room->settings->secondsPerQuestion;
 @endphp
 <div class="relative min-h-dvh" @if ($phase !== 'over') wire:poll.4s @endif data-test="player-game" data-phase="{{ $phase }}">
 @if ($phase === 'over')

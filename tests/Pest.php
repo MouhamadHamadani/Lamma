@@ -257,13 +257,13 @@ function typedToken(): string
  *
  * @param  list<string>  $types  QuestionType values
  */
-function typedRoom(array $types = ['multiple_choice', 'true_false', 'closest_number'], int $players = 3, array $settings = [], ?User $host = null, bool $withImage = false, float $number = 1969, float $tolerance = 10): Room
+function typedRoom(array $types = ['multiple_choice', 'true_false', 'closest_number'], int $players = 3, array $settings = [], ?User $host = null, bool $withImage = false, float $number = 1969, float $tolerance = 10, bool $withFact = true): Room
 {
     $category = Category::factory()->create();
     $levels = [Difficulty::Easy, Difficulty::Medium, Difficulty::Hard];
 
     foreach (array_values($types) as $index => $type) {
-        $factory = Question::factory()->state(['category_id' => $category->id, 'difficulty' => $levels[min($index, 2)]])->withFact();
+        $factory = Question::factory()->state(['category_id' => $category->id, 'difficulty' => $levels[min($index, 2)]])->when($withFact, fn ($f) => $f->withFact());
         $factory = match (QuestionType::from($type)) {
             QuestionType::TrueFalse => $factory->trueFalse(),
             QuestionType::ClosestNumber => $factory->closestNumber($number, $tolerance),

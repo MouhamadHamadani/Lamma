@@ -43,6 +43,12 @@ class RoomQuestion extends Model
         ];
     }
 
+    /** How long this question was open for, in whole seconds (ends_at - started_at: the room's time, plus the extra a closest-number question gets). Null until it has opened. */
+    public function durationSeconds(): ?int
+    {
+        return $this->started_at === null || $this->ends_at === null ? null : (int) round($this->started_at->diffInMilliseconds($this->ends_at, true) / 1000);
+    }
+
     /** @return BelongsTo<Room, $this> */
     public function room(): BelongsTo
     {

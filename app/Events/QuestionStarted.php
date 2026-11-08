@@ -26,7 +26,7 @@ class QuestionStarted extends RoomEvent
         $this->question = [
             'position' => $roomQuestion->position,
             'total' => $room->totalQuestions(),
-            'seconds' => $room->settings->secondsPerQuestion,
+            'seconds' => $roomQuestion->durationSeconds() ?? $room->settings->secondsPerQuestion,
             'category' => [
                 // "Sports · Football" for a subcategory, in each language.
                 'name' => ['ar' => $question->category->fullName('ar'), 'en' => $question->category->fullName('en')],

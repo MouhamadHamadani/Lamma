@@ -9,7 +9,9 @@
     $position = $state?->position();
     $revealed = (bool) $state?->isRevealed();
     $colors = $state ? $state->players->values()->mapWithKeys(fn ($player, $index) => [$player->id => $index])->all() : [];
-    $seconds = $room->settings->secondsPerQuestion;
+    // How long THIS question is open (a closest-number question has the room's time plus a few seconds), and how long its answer stays up.
+    $seconds = $state?->roomQuestion->durationSeconds() ?? $room->settings->secondsPerQuestion;
+    $revealSeconds = $state ? app(\App\Game\GameEngine::class)->revealSecondsFor($state->roomQuestion) : (int) config('lamma.reveal_seconds');
     $nowMs = now()->getTimestampMs();
     $correctOption = $state?->correctOptionId ? $state->options->firstWhere('id', $state->correctOptionId) : null;
     // Phase 13: the kind of question, its picture (the same before and after the reveal), and the fun fact (null until the reveal).
@@ -357,13 +359,13 @@
             </div>
 
             <x-lamma.scoreboard :ranking="$state->ranking" :previous="$state->previousPositions" :colors="$colors" class="w-[clamp(340px,29vw,420px)] shrink-0">
-                <div class="flex flex-col gap-2.5" wire:ignore x-data="lammaTimer({{ $endMs }}, {{ $nowMs }}, {{ \App\Game\GameEngine::REVEAL_SECONDS }}, '')" data-test="next-countdown">
+                <div class="flex flex-col gap-2.5" wire:ignore x-data="lammaTimer({{ $endMs }}, {{ $nowMs }}, {{ $revealSeconds }}, '')" data-test="next-countdown">
                     <div class="flex justify-between text-[15px] font-semibold text-ink-on-dark">
                         <span>{{ $state->isLast() ? __('Game ends in') : __('Next question in') }}</span>
                         <span dir="ltr" class="font-display text-xl font-extrabold text-sun"><span x-text="secs">{{ (int) ceil($dueInMs / 1000) }}</span> s</span>
                     </div>
                     <div class="h-2.5 rounded-full bg-navy-600" aria-hidden="true">
-                        <div class="h-2.5 rounded-full bg-sun" style="width: {{ round(min(1, $dueInMs / (\App\Game\GameEngine::REVEAL_SECONDS * 1000)) * 100, 1) }}%" x-bind:style="{ width: `${frac * 100}%` }"></div>
+                        <div class="h-2.5 rounded-full bg-sun" style="width: {{ round(min(1, $dueInMs / ($revealSeconds * 1000)) * 100, 1) }}%" x-bind:style="{ width: `${frac * 100}%` }"></div>
                     </div>
                 </div>
                 <x-lamma.button icon="arrow-right" :on-dark="true" class="self-stretch" wire:click="next({{ $position }})" wire:loading.attr="disabled" wire:target="next" data-test="next-button">

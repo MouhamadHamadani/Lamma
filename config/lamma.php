@@ -46,6 +46,14 @@ return [
     // Nicknames we do not allow (App\Game\NicknameFilter). The list lives in its own file, with a header that says how to extend it.
     'blocked_words' => require __DIR__.'/../resources/blocklist/nicknames.php',
 
+    // A closest-number question takes longer to answer than a tap: it is open this many seconds longer than the room's time per question (Phase 14.1). Nothing else about it
+    // changes (the early reveal when everyone has answered, the 500 ms grace, scoring: a number has no speed bonus).
+    'number_question_extra_seconds' => 5,
+
+    // How long the answer stays on screen before the next question: 5 s, and 8 s when there is something to read (a closest-number reveal or a fun fact). GameEngine::revealSecondsFor.
+    'reveal_seconds' => 5,
+    'reveal_seconds_long' => 8,
+
     // Vote mode (App\Game\CategoryVote): how long a category vote stays open, and how long its result shows before the next question. Seconds.
     'vote_seconds' => 15,
     'vote_result_seconds' => 3,
