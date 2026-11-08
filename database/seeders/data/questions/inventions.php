@@ -71,7 +71,7 @@ return [
     ['easy', 'أي مركبة طائرة لها جناحان ثابتان ومحرك؟', 'Which flying vehicle has fixed wings and an engine?', ['الطائرة|The aeroplane', 'المروحية|The helicopter', 'المنطاد|The balloon', 'الطائرة الورقية|The kite']],
     ['easy', 'أي جهاز له شاشة ولوحة مفاتيح نستعمله في الكتابة والبحث والألعاب؟', 'Which machine with a screen and a keyboard do we use for writing, searching and games?', ['الحاسوب|The computer', 'الآلة الحاسبة|The calculator', 'التلفاز|The television', 'الراديو|The radio']],
     ['medium', 'أي مهندس إنجليزي بنى القاطرة البخارية الشهيرة «روكيت» عام 1829؟', 'Which English engineer built the famous steam locomotive "Rocket" in 1829?', ['جورج ستيفنسون|George Stephenson', 'جيمس واط|James Watt', 'إسحاق نيوتن|Isaac Newton', 'توماس إديسون|Thomas Edison']],
-    ['medium', 'في أي بلد اخترع الناس البارود لأول مرة؟', 'In which country was gunpowder first invented?', ['الصين|China', 'الهند|India', 'اليونان|Greece', 'مصر|Egypt']],
+    ['medium', 'في أي بلد اخترع الناس البارود لأول مرة؟', 'In which country was gunpowder first invented?', ['الصين|China', 'إيطاليا|Italy', 'ألمانيا|Germany', 'إنجلترا|England']],
     ['medium', 'أي عالم هولندي اخترع ساعة البندول عام 1656؟', 'Which Dutch scientist invented the pendulum clock in 1656?', ['كريستيان هويغنز|Christiaan Huygens', 'غاليليو غاليلي|Galileo Galilei', 'يوهانس كبلر|Johannes Kepler', 'أنطوان لافوازييه|Antoine Lavoisier']],
     ['medium', 'أي مخترع أمريكي ابتكر في خمسينيات القرن التاسع عشر مصعداً آمناً بفرامل تمنع سقوطه؟', 'Which American inventor created, in the 1850s, a safe elevator with a brake that stops it falling?', ['إليشا أوتيس|Elisha Otis', 'هنري فورد|Henry Ford', 'ألفريد نوبل|Alfred Nobel', 'كارل بنز|Karl Benz']],
 

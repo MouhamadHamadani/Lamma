@@ -55,7 +55,7 @@ return [
     ['easy', 'أي فاكهة تحتوي على حبّات حمراء لامعة كثيرة داخل قشرتها؟', 'Which fruit holds many shiny red seeds inside its skin?', ['الرمان|Pomegranate', 'الفراولة|Strawberry', 'التوت|Mulberry', 'العنب|Grape']],
     ['easy', 'أي عشب أخضر يوضع على وجه بيتزا مارغريتا؟', 'Which green herb is placed on top of a Margherita pizza?', ['الريحان|Basil', 'النعناع|Mint', 'الكزبرة|Coriander', 'الشبت|Dill']],
     ['easy', 'أي بهار يُضاف عادةً إلى القهوة العربية؟', 'Which spice is usually added to Arabic coffee?', ['الهيل (الهال)|Cardamom', 'الكمّون|Cumin', 'الكركم|Turmeric', 'الفلفل الأسود|Black pepper']],
-    ['easy', 'من أي بلد جاءت المعكرونة (الباستا)؟', 'Which country is pasta famous for?', ['إيطاليا|Italy', 'فرنسا|France', 'اليونان|Greece', 'إسبانيا|Spain']],
+    ['easy', 'من أي بلد جاءت المعكرونة (الباستا)؟', 'Which country is pasta famous for?', ['إيطاليا|Italy', 'البرتغال|Portugal', 'النمسا|Austria', 'تركيا|Turkey']],
     ['easy', 'من أي خضار يُصنع البابريكا بعد تجفيفه وطحنه؟', 'From which vegetable is paprika made after it is dried and ground?', ['الفلفل الأحمر|Red peppers', 'الطماطم|Tomatoes', 'الجزر|Carrots', 'الشمندر|Beetroot']],
 
     ['medium', 'ما الطبق المصري الشعبي المكوّن من الأرز والمعكرونة والعدس مع صلصة الطماطم؟', 'Which popular Egyptian dish is made of rice, pasta and lentils with tomato sauce?', ['الكشري|Koshari', 'الملوخية|Mulukhiyah', 'الفتّة|Fatteh', 'المحشي|Mahshi']],

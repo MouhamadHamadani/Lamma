@@ -56,7 +56,7 @@ return [
     ['medium', 'ماذا نسمّي مجموعة من الدلافين؟', 'What is a group of dolphins called?', ['قطيع|A pod', 'سرب|A flock', 'مدرسة|A school', 'عشيرة|A clan']],
     ['hard', 'أي ثعبان هو الأطول في العالم؟', 'Which snake is the longest in the world?', ['الأصلة الشبكية|The reticulated python', 'الأناكوندا الخضراء|The green anaconda', 'الكوبرا الملكية|The king cobra', 'الأصلة الصخرية الأفريقية|The African rock python']],
     ['hard', 'أي شجرة هي الأكبر في العالم من حيث الحجم؟', 'Which tree is the biggest in the world by volume?', ['السكويا العملاقة|The giant sequoia', 'الخشب الأحمر الساحلي|The coast redwood', 'شجرة الباوباب|The baobab', 'شجرة الصفصاف|The willow']],
-    ['hard', 'أي طائر يقطع أطول مسافة هجرة سنوية بين القطبين؟', 'Which bird makes the longest yearly migration, between the poles?', ['خرشنة القطب الشمالي (الجلم القطبي)|The Arctic tern', 'اللقلق الأبيض|The white stork', 'البجع|The pelican', 'النورس الرمادي|The grey gull']],
+    ['hard', 'أي طائر يقطع أطول مسافة هجرة سنوية بين القطبين؟', 'Which bird makes the longest yearly migration, between the poles?', ['خرشنة القطب|The Arctic tern', 'اللقلق الأبيض|The white stork', 'البجع|The pelican', 'النورس الرمادي|The grey gull']],
     ['hard', 'أي حيوان بحري له أكثف فراء بين الحيوانات؟', 'Which sea mammal has the densest fur of any animal?', ['قضاعة البحر|The sea otter', 'الفقمة|The seal', 'الدب القطبي|The polar bear', 'الفظّ|The walrus']],
 
     // ---- Phase 15 margin ----

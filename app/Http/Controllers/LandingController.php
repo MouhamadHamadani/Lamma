@@ -10,7 +10,8 @@ class LandingController extends Controller
     public function __invoke(): View
     {
         return view('landing', [
-            'categories' => Category::active()->orderBy('sort_order')->limit(6)->get(),
+            // The examples are the top-level categories: a subcategory (Football, Lebanon & Levant) has a sort order of its own inside its parent and would crowd them out.
+            'categories' => Category::active()->topLevel()->orderBy('sort_order')->orderBy('id')->limit(6)->get(),
             'howVideo' => $this->howVideo(),
         ]);
     }

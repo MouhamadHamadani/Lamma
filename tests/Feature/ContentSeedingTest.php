@@ -234,6 +234,39 @@ describe('lamma:questions-report', function () {
         expect($sports['target'])->toBeNull()->and($sports['short'])->toBe([]);
     });
 
+    it('checks the hard floor on top of the per-difficulty minimum, and a category with subcategories only has the floor', function () {
+        config(['lamma.content' => ['subcategory' => ['total' => 3, 'each' => 1, 'hard' => 3], 'category' => ['total' => 4, 'each' => 1, 'hard' => 2], 'parent' => ['hard' => 2], 'warn_margin' => 1]]);
+        reportTree();   // football: 3 easy + 1 medium + 1 hard; tennis: 3 hard; science: 4 medium; sports: no questions of its own
+
+        $rows = collect(app(QuestionReport::class)->rows())->keyBy(fn ($row) => $row['category']->slug);
+
+        expect($rows['football']['short'])->toBe(['hard'])                       // 1 hard, the floor is 3
+            ->and($rows['tennis']['short'])->toBe(['easy', 'medium'])             // 3 hard meets the floor
+            ->and($rows['science']['short'])->toBe(['easy', 'hard'])
+            ->and($rows['sports']['target'])->toBe(['total' => 0, 'each' => 0, 'hard' => 2])
+            ->and($rows['sports']['short'])->toBe(['hard']);                      // Sports itself has no hard question of its own
+    });
+
+    it('adds a top-level category up with everything below it', function () {
+        reportTree();   // sports (0 own) > football 3 easy + 1 medium + 1 hard, tennis 3 hard; science 4 medium
+
+        $tops = collect(app(QuestionReport::class)->topLevelTotals())->keyBy(fn ($row) => $row['category']->slug);
+
+        expect($tops->keys()->all())->toBe(['sports', 'science'])
+            ->and($tops['sports']['counts'])->toBe(['easy' => 3, 'medium' => 1, 'hard' => 4])->and($tops['sports']['total'])->toBe(8)
+            ->and($tops['science']['total'])->toBe(4);
+    });
+
+    it('prints the per-top-level table and the hard floors', function () {
+        config(['lamma.content' => ['subcategory' => ['total' => 3, 'each' => 1, 'hard' => 1], 'category' => ['total' => 4, 'each' => 1, 'hard' => 1], 'parent' => ['hard' => 0], 'warn_margin' => 1]]);
+        reportTree();
+
+        $this->artisan('lamma:questions-report')
+            ->expectsOutputToContain('Per top-level category, subcategories included')
+            ->expectsOutputToContain('3 (min 1 each)')
+            ->assertFailed();   // tennis has no easy or medium, science no easy: still short
+    });
+
     it('ignores inactive categories and questions that are not playable', function () {
         reportTree();
         Category::where('slug', 'science')->update(['is_active' => false]);
@@ -254,7 +287,8 @@ describe('rolling the subcategories migration back and forward', function () {
 
         (require database_path('migrations/2026_10_26_100000_add_parent_id_to_categories.php'))->restoreParents();
 
-        expect(Category::whereNotNull('parent_id')->count())->toBe(13)
+        expect(Category::whereNotNull('parent_id')->count())->toBe(14)      // the 13 of Phase 8 and Lebanon & Levant (Phase 15), which the migration reads from the seed data
+            ->and(Category::where('slug', 'lebanon-levant')->first()->parent->slug)->toBe('arab-world')
             ->and(Category::where('slug', 'football')->first()->parent->slug)->toBe('sports')
             ->and(Category::where('slug', 'human-body')->first()->parent->slug)->toBe('general-knowledge')
             ->and($admins->fresh()->parent_id)->toBeNull()

@@ -67,12 +67,14 @@ return [
     'scheduler_max_hours' => 26,
 
     // How many playable questions (active, in Arabic and English) a category needs, so no game on any difficulty runs out. A subcategory needs
-    // `total` questions with at least `each` on every difficulty; a top-level category WITHOUT subcategories needs its own (larger) numbers. A
-    // top-level category that has subcategories has no minimum of its own (its direct questions are a bonus). `lamma:questions-report` flags
-    // anything under these, `lamma:doctor` fails under them and warns within `warn_margin` of them.
+    // `total` questions with at least `each` on every difficulty; a top-level category WITHOUT subcategories needs its own (larger) numbers. `hard` is
+    // a floor for the hard tier alone (Phase 15: the bank skewed easy). A top-level category that has subcategories has no total of its own (its direct
+    // questions are a bonus), only the `parent` hard floor. `lamma:questions-report` flags anything under these, `lamma:doctor` fails under them and warns
+    // within `warn_margin` of `total` and `each` (not of the `hard` floors). Phase 15 raised them from 40 / 10 and 80 / 20.
     'content' => [
-        'subcategory' => ['total' => 40, 'each' => 10],
-        'category' => ['total' => 80, 'each' => 20],
+        'subcategory' => ['total' => 60, 'each' => 15, 'hard' => 20],
+        'category' => ['total' => 100, 'each' => 25, 'hard' => 28],
+        'parent' => ['hard' => 28],
         'warn_margin' => 3,
     ],
 

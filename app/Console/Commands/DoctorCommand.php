@@ -298,11 +298,18 @@ class DoctorCommand extends Command
             $name = ($row['parent'] ? $row['parent']->slug.' > ' : '').$row['category']->slug;
             foreach ([...$row['counts'], 'total' => $row['total']] as $cell => $have) {
                 $min = $cell === 'total' ? $row['target']['total'] : $row['target']['each'];
+                if ($min === 0) {
+                    continue;   // a category with subcategories has no total or per-difficulty minimum, only the hard floor below
+                }
                 if ($have < $min) {
                     $under[] = "{$name} {$cell} ({$have}/{$min})";
                 } elseif ($have < $min + $margin) {
                     $near[] = "{$name} {$cell} ({$have}/{$min})";
                 }
+            }
+            // The hard floor (Phase 15) is a plain minimum: no warning margin, and the same words as the report.
+            if ($row['counts']['hard'] < $row['target']['hard'] && $row['counts']['hard'] >= $row['target']['each']) {
+                $under[] = "{$name} hard ({$row['counts']['hard']}/{$row['target']['hard']})";
             }
         }
 

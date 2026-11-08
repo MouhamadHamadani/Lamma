@@ -118,7 +118,8 @@ class CreateRoom extends Component
 
     /**
      * One subcategory on or off. With its parent chosen as a whole, switching a chip off leaves the siblings; choosing every
-     * subcategory one by one is the same as choosing the parent.
+     * subcategory one by one is the same as choosing the parent, unless there is only one (Phase 15: The Arab World has just Lebanon & Levant):
+     * its chip must then mean "only this", since the parent also holds questions of its own.
      */
     public function toggleSubcategory(int $id): void
     {
@@ -137,7 +138,7 @@ class CreateRoom extends Component
         } else {
             $ids[] = $id;
             Analytics::dispatch($this, 'subcategory_selected', ['parent_category' => $parent->slug, 'subcategory' => $parent->children->firstWhere('id', $id)?->slug]);
-            if (array_diff($siblings, $ids) === []) {
+            if (count($siblings) > 1 && array_diff($siblings, $ids) === []) {
                 $ids = [...array_diff($ids, $siblings), $parent->id];
             }
         }

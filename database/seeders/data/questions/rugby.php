@@ -67,10 +67,10 @@ return [
     // ---- Phase 15 fill-up: 3 more easy and 4 more medium, so the subcategory reaches 20 / 20 / 20 ----
     ['easy', 'ما مدة الإيقاف المؤقت التي تعقب البطاقة الصفراء في الرغبي؟', 'How long is a player sent off for after a yellow card in rugby?', ['10 دقائق|10 minutes', '5 دقائق|5 minutes', '20 دقيقة|20 minutes', 'باقي المباراة|The rest of the match']],
     ['easy', 'في أي مدينة يقع ملعب «توكنهام» الشهير للرغبي؟', 'In which city is the famous Twickenham rugby stadium?', ['لندن|London', 'كارديف|Cardiff', 'إدنبرة|Edinburgh', 'دبلن|Dublin']],
-    ['easy', 'ما اللون التقليدي لقميص منتخب أستراليا للرغبي (الوالابيز)؟', 'What is the traditional colour of the Australian rugby shirt (the Wallabies)?', ['ذهبي|Gold', 'أخضر|Green', 'أبيض|White', 'أسود|Black']],
+    ['easy', 'ما اللون التقليدي لقميص منتخب أستراليا للرغبي (الوالابيز)؟', 'What is the traditional colour of the Australian rugby shirt (the Wallabies)?', ['ذهبي|Gold', 'أخضر|Green', 'أبيض|White', 'أحمر|Red']],
     ['medium', 'ما اسم إعادة اللعب برمي الكرة من خط التماس بين صفّين من اللاعبين؟', 'What is the restart called in which the ball is thrown in from the touchline between two lines of players?', ['اللاين أوت|The lineout', 'السكروم|The scrum', 'الرك|The ruck', 'المول|The maul']],
     ['medium', 'ماذا نسمّي التنافس على الكرة وهي على الأرض بعد التحام اللاعبين فوقها؟', 'What is the contest for the ball on the ground, with players from both teams bound over it, called?', ['الرك|A ruck', 'اللاين أوت|A lineout', 'المول|A maul', 'السكروم|A scrum']],
-    ['medium', 'أي بطولة سنوية تجمع جنوب أفريقيا ونيوزيلندا وأستراليا والأرجنتين؟', 'Which annual tournament brings together South Africa, New Zealand, Australia and Argentina?', ['بطولة الرغبي (ذا رغبي تشامبيونشيب)|The Rugby Championship', 'بطولة الأمم الست|The Six Nations', 'كأس العالم للرغبي|The Rugby World Cup', 'بطولة سوبر رغبي|Super Rugby']],
+    ['medium', 'أي بطولة سنوية تجمع جنوب أفريقيا ونيوزيلندا وأستراليا والأرجنتين؟', 'Which annual tournament brings together South Africa, New Zealand, Australia and Argentina?', ['ذا رغبي تشامبيونشيب|The Rugby Championship', 'بطولة الأمم الست|The Six Nations', 'كأس العالم للرغبي|The Rugby World Cup', 'سوبر رغبي|Super Rugby']],
     ['medium', 'في أي مدينة يقع ملعب «برينسيباليتي» الذي يلعب عليه منتخب ويلز؟', 'In which city is the Principality Stadium, where Wales play their home matches?', ['كارديف|Cardiff', 'سوانزي|Swansea', 'نيوبورت|Newport', 'لندن|London']],
 
     // ---- Phase 15 margin: one more of each difficulty (warn_margin keeps lamma:doctor green) ----

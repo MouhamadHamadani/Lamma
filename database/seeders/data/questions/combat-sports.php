@@ -67,7 +67,7 @@ return [
     // ---- Phase 15 fill-up: 4 more easy and 4 more medium, so the subcategory reaches 20 / 20 / 20 ----
     ['easy', 'على أي سطح يتنافس المصارعون عادةً في المصارعة الأولمبية؟', 'On which surface do wrestlers usually compete in Olympic wrestling?', ['على بساط|On a mat', 'على الماء|On water', 'على العشب|On grass', 'على الجليد|On ice']],
     ['easy', 'ماذا نسمّي المساحة المربعة المحاطة بالحبال التي يتبارز فيها الملاكمون؟', 'What is the square space surrounded by ropes in which boxers fight called?', ['الحلبة (الرينغ)|The ring', 'القفص|The cage', 'الميدان|The field', 'الحفرة|The pit']],
-    ['easy', 'ما لون الحزام الذي يبدأ به المبتدئ عادةً في الكاراتيه؟', 'What colour belt does a beginner usually start with in karate?', ['أبيض|White', 'أسود|Black', 'أحمر|Red', 'أخضر|Green']],
+    ['easy', 'ما لون الحزام الذي يبدأ به المبتدئ عادةً في الكاراتيه؟', 'What colour belt does a beginner usually start with in karate?', ['أبيض|White', 'أسود|Black', 'أحمر|Red', 'أزرق|Blue']],
     ['easy', 'ماذا نسمّي اللكمة المتجهة إلى الأعلى نحو ذقن الخصم في الملاكمة؟', 'What is a punch thrown upwards towards the opponent\'s chin called in boxing?', ['أبركت|An uppercut', 'هوك|A hook', 'جاب|A jab', 'كروس|A cross']],
     ['medium', 'بأي لقب تُعرف الملاكمة بسبب حاجتها إلى الذكاء والتكتيك؟', 'By what nickname is boxing known, for its need for skill and tactics?', ['العلم الحلو|The sweet science', 'الرياضة الذهبية|The golden game', 'رياضة الملوك|The sport of kings', 'الفن الصامت|The silent art']],
     ['medium', 'ماذا نسمّي اللكمة السريعة المستقيمة بيد القيادة في الملاكمة؟', 'What is the quick straight punch thrown with the leading hand in boxing called?', ['جاب|A jab', 'أبركت|An uppercut', 'هوك|A hook', 'سوينغ|A swing']],

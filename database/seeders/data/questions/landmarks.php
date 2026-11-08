@@ -77,5 +77,5 @@ return [
     // ---- Phase 15 margin ----
     ['easy', 'في أي بلد يقع سور الصين العظيم؟', 'In which country is the Great Wall located?', ['الصين|China', 'اليابان|Japan', 'الهند|India', 'منغوليا|Mongolia']],
     ['medium', 'في أي مدينة يقع متحف رايكس (ريكسميوزيوم) الشهير؟', 'In which city is the famous Rijksmuseum?', ['أمستردام|Amsterdam', 'بروكسل|Brussels', 'روتردام|Rotterdam', 'كوبنهاغن|Copenhagen']],
-    ['hard', 'في أي مدينة إيطالية يقع متحف أوفيتزي الشهير؟', 'In which Italian city is the famous Uffizi Gallery?', ['فلورنسا|Florence', 'روما|Rome', 'البندقية|Venice', 'ميلانو|Milan']],
+    ['hard', 'في أي مدينة إيطالية يقع متحف أوفيتزي الشهير؟', 'In which Italian city is the famous Uffizi Gallery?', ['فلورنسا|Florence', 'روما|Rome', 'البندقية|Venice', 'بيزا|Pisa']],
 ];

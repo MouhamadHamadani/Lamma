@@ -2,6 +2,7 @@
 
 use App\Enums\Difficulty;
 use App\Enums\QuestionType;
+use App\Game\QuestionAudit;
 use App\Game\QuestionImage;
 use App\Game\QuestionPool;
 use App\Game\RoomSettings;
@@ -71,8 +72,35 @@ describe('the content file', function () {
         expect($share('easy'))->toBeBetween(0.25, 0.45)->and($share('medium'))->toBeBetween(0.25, 0.45)->and($share('hard'))->toBeBetween(0.15, 0.40);
     });
 
-    it('has at least 1,200 questions', function () {
-        expect(collect(contentData()['questions'])->flatten(1)->count())->toBeGreaterThanOrEqual(1200);
+    it('has at least 1,900 questions', function () {
+        expect(collect(contentData()['questions'])->flatten(1)->count())->toBeGreaterThanOrEqual(1900);
+    });
+
+    it('ships the Phase 15 depth: Lebanon & Levant with 30 / 45 / 45, six subcategories at 40 of each difficulty, and a hard tier that is no longer thin', function () {
+        $count = fn (string $slug, string $difficulty) => collect(contentData()['questions'][$slug])->where(0, $difficulty)->count();
+        $hasChildren = collect(contentData()['categories'])->pluck('parent')->filter()->unique()->all();
+
+        expect([$count('lebanon-levant', 'easy'), $count('lebanon-levant', 'medium'), $count('lebanon-levant', 'hard')])->toBe([30, 45, 45]);
+        foreach (['football', 'basketball', 'words-language', 'everyday-life', 'arts-music', 'food-drink'] as $slug) {
+            expect([$count($slug, 'easy'), $count($slug, 'medium'), $count($slug, 'hard')])->each->toBeGreaterThanOrEqual(40);
+        }
+        foreach (contentData()['categories'] as $slug => $category) {
+            // every subcategory has at least 20 hard questions, and every top-level category at least 28 of its own
+            expect($count($slug, 'hard'))->toBeGreaterThanOrEqual(isset($category['parent']) ? 20 : 28, "{$slug} hard");
+        }
+        expect(config('lamma.content'))->toMatchArray([
+            'subcategory' => ['total' => 60, 'each' => 15, 'hard' => 20],
+            'category' => ['total' => 100, 'each' => 25, 'hard' => 28],
+            'parent' => ['hard' => 28],
+        ])->and($hasChildren)->toContain('arab-world');
+    });
+
+    it('does not make the correct option the longest too often: about a quarter by chance, never more than a third of a file', function () {
+        foreach ((new QuestionAudit(contentData()))->tells() as $slug => $row) {
+            if ($row['choice'] >= 20) {
+                expect($row['share_en'])->toBeLessThanOrEqual(0.35, "{$slug} (English)")->and($row['share_ar'])->toBeLessThanOrEqual(0.45, "{$slug} (Arabic)");
+            }
+        }
     });
 
     it('has the subcategories of Sports, General Knowledge and The Arab World, each under its parent', function () {
@@ -91,18 +119,36 @@ describe('the content file', function () {
         }
     });
 
-    it('meets the targets: a subcategory has 40 questions with 10 of each difficulty, a category without subcategories 80 with 20 of each', function () {
+    it('meets the targets in config/lamma.php: a subcategory 60 questions (15 of each difficulty, 20 hard), a category without subcategories 100 (25 each, 28 hard), a category with subcategories 28 hard of its own', function () {
         $categories = contentData()['categories'];
         $hasChildren = collect($categories)->pluck('parent')->filter()->unique()->all();
 
         foreach ($categories as $slug => $category) {
             $questions = collect(contentData()['questions'][$slug] ?? []);
-            $target = isset($category['parent']) ? config('lamma.content.subcategory') : (in_array($slug, $hasChildren, true) ? null : config('lamma.content.category'));
-            $target ??= ['total' => 1, 'each' => 0]; // a parent keeps a handful of direct questions
+            $target = isset($category['parent']) ? config('lamma.content.subcategory') : (in_array($slug, $hasChildren, true) ? config('lamma.content.parent') : config('lamma.content.category'));
 
-            expect($questions->count())->toBeGreaterThanOrEqual($target['total'], "{$slug} total");
+            expect($questions->count())->toBeGreaterThanOrEqual($target['total'] ?? 1, "{$slug} total");
             foreach (['easy', 'medium', 'hard'] as $difficulty) {
-                expect($questions->where(0, $difficulty)->count())->toBeGreaterThanOrEqual($target['each'], "{$slug} {$difficulty}");
+                expect($questions->where(0, $difficulty)->count())->toBeGreaterThanOrEqual(max($target['each'] ?? 0, $difficulty === 'hard' ? $target['hard'] ?? 0 : 0), "{$slug} {$difficulty}");
+            }
+        }
+    });
+
+    it('keeps the doctor\'s margin: every subcategory and category is at least warn_margin above its total and per-difficulty target, so lamma:doctor stays green', function () {
+        $categories = contentData()['categories'];
+        $hasChildren = collect($categories)->pluck('parent')->filter()->unique()->all();
+        $margin = config('lamma.content.warn_margin');
+
+        foreach ($categories as $slug => $category) {
+            if (in_array($slug, $hasChildren, true)) {
+                continue;
+            }
+            $questions = collect(contentData()['questions'][$slug]);
+            $target = isset($category['parent']) ? config('lamma.content.subcategory') : config('lamma.content.category');
+
+            expect($questions->count())->toBeGreaterThanOrEqual($target['total'] + $margin, "{$slug} total");
+            foreach (['easy', 'medium', 'hard'] as $difficulty) {
+                expect($questions->where(0, $difficulty)->count())->toBeGreaterThanOrEqual($target['each'] + $margin, "{$slug} {$difficulty}");
             }
         }
     });

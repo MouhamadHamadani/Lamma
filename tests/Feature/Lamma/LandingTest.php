@@ -66,6 +66,14 @@ it('lists up to six categories in sort order with their icon', function () {
         ->and($html)->toContain('M3 12h18M12 3c3 3.5'); // geography -> globe icon, never the seeded emoji
 });
 
+it('shows the top-level categories as examples, never a subcategory, whatever its sort order inside its parent', function () {
+    $sports = Category::factory()->create(['slug' => 'sports', 'name' => ['en' => 'Sports Hall', 'ar' => 'قاعة الرياضة'], 'sort_order' => 5]);
+    Category::factory()->create(['slug' => 'football', 'name' => ['en' => 'Football Pitch', 'ar' => 'ملعب الكرة'], 'sort_order' => 1, 'parent_id' => $sports->id]);
+    Category::factory()->create(['slug' => 'science', 'name' => ['en' => 'Science Lab', 'ar' => 'مختبر العلوم'], 'sort_order' => 2]);
+
+    $this->withSession(['locale' => 'en'])->get('/')->assertOk()->assertSee('Sports Hall')->assertSee('Science Lab')->assertDontSee('Football Pitch');
+});
+
 it('has the main sections and their anchors', function () {
     Category::factory()->create();
 

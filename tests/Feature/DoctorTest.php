@@ -221,12 +221,22 @@ describe('lamma:doctor', function () {
         $socket = goodProduction();
         Question::query()->forceDelete();
         Category::query()->delete();
-        config(['lamma.content' => ['subcategory' => ['total' => 40, 'each' => 10], 'category' => ['total' => 80, 'each' => 20], 'warn_margin' => 3]]);
+        config(['lamma.content' => (require config_path('lamma.php'))['content']]);     // the real targets: 60 / 15 / 20 hard, 100 / 25 / 28 hard, parents 28 hard
         (new ContentSeeder)->run();
 
         [$code, $rows] = doctor();
 
         expect($rows['Questions'][0])->toBe('PASS', $rows['Questions'][1])->and($code)->toBe(0);
+        fclose($socket);
+    });
+
+    it('fails when a hard tier is under its floor even though every other cell is fine, with no warning margin on the floor', function () {
+        $socket = goodProduction();
+        config(['lamma.content' => ['subcategory' => ['total' => 6, 'each' => 2], 'category' => ['total' => 30, 'each' => 10, 'hard' => 500], 'parent' => ['hard' => 500], 'warn_margin' => 3]]);
+
+        [$code, $rows] = doctor();
+
+        expect($rows['Questions'][0])->toBe('FAIL')->and($rows['Questions'][1])->toContain('sports hard (')->and($code)->toBe(1);
         fclose($socket);
     });
 
