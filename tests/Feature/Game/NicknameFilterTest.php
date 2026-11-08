@@ -146,6 +146,76 @@ describe('the list', function () {
     });
 });
 
+describe('the gaps Phase 14.1 closed', function () {
+    it('blocks the Arabizi words that were missing, with their disguises', function (string $nickname) {
+        expect(nicknameFilter()->isBlocked($nickname))->toBeTrue();
+    })->with([
+        'zeb' => 'zeb', 'zob' => 'Zob', 'zeb stretched' => 'zeeeb', 'zob with a number' => 'zob69', 'zeb in a name' => 'big_zeb',
+        'teez' => 'teez', 'teez stretched' => 'teeeez', 'tiz' => 'TIZ', 'tez' => 'tez', 'tiz spaced' => 't i z',
+        'khawal' => 'khawal', 'khawal in a name' => 'xXkhawalXx', 'khawal as 5awal' => '5awal', 'khawal short' => '5wal', 'khawal short, stretched' => '5waaal',
+        'nayek' => 'nayek', 'nayek upper' => 'NAYEK', 'nayyek' => 'nayyek', 'neek' => 'neek', 'neek stretched' => 'neeeek', 'nayek in a name' => 'abu_nayek',
+        'dayous' => 'dayous', 'dayyous' => 'dayyous', 'dayus' => 'dayus', 'dayyous in a name' => 'ya_dayyous',
+        'louti' => 'louti', 'lawati' => 'lawati', 'lawat' => 'lawat', 'lawati upper' => 'LAWATI',
+        'metnayek' => 'metnayek', 'mitnayek' => 'mitnayek', 'metnayek in a name' => 'ibn_metnayek',
+        '3ers' => '3ers', '3ers upper' => '3ERS', '3erse' => '3erse', '3ers spaced' => '3 e r s', 'ersh' => 'ersh', 'ersh stretched' => 'erssshh',
+        '3ars with other vowels' => '3irs', '3ors' => '3ors', '3urs' => '3urs', '3arse' => '3arse', '3arsh' => '3arsh', '3ersh' => '3ersh',
+    ]);
+
+    it('reads v as u, but only as a disguise: FvCk and Cvnt are caught', function (string $nickname) {
+        expect(nicknameFilter()->isBlocked($nickname))->toBeTrue();
+    })->with(['FvCk' => 'FvCk', 'fvck' => 'fvck', 'fvvvck' => 'fvvvck', 'Cvnt' => 'Cvnt', 'Bvllshit' => 'Bvllshit', 'with a symbol too' => 'f.v.c.k', 'a word with a real v' => 'Vagina']);
+
+    it('keeps v out of the Arabizi reading, and out of innocent names', function () {
+        expect(NicknameFilter::fold('FvCk'))->toBe('fuck')->and(NicknameFilter::fold('Vera', 'arabizi'))->toBe('vera')
+            ->and(nicknameFilter()->isBlocked('Vera'))->toBeFalse()->and(nicknameFilter()->isBlocked('Ivan'))->toBeFalse()->and(nicknameFilter()->isBlocked('Slava'))->toBeFalse()
+            ->and(nicknameFilter()->isBlocked('Victor'))->toBeFalse()->and(nicknameFilter()->isBlocked('Evelyn'))->toBeFalse()->and(nicknameFilter()->isBlocked('Calvin'))->toBeFalse();
+    });
+
+    it('keeps the short and ambiguous ones to whole words: a longer name that merely contains them is fine', function (string $nickname) {
+        expect(nicknameFilter()->isBlocked($nickname))->toBeFalse();
+    })->with([
+        'Zeba', 'Zebib', 'Zebedee', 'Tizi Ouzou', 'Tiziana', 'Tezcan', 'Neeko', 'Neekon', 'Nayeka', 'Nayef', 'Dayana', 'Dayan', 'Louay', 'Loutfi', 'Lotfi', 'Lawand', 'Lawaty',
+        'Khawla', 'Khawlani', 'Ershad', 'Ersan', 'Ears', 'Zebra', 'Zobeida', 'Metn', 'Mitri', 'Metnaye',
+    ]);
+
+    it('has an empty, documented section for sectarian and political slurs, waiting for a native speaker (nothing was invented)', function () {
+        $file = file_get_contents(resource_path('blocklist/nicknames.php'));
+
+        expect($file)->toContain('SECTARIAN AND POLITICAL SLURS')->toContain('EMPTY ON PURPOSE')->toContain('native speaker')
+            ->and(substr_count($file, 'SECTARIAN AND POLITICAL SLURS: empty on purpose'))->toBe(2);   // one in each list, a comment and no words
+    });
+
+    it('still blocks نيك: it is a rude word and also the name Nick written in Arabic, and the word wins (accepted)', function () {
+        expect(nicknameFilter()->isBlocked('نيك'))->toBeTrue()->and(nicknameFilter()->isBlocked('نيكول'))->toBeFalse()->and(nicknameFilter()->isBlocked('Nick'))->toBeFalse();
+    });
+});
+
+describe('the innocent names (tests/Fixtures/innocent-names.php)', function () {
+    $fixture = fn () => require base_path('tests/Fixtures/innocent-names.php');
+
+    it('is a list of at least 150 different names in both scripts', function () use ($fixture) {
+        $names = [...$fixture()['latin'], ...$fixture()['arabic']];
+
+        expect(count($names))->toBeGreaterThanOrEqual(150)->and(count(array_unique($names)))->toBe(count($names))
+            ->and(count($fixture()['latin']))->toBeGreaterThan(60)->and(count($fixture()['arabic']))->toBeGreaterThan(60);
+    });
+
+    it('lets every one of them through, as they are, in capitals, with a number and with a space and a number', function () use ($fixture) {
+        $filter = nicknameFilter();
+        $blocked = [];
+
+        foreach ([...$fixture()['latin'], ...$fixture()['arabic']] as $name) {
+            foreach ([$name, mb_strtoupper($name), $name.'42', $name.' 7', '7'.$name] as $variant) {
+                if ($filter->isBlocked($variant)) {
+                    $blocked[] = $variant;
+                }
+            }
+        }
+
+        expect($blocked)->toBe([]);
+    });
+});
+
 describe('joining', function () {
     beforeEach(function () {
         Queue::fake();

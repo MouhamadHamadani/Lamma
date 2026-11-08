@@ -14,7 +14,7 @@ use Normalizer;
 final class NicknameFilter
 {
     /** Digits and symbols read as the letters they look like (leet speak). */
-    private const LOOKALIKES = ['0' => 'o', '1' => 'i', '3' => 'e', '4' => 'a', '5' => 's', '7' => 't', '8' => 'b', '@' => 'a', '$' => 's', '!' => 'i', '+' => 't'];
+    private const LOOKALIKES = ['0' => 'o', '1' => 'i', '3' => 'e', '4' => 'a', '5' => 's', '7' => 't', '8' => 'b', '@' => 'a', '$' => 's', '!' => 'i', '+' => 't', 'v' => 'u'];
 
     /** Digits as Arabic is typed in Latin letters (Arabizi). Never real Latin letters, so 3ars can never collide with the English word "ears". */
     private const ARABIZI = ['2' => 'ʔ', '3' => 'ʕ', '5' => 'ḫ', '6' => 'ṭ', '7' => 'ħ', '8' => 'ġ', '9' => 'q'];

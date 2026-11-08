@@ -40,6 +40,8 @@ class RoomRoster
             return false;
         }
         if ($this->filter->isBlocked($nickname)) {
+            app(NicknameRefusals::class)->record();
+
             throw JoinException::nicknameBlocked();
         }
         if ($room->hasNickname($nickname, $player->id)) {

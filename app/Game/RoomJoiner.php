@@ -39,6 +39,8 @@ class RoomJoiner
 
         $nickname = Str::squish($nickname);
         if (($this->filter ?? app(NicknameFilter::class))->isBlocked($nickname)) {
+            app(NicknameRefusals::class)->record();
+
             throw JoinException::nicknameBlocked();
         }
         if ($room->hasNickname($nickname)) {
