@@ -18,6 +18,8 @@ final class CategoryStyle
         'olympics' => 'rings', 'combat-sports' => 'glove',
         'everyday-life' => 'coffee', 'words-language' => 'book', 'inventions' => 'cog', 'human-body' => 'heart',
         'landmarks' => 'pin', 'arts-music' => 'music',
+        // Subcategory of the Arab World (Phase 15): the cedar-leaf icon.
+        'lebanon-levant' => 'leaf',
     ];
 
     private const TINTS = ['teal', 'coral', 'sun', 'navy'];

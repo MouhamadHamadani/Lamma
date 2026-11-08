@@ -45,6 +45,7 @@ return [
         'human-body' => ['ar' => 'جسم الإنسان', 'en' => 'The Human Body', 'icon' => '🫀', 'parent' => 'general-knowledge'],
         'landmarks' => ['ar' => 'معالم شهيرة', 'en' => 'Famous Landmarks', 'icon' => '🗽', 'parent' => 'general-knowledge'],
         'arts-music' => ['ar' => 'فنون وموسيقى', 'en' => 'Arts & Music', 'icon' => '🎵', 'parent' => 'general-knowledge'],
+        'lebanon-levant' => ['ar' => 'لبنان وبلاد الشام', 'en' => 'Lebanon & Levant', 'icon' => '🌲', 'parent' => 'arab-world'],
     ],
 
     'questions' => [

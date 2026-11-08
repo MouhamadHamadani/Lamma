@@ -75,12 +75,14 @@ describe('the content file', function () {
         expect(collect(contentData()['questions'])->flatten(1)->count())->toBeGreaterThanOrEqual(1200);
     });
 
-    it('has the subcategories of Sports and General Knowledge, each under its parent', function () {
+    it('has the subcategories of Sports, General Knowledge and The Arab World, each under its parent', function () {
         $categories = contentData()['categories'];
         $sub = fn (string $parent) => array_keys(array_filter($categories, fn (array $category) => ($category['parent'] ?? null) === $parent));
 
         expect($sub('sports'))->toEqualCanonicalizing(['football', 'basketball', 'rugby', 'tennis', 'motorsport', 'olympics', 'combat-sports'])
-            ->and($sub('general-knowledge'))->toEqualCanonicalizing(['everyday-life', 'words-language', 'inventions', 'human-body', 'landmarks', 'arts-music']);
+            ->and($sub('general-knowledge'))->toEqualCanonicalizing(['everyday-life', 'words-language', 'inventions', 'human-body', 'landmarks', 'arts-music'])
+            ->and($sub('arab-world'))->toEqualCanonicalizing(['lebanon-levant'])
+            ->and($categories['lebanon-levant'])->toMatchArray(['ar' => 'لبنان وبلاد الشام', 'en' => 'Lebanon & Levant']);
         foreach ($categories as $slug => $category) {
             if (isset($category['parent'])) {
                 expect($categories[$category['parent']] ?? null)->not->toBeNull("{$slug}: its parent exists")
@@ -210,6 +212,29 @@ describe('the content file', function () {
                 expect(preg_match($stale, $en))->toBe(0, "{$slug}: {$en}");
             }
         }
+    });
+
+    it('writes Modern Standard Arabic, except in the Lebanese-dialect file, where the dialect wording is the point', function () {
+        // Whole words of the Lebanese dialect that never belong in an MSA question (checked on the text with its marks removed). lebanon-levant.php is the one
+        // file allowed to use them: its header says so, and its dialect questions explain each word in English.
+        $dialect = ['كتير', 'هيك', 'بدي', 'هلق', 'هلأ', 'ليش', 'شو', 'منيح', 'هيدا', 'إيمتى', 'ايمتى', 'وين', 'كرمال', 'لسا', 'قديش', 'بكرا', 'مبارح', 'دايما', 'متل', 'شوي', 'مش'];
+        $marks = '/[\x{064B}-\x{065F}\x{0670}\x{0640}]/u';
+        $found = [];
+
+        foreach (contentData()['questions'] as $slug => $questions) {
+            foreach ($questions as $index => $row) {
+                $texts = [$row[1], ...array_column(rowPairs($row), 0), ...(rowFact($row) ? [rowFact($row)[0]] : [])];
+                foreach ($texts as $text) {
+                    $words = preg_split('/[^\p{L}]+/u', preg_replace($marks, '', $text), -1, PREG_SPLIT_NO_EMPTY);
+                    foreach (array_intersect($words, $dialect) as $word) {
+                        $found[$slug][] = "#{$index} \"{$word}\" in {$text}";
+                    }
+                }
+            }
+        }
+
+        expect(array_keys($found))->toBe(['lebanon-levant'], 'Lebanese dialect belongs only in lebanon-levant: '.json_encode(array_diff_key($found, ['lebanon-levant' => 1]), JSON_UNESCAPED_UNICODE))
+            ->and(count($found['lebanon-levant']))->toBeGreaterThanOrEqual(10, 'the dialect file uses its dialect');
     });
 
     it('has an icon and a tint for every category, so no tile falls back to the sparkles', function (string $slug) {
